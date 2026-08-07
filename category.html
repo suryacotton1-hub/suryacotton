@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title id="pageTitle">Collection – SuryaCottans</title>
+  <meta name="description" content="Browse our premium collection at SuryaCottans" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700;900&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body { background: #f8f7f5; }
+
+    /* ---- CATEGORY HERO BANNER ---- */
+    .cat-hero {
+      position: relative;
+      height: 38vh;
+      min-height: 240px;
+      display: flex;
+      align-items: flex-end;
+      overflow: hidden;
+      background: #1a1a1a;
+    }
+    .cat-hero-img {
+      position: absolute;
+      inset: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+      object-position: top center;
+      opacity: 0.5;
+      transition: transform 8s ease;
+    }
+    .cat-hero:hover .cat-hero-img { transform: scale(1.04); }
+    .cat-hero-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.25) 60%, rgba(0,0,0,0.08) 100%);
+    }
+    .cat-hero-content {
+      position: relative; z-index: 2;
+      width: 90%; max-width: 1280px;
+      margin: 0 auto;
+      padding-bottom: 2.5rem;
+    }
+    .cat-breadcrumb {
+      display: flex; align-items: center; gap: 0.5rem;
+      font-size: 0.75rem; letter-spacing: 1.5px;
+      color: rgba(255,255,255,0.55);
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+    .cat-breadcrumb a { color: rgba(255,255,255,0.55); transition: color 0.2s; }
+    .cat-breadcrumb a:hover { color: var(--red); }
+    .cat-breadcrumb span { color: rgba(255,255,255,0.35); }
+    .cat-hero-tag {
+      font-size: 0.72rem; font-weight: 700;
+      letter-spacing: 4px; text-transform: uppercase;
+      color: var(--red); margin-bottom: 0.4rem;
+      display: block;
+    }
+    .cat-hero-title {
+      font-family: var(--font-display);
+      font-size: clamp(3rem, 8vw, 7rem);
+      color: #fff;
+      line-height: 0.9;
+      letter-spacing: 2px;
+    }
+    .cat-hero-count {
+      font-size: 0.82rem; color: rgba(255,255,255,0.55);
+      letter-spacing: 2px; margin-top: 0.6rem;
+      display: block;
+    }
+
+
+
+    /* ---- PRODUCTS GRID ---- */
+    .cat-products {
+      padding: 3rem 0 6rem;
+      width: 90%; max-width: 1280px;
+      margin: 0 auto;
+    }
+    .cat-results-bar {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      margin-bottom: 2rem;
+      flex-wrap: wrap; gap: 0.5rem;
+    }
+    .cat-results-count {
+      font-size: 0.82rem;
+      color: #999;
+      letter-spacing: 1px;
+    }
+    .cat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1.6rem;
+    }
+
+    /* Product card — white theme */
+    .cat-grid .product-card {
+      background: #fff;
+      border: 1px solid rgba(0,0,0,0.06);
+      border-radius: 20px;
+    }
+    .cat-grid .product-card-inner {
+      background: #fff;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+    }
+    .cat-grid .product-card:hover .product-card-inner {
+      box-shadow: 0 16px 48px rgba(0,0,0,0.10);
+    }
+    .cat-grid .product-name { color: #1a1a1a; }
+    .cat-grid .product-cat { color: var(--red); }
+    .cat-grid .price-current { color: #1a1a1a; }
+
+    /* Empty state */
+    .cat-empty {
+      text-align: center;
+      padding: 5rem 1rem;
+      color: #999;
+    }
+    .cat-empty-icon { font-size: 3rem; margin-bottom: 1rem; }
+    .cat-empty h3 { font-family: var(--font-display); font-size: 2rem; color: #555; }
+    .cat-empty p { font-size: 0.9rem; margin-top: 0.5rem; color: #999; }
+
+    /* Mobile */
+    @media (max-width: 600px) {
+      .cat-hero { height: 30vh; }
+      .cat-grid { grid-template-columns: repeat(2, 1fr); gap: 0.8rem; }
+    }
+
+    /* ---- MARQUEE TICKER STRIP ---- */
+    .cat-ticker-strip {
+      background: #fff;
+      border-top: 1px solid rgba(0,0,0,0.06);
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+      overflow-x: auto;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+      padding: 0;
+      position: relative;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.03);
+    }
+    .cat-ticker-strip::-webkit-scrollbar { display: none; }
+    .cat-ticker-strip::before, .cat-ticker-strip::after {
+      content: '';
+      position: absolute; top: 0; bottom: 0; width: 80px; z-index: 2; pointer-events: none;
+    }
+    .cat-ticker-strip::before { left: 0; background: linear-gradient(to right, #fff, transparent); }
+    .cat-ticker-strip::after { right: 0; background: linear-gradient(to left, #fff, transparent); }
+    .cat-ticker-track { display: flex; align-items: center; width: max-content; padding: 14px 0; }
+    .ticker-tag {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 8px 20px 8px 8px; margin: 0 10px;
+      border: 1px solid rgba(0,0,0,0.08); border-radius: 50px;
+      background: #f8f7f5; cursor: pointer;
+      transition: background 0.25s, border-color 0.25s, transform 0.25s, box-shadow 0.25s;
+      white-space: nowrap; text-decoration: none;
+    }
+    .ticker-tag:hover {
+      background: rgba(232,0,13,0.06);
+      border-color: var(--red);
+      transform: scale(1.04);
+      box-shadow: 0 4px 16px rgba(232,0,13,0.1);
+    }
+    .ticker-tag-img {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 1.5px solid rgba(0,0,0,0.08);
+      background: #eee;
+      flex-shrink: 0;
+    }
+    .ticker-tag-label {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #444;
+      transition: color 0.25s;
+    }
+    .ticker-tag:hover .ticker-tag-label {
+      color: var(--red);
+    }
+    .ticker-divider {
+      color: rgba(0,0,0,0.15);
+      font-size: 1.1rem;
+      margin: 0 6px;
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="navbar scrolled" id="navbar">
+    <a href="index.html" class="nav-logo"><img src="Logo.png" alt="SuryaCottans" class="nav-logo-img"><span class="nav-logo-text">SuryaCotton</span></a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="index.html" class="nav-link">Home</a></li>
+      <li><a href="index.html#collection" class="nav-link">Collection</a></li>
+      <li><a href="category.html?cat=all" class="nav-link">Shop</a></li>
+      <li><a href="track.html" class="nav-link">Track Order</a></li>
+      <li><a href="story.html" class="nav-link">About Us</a></li>
+      <li><a href="contact.html" class="nav-link">Contact</a></li>
+    </ul>
+    <div class="nav-actions">
+      <a href="profile.html" class="nav-icon-btn profile-btn" id="profileBtn" aria-label="Profile">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </a>
+      <button class="nav-icon-btn cart-btn" id="cartBtn" aria-label="Cart">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        <span class="cart-count" id="cartCount">0</span>
+      </button>
+      <button class="hamburger" id="hamburger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ============ SIDE MENU DRAWER ============ -->
+  <div class="side-menu-overlay" id="sideMenuOverlay"></div>
+  <aside class="side-menu" id="sideMenu" aria-label="Side navigation">
+
+    <!-- Header -->
+    <div class="sm-header">
+      <div class="sm-brand">
+        <img src="Logo.png" alt="SuryaCottans" class="sm-logo" />
+        <div class="sm-brand-text">
+          <span class="sm-brand-name">SuryaCotton</span>
+          <span class="sm-brand-sub">Premium Menswear</span>
+        </div>
+      </div>
+      <button class="sm-close" id="sideMenuClose" aria-label="Close menu">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <!-- User greeting -->
+    <a href="profile.html" class="sm-user-bar" id="smUserBar" style="text-decoration:none; cursor:pointer;">
+      <div class="sm-user-avatar" id="smUserAvatar">
+        <img id="smAvatarImg" class="sm-avatar-img hidden" alt="Profile" />
+        <svg id="smAvatarIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </div>
+      <div class="sm-user-info">
+        <span class="sm-user-name" id="smUserName">Welcome!</span>
+        <span class="sm-user-sub" id="smUserSub">Login to view your orders</span>
+      </div>
+      <span class="sm-user-arrow">→</span>
+    </a>
+
+    <!-- Main Nav Links -->
+    <nav class="sm-nav">
+      <p class="sm-section-label">NAVIGATE</p>
+      <a href="index.html" class="sm-link" data-close>
+        <span class="sm-link-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </span>
+        <span>Home</span>
+      </a>
+      <a href="track.html" class="sm-link">
+        <span class="sm-link-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 8h5l2 5v5h-7V8z"></path><rect x="1" y="3" width="15" height="13" rx="1"></rect><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+        </span>
+        <span>My Orders</span>
+      </a>
+      <a href="index.html#collection" class="sm-link" data-close>
+        <span class="sm-link-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        </span>
+        <span>Collections</span>
+      </a>
+      <a href="category.html?cat=all" class="sm-link" data-close>
+        <span class="sm-link-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        </span>
+        <span>Shop Now</span>
+        <span class="sm-link-badge">New</span>
+      </a>
+
+      <a href="story.html" class="sm-link">
+        <span class="sm-link-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </span>
+        <span>About Us</span>
+      </a>
+      <a href="contact.html" class="sm-link">
+        <span class="sm-link-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </span>
+        <span>Contact</span>
+      </a>
+    </nav>
+
+    <!-- Categories -->
+    <div class="sm-categories">
+      <p class="sm-section-label">SHOP BY CATEGORY</p>
+      <div class="sm-cat-grid">
+        <a href="category.html?cat=shirt" class="sm-cat-chip">
+          <span class="sm-cat-emoji">👔</span> Shirts
+        </a>
+        <a href="category.html?cat=pant" class="sm-cat-chip">
+          <span class="sm-cat-emoji">👖</span> Pants
+        </a>
+        <a href="category.html?cat=tshirt" class="sm-cat-chip">
+          <span class="sm-cat-emoji">👕</span> T-Shirts
+        </a>
+        <a href="category.html?cat=shorts" class="sm-cat-chip">
+          <span class="sm-cat-emoji">🩳</span> Shorts
+        </a>
+        <a href="category.html?cat=caps" class="sm-cat-chip">
+          <span class="sm-cat-emoji">🧢</span> Caps
+        </a>
+        <a href="category.html?cat=keychains" class="sm-cat-chip">
+          <span class="sm-cat-emoji">🔑</span> Keychains
+        </a>
+      </div>
+    </div>
+
+    <!-- Support Links -->
+    <div class="sm-support">
+      <p class="sm-section-label">SUPPORT</p>
+      <div class="sm-support-links">
+        <a href="shipping.html">Shipping Policy</a>
+        <a href="refunds.html">Refund Policy</a>
+        <a href="faq.html">FAQ</a>
+        <a href="size-guide.html">Size Guide</a>
+      </div>
+    </div>
+
+    <!-- Social -->
+    <div class="sm-social">
+      <a href="https://www.instagram.com/suryacotton__menswear" target="_blank" rel="noopener" class="sm-social-btn" aria-label="Instagram">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+      </a>
+      <a href="https://www.facebook.com/people/Surya-Cotton/pfbid02zsaWiXrVBv8DPwRHeuibw82ed6ttGs3a51uJxhYohkFfYUBFmwKHaS59q6rcbT1ul" target="_blank" rel="noopener" class="sm-social-btn" aria-label="Facebook">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+      </a>
+      <a href="https://wa.me/918072654677" target="_blank" rel="noopener" class="sm-social-btn" aria-label="WhatsApp">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+      </a>
+      <a href="https://www.youtube.com/channel/UCP8Ewonc77HEhwC9HaeJr_w" target="_blank" rel="noopener" class="sm-social-btn" aria-label="YouTube">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46a2.78 2.78 0 0 0-1.95 1.96A29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58A2.78 2.78 0 0 0 3.41 19.6C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.95A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="currentColor" stroke="none"/></svg>
+      </a>
+    </div>
+
+    <!-- Footer note -->
+    <div class="sm-footer-note">
+      <span>© 2025 SuryaCottans</span>
+      <span>Made with ❤️ in Tamil Nadu</span>
+    </div>
+
+  </aside>
+
+  <!-- HERO BANNER -->
+  <div class="cat-hero" id="catHero">
+    <img class="cat-hero-img" id="catHeroImg" src="" alt="" />
+    <div class="cat-hero-overlay"></div>
+    <div class="cat-hero-content">
+      <nav class="cat-breadcrumb">
+        <a href="index.html">Home</a>
+        <span>›</span>
+        <a href="index.html#collection">Collections</a>
+        <span>›</span>
+        <span id="catBreadName">—</span>
+      </nav>
+      <span class="cat-hero-tag">OUR COLLECTION</span>
+      <h1 class="cat-hero-title" id="catTitle">—</h1>
+      <span class="cat-hero-count" id="catCount"></span>
+    </div>
+  </div>
+
+  <!-- MARQUEE TICKER STRIP -->
+  <div class="cat-ticker-strip" id="catTickerStrip">
+    <div class="cat-ticker-track" id="catTickerTrack">
+      <!-- filled by JS -->
+    </div>
+  </div>
+
+  <!-- PRODUCTS GRID -->
+  <div class="cat-products">
+    <div class="cat-results-bar">
+      <span class="cat-results-count" id="catResultsCount"></span>
+    </div>
+    <div class="cat-grid" id="catGrid"></div>
+  </div>
+
+  <!-- CART DRAWER -->
+  <div class="cart-overlay" id="cartOverlay"></div>
+  <div class="cart-drawer" id="cartDrawer">
+    <div class="cart-header">
+      <h3>Your Cart</h3>
+      <button class="cart-close" id="cartClose">✕</button>
+    </div>
+    <div class="cart-items" id="cartItems"><p class="cart-empty">Your cart is empty 🛍️</p></div>
+    <div class="cart-footer">
+      <div class="cart-total">Total: <span id="cartTotal">₹0</span></div>
+      <button class="btn-primary" style="width:100%" id="checkoutBtn">CHECKOUT</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    /* ---- DATA ---- */
+    const defaultProducts = [
+      { id:1,  name:"Plain Shirt",           cat:"shirt",  img:"Products/Shirt/Plain shirt.jpg",              price:899,  original:1299, off:31, rating:4.7, reviews:312, badge:"Best Seller", subcat:"Plain Shirt" },
+      { id:2,  name:"Linen Shirt",           cat:"shirt",  img:"Products/Shirt/Linen shirt.png",              price:1199, original:1699, off:29, rating:4.8, reviews:198, badge:"New",         subcat:"Linen Shirt" },
+      { id:3,  name:"Printed Shirt",         cat:"shirt",  img:"Products/Shirt/Printed shirt.png",            price:999,  original:1399, off:29, rating:4.6, reviews:245, badge:"Trending",    subcat:"Printed Shirt" },
+      { id:4,  name:"Branded Shirt",         cat:"shirt",  img:"Products/Shirt/Branded shirt.png",            price:1499, original:2199, off:32, rating:4.9, reviews:167, badge:"Hot",         subcat:"Branded Shirt" },
+      { id:5,  name:"Checked Shirt",         cat:"shirt",  img:"Products/Shirt/Checked shirt.png",            price:1099, original:1499, off:27, rating:4.7, reviews:289, badge:"",            subcat:"Checked Shirt" },
+      { id:6,  name:"Stripped Shirt",        cat:"shirt",  img:"Products/Shirt/Stripped shirt.png",           price:999,  original:1399, off:29, rating:4.5, reviews:176, badge:"",            subcat:"Stripped Shirt" },
+      { id:7,  name:"Denim Shirt",           cat:"shirt",  img:"Products/Shirt/Denim shirt.png",              price:1399, original:1999, off:30, rating:4.8, reviews:203, badge:"New",         subcat:"Denim Shirt" },
+      { id:8,  name:"Jean Pant",             cat:"pant",   img:"Products/Pant/Jean pant.png",                 price:1299, original:1899, off:32, rating:4.8, reviews:421, badge:"Best Seller", subcat:"Jean Pant" },
+      { id:9,  name:"Cotton Pant",           cat:"pant",   img:"Products/Pant/Cotton pant.png",               price:999,  original:1399, off:29, rating:4.7, reviews:318, badge:"",            subcat:"Cotton Pant" },
+      { id:10, name:"Baggy Pant",            cat:"pant",   img:"Products/Pant/Baggy pant.png",                price:1199, original:1699, off:29, rating:4.6, reviews:256, badge:"Trending",    subcat:"Baggy Pant" },
+      { id:11, name:"Mom Fit Pant",          cat:"pant",   img:"Products/Pant/Mom fit pant.png",              price:1099, original:1599, off:31, rating:4.7, reviews:189, badge:"New",         subcat:"Mom Fit Pant" },
+      { id:12, name:"Track Pant",            cat:"pant",   img:"Products/Pant/Track pant.png",                price:799,  original:1099, off:27, rating:4.5, reviews:374, badge:"Hot",         subcat:"Track Pant" },
+      { id:13, name:"Hoodies T-Shirt",       cat:"tshirt", img:"Products/Tshirt/Hoodies tshirt.png",          price:1299, original:1899, off:32, rating:4.8, reviews:512, badge:"Best Seller", subcat:"Hoodies T-Shirt" },
+      { id:14, name:"Collar T-Shirt",        cat:"tshirt", img:"Products/Tshirt/Collar tshirt.png",           price:899,  original:1299, off:31, rating:4.7, reviews:298, badge:"",            subcat:"Collar T-Shirt" },
+      { id:15, name:"Drop Shoulder T-Shirt", cat:"tshirt", img:"Products/Tshirt/Drop shoulder Tshirt.png",    price:999,  original:1399, off:29, rating:4.6, reviews:341, badge:"Trending",    subcat:"Drop Shoulder T-Shirt" },
+      { id:16, name:"Full Sleeve T-Shirt",   cat:"tshirt", img:"Products/Tshirt/Full sleeve Tshirt.png",      price:1099, original:1499, off:27, rating:4.9, reviews:223, badge:"New",         subcat:"Full Sleeve T-Shirt" },
+    ];
+    let ALL_PRODUCTS = JSON.parse(localStorage.getItem('sc_products') || '[]');
+    if (!ALL_PRODUCTS || !ALL_PRODUCTS.length) {
+      ALL_PRODUCTS = [...defaultProducts];
+    }
+    const seenMapCat = new Map();
+    ALL_PRODUCTS.forEach(p => {
+      if (!p) return;
+      const key = String(p.id || '').trim() || String(p.name || '').toLowerCase().trim();
+      if (seenMapCat.has(key)) {
+        seenMapCat.set(key, { ...seenMapCat.get(key), ...p });
+      } else {
+        seenMapCat.set(key, p);
+      }
+    });
+    ALL_PRODUCTS = Array.from(seenMapCat.values()).map(p => {
+      const origVal = parseInt(p.original) || 0;
+      const priceVal = parseInt(p.price) || 0;
+      const calcOff = (origVal > priceVal && origVal > 0) ? Math.round(((origVal - priceVal) / origVal) * 100) : (p.off || 0);
+      const isPant = p && (p.cat === 'pant' || String(p.cat).toLowerCase() === 'pant');
+      return {
+        ...p,
+        off: calcOff,
+        rating: p.rating || 4.8,
+        reviews: p.reviews !== undefined ? p.reviews : 0,
+        sizes: isPant && (!p.sizes || p.sizes.length === 0 || p.sizes.includes('S')) ? ['28', '30', '32', '34', '36', '38'] : (p.sizes || ['S', 'M', 'L', 'XL', 'XXL'])
+      };
+    });
+    localStorage.setItem('sc_products', JSON.stringify(ALL_PRODUCTS));
+    if (typeof window !== 'undefined') {
+      window.ALL_PRODUCTS = ALL_PRODUCTS;
+    }
+
+    const CAT_META = {
+      all:       { label: 'All Products', heroImg: 'Products/Shirt/Plain shirt.jpg', subcats: ['All','Plain Shirt','Jean Pant','Hoodies T-Shirt','Linen Shirt','Cotton Pant','Collar T-Shirt','Printed Shirt','Baggy Pant','Drop Shoulder T-Shirt','Branded Shirt','Mom Fit Pant','Full Sleeve T-Shirt','Checked Shirt','Track Pant','Stripped Shirt','Denim Shirt'] },
+      shirt:     { label: 'Shirts',    heroImg: 'Products/Shirt/Plain shirt.jpg',     subcats: ['All','Plain Shirt','Linen Shirt','Printed Shirt','Branded Shirt','Checked Shirt','Stripped Shirt','Denim Shirt'] },
+      pant:      { label: 'Pants',     heroImg: 'Products/Pant/Jean pant.png',        subcats: ['All','Jean Pant','Cotton Pant','Baggy Pant','Mom Fit Pant','Track Pant'] },
+      tshirt:    { label: 'T-Shirts',  heroImg: 'Products/Tshirt/Hoodies tshirt.png', subcats: ['All','Hoodies T-Shirt','Collar T-Shirt','Drop Shoulder T-Shirt','Full Sleeve T-Shirt'] },
+      shorts:    { label: 'Shorts',    heroImg: 'Products/Pant/Jean pant.png',        subcats: ['All','Cargo Shorts','Denim Shorts','Cotton Shorts','Athletic Shorts'] },
+      caps:      { label: 'Caps',      heroImg: 'Logo.png',                           subcats: ['All','Baseball Cap','Snapback Cap','Embroidered Cap'] },
+      keychains: { label: 'Keychains', heroImg: 'Logo.png',                           subcats: ['All','Leather Keychain','Metallic Crest Keychain'] },
+    };
+
+    /* ---- URL PARAM ---- */
+    const params  = new URLSearchParams(location.search);
+    const catKey  = params.get('cat') || 'all';
+    const meta    = CAT_META[catKey] || CAT_META.all;
+    let activeSub = 'All';
+
+    /* ---- SET HERO ---- */
+    document.getElementById('pageTitle').textContent   = meta.label + ' – SuryaCottans';
+    document.getElementById('catTitle').textContent    = meta.label;
+    document.getElementById('catBreadName').textContent= meta.label;
+    document.getElementById('catHeroImg').src          = meta.heroImg;
+    document.getElementById('catHeroImg').alt          = meta.label;
+
+    /* ---- MARQUEE TICKER ---- */
+    const tickerTrack = document.getElementById('catTickerTrack');
+    // Get subcats excluding 'All', map to product img
+    const tickerItems = meta.subcats.filter(s => s !== 'All').map(s => {
+      let prod = ALL_PRODUCTS.find(p => (p.subcat && p.subcat.toLowerCase() === s.toLowerCase()) || (p.name && p.name.toLowerCase().includes(s.toLowerCase())) || (p.cat && p.cat.toLowerCase() === s.toLowerCase()));
+      if (!prod || !prod.img) {
+        prod = defaultProducts.find(p => (p.subcat && p.subcat.toLowerCase() === s.toLowerCase()) || (p.name && p.name.toLowerCase().includes(s.toLowerCase())) || (p.cat && p.cat.toLowerCase() === s.toLowerCase()));
+      }
+      const imgUrl = (prod && ((prod.images && prod.images[0]) || prod.img)) ? ((prod.images && prod.images[0]) || prod.img) : 'Logo.png';
+      return { label: s, img: imgUrl };
+    });
+
+    function buildTickerHTML(items) {
+      return items.map((item, i) => `
+        <a class="ticker-tag" href="category.html?cat=${catKey}" onclick="event.preventDefault();filterSubcat('${item.label}')">
+          <img class="ticker-tag-img" src="${item.img}" alt="${item.label}" loading="lazy" onerror="this.src='Logo.png'" />
+          <span class="ticker-tag-label">${item.label}</span>
+        </a>
+        ${i < items.length - 1 ? '<span class="ticker-divider">✦</span>' : ''}
+      `).join('');
+    }
+
+    const tickerHTML = buildTickerHTML(tickerItems);
+    if(tickerItems.length > 0) {
+      tickerTrack.innerHTML = tickerHTML + '<span class="ticker-divider">✦</span>' + tickerHTML;
+    }
+
+    const tickerStrip = document.getElementById('catTickerStrip');
+    let isScrolling = true;
+    tickerStrip.addEventListener('touchstart', () => isScrolling = false, {passive:true});
+    tickerStrip.addEventListener('touchend', () => isScrolling = true, {passive:true});
+    tickerStrip.addEventListener('mouseenter', () => isScrolling = false);
+    tickerStrip.addEventListener('mouseleave', () => isScrolling = true);
+    
+    let scrollPos = 0;
+    function autoScrollTicker() {
+      if (isScrolling && tickerStrip.scrollWidth > tickerStrip.clientWidth) {
+        scrollPos += 0.8;
+        tickerStrip.scrollLeft = scrollPos;
+        if (tickerStrip.scrollLeft >= tickerStrip.scrollWidth / 2) {
+          scrollPos = 0;
+          tickerStrip.scrollLeft = 0;
+        }
+      } else {
+        scrollPos = tickerStrip.scrollLeft;
+      }
+      requestAnimationFrame(autoScrollTicker);
+    }
+    if (tickerItems.length > 0) {
+      requestAnimationFrame(autoScrollTicker);
+    }
+
+    function filterSubcat(s) {
+      activeSub = s;
+      renderGrid();
+    }
+
+    /* ---- RENDER GRID ---- */
+    function isProductTotallyStockedOut(p) {
+      if (!p) return false;
+      if (p.sizeStock && typeof p.sizeStock === 'object' && Object.keys(p.sizeStock).length > 0) {
+        const totalSizeStock = Object.values(p.sizeStock).reduce((sum, val) => sum + (parseInt(val) || 0), 0);
+        return totalSizeStock <= 0;
+      }
+      return p.stock !== undefined && parseInt(p.stock) <= 0;
+    }
+
+    function renderGrid() {
+      if (typeof window !== 'undefined') {
+        window.renderGrid = renderGrid;
+        if (window.ALL_PRODUCTS && window.ALL_PRODUCTS.length) {
+          ALL_PRODUCTS = window.ALL_PRODUCTS;
+        }
+      }
+      const catItems = catKey === 'all' ? ALL_PRODUCTS : ALL_PRODUCTS.filter(p => {
+        if (!p) return false;
+        const c = String(p.cat || p.category || '').toLowerCase();
+        const k = String(catKey || '').toLowerCase();
+        if (c === k) return true;
+        if (k === 'tshirt' && (c === 't-shirt' || c === 'tshirts' || c === 't-shirts')) return true;
+        if (k === 'shirt' && c === 'shirts') return true;
+        if (k === 'pant' && (c === 'pants' || c === 'jeans' || c === 'trouser' || c === 'trousers')) return true;
+        if (k === 'shorts' && (c === 'short' || c === 'shorts')) return true;
+        if (k === 'caps' && (c === 'cap' || c === 'caps')) return true;
+        if (k === 'keychains' && (c === 'keychain' || c === 'keychains')) return true;
+        return false;
+      });
+      const items = activeSub === 'All' ? catItems : catItems.filter(p => {
+        if (!p) return false;
+        const sub = String(p.subcat || p.subcategory || '').toLowerCase();
+        const cat = String(p.cat || p.category || '').toLowerCase();
+        const target = String(activeSub || '').toLowerCase();
+        return sub === target || cat === target || (activeSub === 'T-Shirt' && (cat === 'tshirt' || cat === 't-shirt')) || (sub && sub.includes(target));
+      });
+      const grid     = document.getElementById('catGrid');
+      const countEl  = document.getElementById('catCount');
+      const resEl    = document.getElementById('catResultsCount');
+
+      countEl.textContent = items.length + ' Products';
+      resEl.textContent   = 'Showing ' + items.length + ' product' + (items.length !== 1 ? 's' : '');
+
+      if (!items.length) {
+        grid.innerHTML = `<div class="cat-empty" style="grid-column:1/-1">
+          <div class="cat-empty-icon">🔍</div>
+          <h3>No Products Found</h3>
+          <p>More styles coming soon!</p>
+        </div>`;
+        return;
+      }
+
+      const catLabel = { shirt:'Shirt', pant:'Pant', tshirt:'T-Shirt', shorts:'Shorts', caps:'Caps', keychains:'Keychains' };
+      grid.innerHTML = items.map((p, i) => {
+        const wish = (JSON.parse(localStorage.getItem('sc_wish')||'[]')).includes(p.id);
+        const imgUrl = (p.images && p.images.length > 0) ? p.images[0] : (p.img || 'Logo.png');
+        const isStockout = isProductTotallyStockedOut(p);
+        const stockoutOverlay = isStockout ? `<div class="stockout-slash-overlay"><div class="slash-line"></div><span class="slash-text">OUT OF STOCK</span></div>` : '';
+        return `
+        <div class="product-card visible ${isStockout ? 'stockout-card' : ''}" data-id="${p.id}" onclick="window.location.href='product.html?id=${p.id}'" style="transition-delay:${i*0.04}s">
+          <div class="product-card-inner">
+            <div class="product-img-wrap">
+              <img src="${imgUrl}" alt="${p.name}" loading="lazy" onerror="this.src='Logo.png'"/>
+              ${p.badge ? `<div class="product-badge" data-type="${p.badge}">${p.badge}</div>` : ''}
+              ${stockoutOverlay}
+              <button class="product-wish-float wish-btn ${wish?'wishlisted':''}" onclick="event.stopPropagation();toggleWish(${p.id},this)">
+                ${wish?'❤️':'♡'}
+              </button>
+              <div class="product-actions" onclick="event.stopPropagation()">
+                <button class="pa-btn add-cart-btn" onclick="addToCart(${p.id})"><span>Add to Cart</span></button>
+              </div>
+            </div>
+            <div class="product-info">
+              <p class="product-cat">${catLabel[p.cat]||p.cat}</p>
+              <h3 class="product-name">${p.name}</h3>
+              <div class="product-price">
+                <span class="price-current">₹${p.price.toLocaleString()}</span>
+                <span class="price-original">₹${p.original.toLocaleString()}</span>
+                <span class="price-off">${p.off}% off</span>
+              </div>
+              <div class="product-rating">
+                <span class="stars">${'★'.repeat(Math.floor(p.rating))}</span>
+                <span class="rating-count">(${p.reviews})</span>
+              </div>
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    renderGrid();
+    if (typeof window !== 'undefined') {
+      window.renderGrid = renderGrid;
+      window.renderProducts = renderGrid;
+    }
+
+    /* ---- CART ---- */
+    let cart = JSON.parse(localStorage.getItem('sc_cart')||'[]');
+    if (!Array.isArray(cart)) cart=[];
+
+    function saveCart(){ localStorage.setItem('sc_cart',JSON.stringify(cart)); }
+
+    function addToCart(id){
+      const p = ALL_PRODUCTS.find(x=>x.id===id); if(!p) return;
+      const ex = cart.find(i=>i.id===id);
+      if(ex) ex.qty++; else cart.push({...p,qty:1});
+      saveCart(); updateCartUI();
+      showToast('✓ "'+p.name+'" added to cart!');
+    }
+
+    function toggleWish(id,btn){
+      let w=JSON.parse(localStorage.getItem('sc_wish')||'[]');
+      if(w.includes(id)){ w=w.filter(i=>i!==id); btn.textContent='♡'; btn.classList.remove('wishlisted'); showToast('Removed from wishlist'); }
+      else { w.push(id); btn.textContent='❤️'; btn.classList.add('wishlisted'); showToast('❤️ Added to wishlist!'); }
+      localStorage.setItem('sc_wish',JSON.stringify(w));
+    }
+
+    function updateCartUI(){
+      const total=cart.reduce((s,i)=>s+i.qty,0);
+      const c=document.getElementById('cartCount');
+      if(c){ c.textContent=total; c.classList.toggle('show',total>0); }
+      const t=document.getElementById('cartTotal');
+      if(t) t.textContent='₹'+cart.reduce((s,i)=>s+i.price*i.qty,0).toLocaleString();
+    }
+    updateCartUI();
+
+    /* ---- CART DRAWER ---- */
+    const cartBtn=document.getElementById('cartBtn');
+    const cartDrawer=document.getElementById('cartDrawer');
+    const cartOverlay=document.getElementById('cartOverlay');
+    const cartClose=document.getElementById('cartClose');
+
+    function openCart(){
+      cartDrawer.classList.add('open'); cartOverlay.classList.add('open');
+      const ci=document.getElementById('cartItems');
+      if(!cart.length){ ci.innerHTML='<p class="cart-empty">Your cart is empty 🛍️</p>'; return; }
+      ci.innerHTML=cart.map(item=>`
+        <div class="cart-item">
+          <img class="cart-item-img" src="${item.img}" alt="${item.name}"/>
+          <div class="cart-item-info">
+            <p class="cart-item-name">${item.name}</p>
+            <p class="cart-item-price">₹${item.price.toLocaleString()}</p>
+            <div class="cart-item-qty">
+              <button class="qty-btn" onclick="chgQty(${item.id},-1)">−</button>
+              <span class="qty-num">${item.qty}</span>
+              <button class="qty-btn" onclick="chgQty(${item.id},+1)">+</button>
+            </div>
+          </div>
+          <button class="cart-item-remove" onclick="rmCart(${item.id})">✕</button>
+        </div>`).join('');
+    }
+    function closeCart(){ cartDrawer.classList.remove('open'); cartOverlay.classList.remove('open'); }
+    function chgQty(id,d){ const i=cart.find(x=>x.id===id); if(!i) return; if(d>0){ const p=ALL_PRODUCTS.find(x=>x.id===id); if(p){ const avail=p.sizeStock&&i.size&&p.sizeStock[i.size]!==undefined?parseInt(p.sizeStock[i.size]):(p.stock!==undefined?parseInt(p.stock):10); if(i.qty+d>avail){ showToast(`Only ${avail} item(s) available in stock!`); return; } } } i.qty+=d; if(i.qty<=0) rmCart(id); else{ saveCart(); updateCartUI(); openCart(); } }
+    function rmCart(id){ cart=cart.filter(x=>x.id!==id); saveCart(); updateCartUI(); openCart(); }
+
+    if(cartBtn) cartBtn.addEventListener('click', openCart);
+    if(cartClose) cartClose.addEventListener('click', closeCart);
+    if(cartOverlay) cartOverlay.addEventListener('click', closeCart);
+    document.getElementById('checkoutBtn').addEventListener('click',()=>{
+      if(!cart.length){ showToast('Your cart is empty!'); return; }
+      for(const item of cart){ const p=ALL_PRODUCTS.find(x=>x.id===item.id); if(p){ const avail=p.sizeStock&&item.size&&p.sizeStock[item.size]!==undefined?parseInt(p.sizeStock[item.size]):(p.stock!==undefined?parseInt(p.stock):10); if(item.qty>avail){ showToast(`Cannot checkout! Only ${avail} item(s) available for "${item.name}"`); return; } } }
+      if(localStorage.getItem('sc_isLoggedIn')!=='true'){ showToast('Please login to continue'); setTimeout(()=>location.href='profile.html',1000); return; }
+      location.href='checkout.html';
+    });
+
+    /* ---- TOAST ---- */
+    const toastEl=document.getElementById('toast');
+    let toastT;
+    function showToast(msg){ clearTimeout(toastT); toastEl.textContent=msg; toastEl.classList.add('show'); toastT=setTimeout(()=>toastEl.classList.remove('show'),2800); }
+
+    /* ---- HAMBURGER ---- */
+    const hbg=document.getElementById('hamburger');
+    const nl=document.getElementById('navLinks');
+    if(hbg) hbg.addEventListener('click',()=>{ hbg.classList.toggle('open'); nl.classList.toggle('open'); });
+  </script>
+  <script type="module" src="store-sync.js"></script>
+  <script src="menu.js"></script>
+</body>
+</html>

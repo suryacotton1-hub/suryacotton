@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Your Account – SuryaCotton</title>
+  <meta name="description" content="Manage your premium SuryaCotton account, order history, and profile settings." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700;900&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="profile.css" />
+  <style>
+    /* ---- Save Success Modal ---- */
+    .save-popup-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.35);
+      backdrop-filter: blur(6px);
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.4s ease;
+      z-index: 9999;
+    }
+    .save-popup-overlay.show {
+      opacity: 1; pointer-events: auto;
+    }
+    .save-popup-box {
+      background: #fff;
+      border-radius: 24px;
+      padding: 3rem 2.5rem;
+      text-align: center;
+      max-width: 380px;
+      width: 90%;
+      box-shadow: 0 30px 60px rgba(0,0,0,0.18);
+      transform: translateY(40px) scale(0.93);
+      transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    .save-popup-overlay.show .save-popup-box {
+      transform: translateY(0) scale(1);
+    }
+    .save-popup-icon-wrap {
+      width: 80px; height: 80px;
+      background: rgba(34,197,94,0.1);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 1.5rem;
+      animation: popBounce 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    @keyframes popBounce {
+      0% { transform: scale(0.4); opacity: 0; }
+      60% { transform: scale(1.15); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .save-popup-icon-wrap svg {
+      stroke: #22c55e;
+      stroke-dasharray: 50;
+      stroke-dashoffset: 50;
+      animation: drawCheck 0.5s ease 0.2s forwards;
+    }
+    @keyframes drawCheck {
+      to { stroke-dashoffset: 0; }
+    }
+    .save-popup-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.7rem; font-weight: 700;
+      color: #0a0a0a; margin-bottom: 0.6rem;
+    }
+    .save-popup-desc {
+      font-size: 0.9rem; color: #64748b;
+      line-height: 1.6; margin-bottom: 2rem;
+    }
+    .save-popup-btn {
+      background: #0a0a0a; color: #fff;
+      border: none; border-radius: 12px;
+      padding: 0.9rem 2.5rem;
+      font-size: 0.85rem; font-weight: 700;
+      letter-spacing: 1.5px; text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .save-popup-btn:hover {
+      background: #e8000d;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(232,0,13,0.2);
+    }
+  </style>
+</head>
+<body class="profile-page-body">
+
+  <!-- ============ NAV ============ -->
+  <nav class="navbar scrolled" id="navbar">
+    <a href="index.html" class="nav-logo"><img src="Logo.png" alt="SuryaCottans" class="nav-logo-img"><span class="nav-logo-text">SuryaCotton</span></a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="index.html" class="nav-link">Home</a></li>
+      <li><a href="index.html#collection" class="nav-link">Collection</a></li>
+      <li><a href="category.html?cat=all" class="nav-link">Shop</a></li>
+      <li><a href="track.html" class="nav-link">Track Order</a></li>
+      <li><a href="story.html" class="nav-link">About Us</a></li>
+      <li><a href="contact.html" class="nav-link">Contact</a></li>
+    </ul>
+    <div class="nav-actions">
+      <a href="profile.html" class="nav-icon-btn profile-btn active" id="profileBtn" aria-label="Profile">
+        <!-- Avatar image shown when logged in, SVG icon fallback -->
+        <img id="navProfilePic" class="nav-profile-pic hidden" alt="Profile" />
+        <svg id="navProfileIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </a>
+      <button class="nav-icon-btn cart-btn" id="cartBtn" aria-label="Cart">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        <span class="cart-count" id="cartCount">0</span>
+      </button>
+      <button class="hamburger" id="hamburger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ============ SIDE MENU DRAWER ============ -->
+  <div class="side-menu-overlay" id="sideMenuOverlay"></div>
+  <aside class="side-menu" id="sideMenu" aria-label="Side navigation">
+
+    <!-- Header -->
+    <div class="sm-header">
+      <div class="sm-brand">
+        <img src="Logo.png" alt="SuryaCottans" class="sm-logo" />
+        <div class="sm-brand-text">
+          <span class="sm-brand-name">SuryaCotton</span>
+          <span class="sm-brand-sub">Premium Menswear</span>
+        </div>
+      </div>
+      <button class="sm-close" id="sideMenuClose" aria-label="Close menu">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <!-- User greeting -->
+    <a href="profile.html" class="sm-user-bar" id="smUserBar" style="text-decoration:none; cursor:pointer;">
+      <div class="sm-user-avatar" id="smUserAvatar">
+        <img id="smAvatarImg" class="sm-avatar-img hidden" alt="Profile" />
+        <svg id="smAvatarIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </div>
+      <div class="sm-user-info">
+        <span class="sm-user-name" id="smUserName">Welcome!</span>
+        <span class="sm-user-sub" id="smUserSub">Login to view your orders</span>
+      </div>
+      <span class="sm-user-arrow">→</span>
+    </a>
+
+    <!-- Main Nav Links -->
+    <nav class="sm-nav">
+      <p class="sm-section-label">NAVIGATE</p>
+      <a href="index.html" class="sm-link" data-close>
+        <span class="sm-link-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </span>
+        <span>Home</span>
+      </a>
+      <a href="track.html" class="sm-link">
+        <span class="sm-link-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 8h5l2 5v5h-7V8z"></path><rect x="1" y="3" width="15" height="13" rx="1"></rect><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+        </span>
+        <span>My Orders</span>
+      </a>
+      <a href="index.html#collection" class="sm-link" data-close>
+        <span class="sm-link-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        </span>
+        <span>Collections</span>
+      </a>
+      <a href="category.html?cat=all" class="sm-link" data-close>
+        <span class="sm-link-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        </span>
+        <span>Shop Now</span>
+        <span class="sm-link-badge">New</span>
+      </a>
+
+      <a href="story.html" class="sm-link">
+        <span class="sm-link-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </span>
+        <span>About Us</span>
+      </a>
+      <a href="contact.html" class="sm-link">
+        <span class="sm-link-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </span>
+        <span>Contact</span>
+      </a>
+    </nav>
+
+    <!-- Categories -->
+    <div class="sm-categories">
+      <p class="sm-section-label">SHOP BY CATEGORY</p>
+      <div class="sm-cat-grid">
+        <a href="category.html?cat=shirt" class="sm-cat-chip">
+          <span class="sm-cat-emoji">👔</span> Shirts
+        </a>
+        <a href="category.html?cat=pant" class="sm-cat-chip">
+          <span class="sm-cat-emoji">👖</span> Pants
+        </a>
+        <a href="category.html?cat=tshirt" class="sm-cat-chip">
+          <span class="sm-cat-emoji">👕</span> T-Shirts
+        </a>
+      </div>
+    </div>
+
+    <!-- Support Links -->
+    <div class="sm-support">
+      <p class="sm-section-label">SUPPORT</p>
+      <div class="sm-support-links">
+        <a href="shipping.html">Shipping Policy</a>
+        <a href="refunds.html">Refund Policy</a>
+        <a href="faq.html">FAQ</a>
+        <a href="size-guide.html">Size Guide</a>
+      </div>
+    </div>
+
+    <!-- Social -->
+    <div class="sm-social">
+      <a href="https://www.instagram.com/suryacotton__menswear" target="_blank" rel="noopener" class="sm-social-btn" aria-label="Instagram">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+      </a>
+      <a href="https://www.facebook.com/people/Surya-Cotton/pfbid02zsaWiXrVBv8DPwRHeuibw82ed6ttGs3a51uJxhYohkFfYUBFmwKHaS59q6rcbT1ul" target="_blank" rel="noopener" class="sm-social-btn" aria-label="Facebook">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+      </a>
+      <a href="https://wa.me/918072654677" target="_blank" rel="noopener" class="sm-social-btn" aria-label="WhatsApp">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+      </a>
+      <a href="https://www.youtube.com/channel/UCP8Ewonc77HEhwC9HaeJr_w" target="_blank" rel="noopener" class="sm-social-btn" aria-label="YouTube">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46a2.78 2.78 0 0 0-1.95 1.96A29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58A2.78 2.78 0 0 0 3.41 19.6C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.95A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="currentColor" stroke="none"/></svg>
+      </a>
+    </div>
+
+    <!-- Footer note -->
+    <div class="sm-footer-note">
+      <span>© 2025 SuryaCottans</span>
+      <span>Made with ❤️ in Tamil Nadu</span>
+    </div>
+
+  </aside>
+
+  <!-- ============ MAIN CONTENT AREA ============ -->
+  <main class="account-container container">
+       <!-- ============ AUTHENTICATION CONTAINER (LOGGED OUT) ============ -->
+    <div class="auth-wrapper" id="authWrapper">
+      <div class="auth-card">
+        
+        <!-- Left Visual Side -->
+        <div class="auth-visual">
+          <div class="auth-visual-overlay"></div>
+          <div class="auth-visual-content">
+            <span class="visual-badge">EST. 2025</span>
+            <h2>SURYA<span class="red">COTTON</span></h2>
+            <p class="visual-desc">Crafted for the modern gentleman. Join us to track premium purchases, save addresses, and access exclusive collections.</p>
+          </div>
+        </div>
+        
+        <!-- Right Form Side -->
+        <div class="auth-forms-container">
+          
+          <div class="auth-form-box active" id="loginBox" style="width: 100%;">
+            <div class="form-header">
+              <h3>Welcome Gentleman</h3>
+              <p>Sign in or Create a premium account instantly using Google</p>
+            </div>
+            
+            <div class="error-banner" id="loginError"></div>
+            
+            <div class="social-login-grid" style="margin-top: 3.5rem; width: 100%;">
+              <button class="social-btn google-btn" id="googleLoginBtn" style="width: 100%; padding: 1.25rem 2rem; font-size: 1.05rem; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; font-weight: 600; cursor: pointer; transition: all 0.3s ease;">
+                <svg width="22" height="22" viewBox="0 0 24 24"><path fill="#EA4335" d="M12 5.04c1.66 0 3.2.57 4.38 1.69l3.27-3.27C17.67 1.6 14.98 1 12 1 7.35 1 3.4 3.65 1.5 7.5l3.86 3C6.27 7.57 8.9 5.04 12 5.04z"/><path fill="#4285F4" d="M23.49 12.27c0-.81-.07-1.59-.2-2.27H12v4.51h6.46c-.29 1.48-1.14 2.73-2.4 3.58l3.76 2.91c2.2-2.03 3.67-5.02 3.67-8.73z"/><path fill="#FBBC05" d="M5.36 14.5c-.24-.72-.38-1.49-.38-2.3s.14-1.58.38-2.3L1.5 6.9C.63 8.63.14 10.57.14 12.6s.49 3.97 1.36 5.7l3.86-3.8z"/><path fill="#34A853" d="M12 23c3.24 0 5.97-1.07 7.96-2.91l-3.76-2.91c-1.1.74-2.5 1.18-4.2 1.18-3.1 0-5.73-2.53-6.64-5.46L1.5 16.7C3.4 20.55 7.35 23 12 23z"/></svg>
+                Continue with Google
+              </button>
+            </div>
+
+            <div class="auth-divider" style="display: flex; align-items: center; gap: 1rem; margin-top: 2rem; width: 100%;">
+              <div style="flex: 1; height: 1px; background: #e2e8f0;"></div>
+              <span style="font-size: 0.78rem; font-weight: 600; color: #94a3b8; letter-spacing: 1px; text-transform: uppercase;">or</span>
+              <div style="flex: 1; height: 1px; background: #e2e8f0;"></div>
+            </div>
+
+            <div style="margin-top: 1.25rem; width: 100%;">
+              <button class="social-btn guest-btn" id="guestLoginBtn" style="width: 100%; padding: 1.15rem 2rem; font-size: 1rem; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 12px; background: var(--black, #0a0a0a); color: #fff; font-weight: 600; cursor: pointer; transition: all 0.3s ease; border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                Continue as Guest
+              </button>
+            </div>
+
+            <p style="margin-top: 1.5rem; font-size: 0.85rem; color: var(--grey, #6b7280); text-align: center;">By continuing, you agree to our <a href="terms.html" style="color: var(--red); text-decoration: underline;">Terms of Service</a> and <a href="privacy.html" style="color: var(--red); text-decoration: underline;">Privacy Policy</a>.</p>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+    
+    <!-- ============ USER DASHBOARD PANEL (LOGGED IN) ============ -->
+    <div class="dashboard-wrapper hidden" id="dashboardWrapper">
+      
+      <!-- DASHBOARD HEADER -->
+      <header class="dash-header">
+        <div class="dash-user-meta">
+          <div class="avatar-container">
+            <img src="https://api.dicebear.com/7.x/initials/svg?seed=SC" alt="User Avatar" class="profile-avatar" id="profileAvatar" />
+            <button class="avatar-edit-overlay" id="changeAvatarBtn" aria-label="Change avatar">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            </button>
+          </div>
+          <div class="user-greeting">
+            <h1>Hello, <span class="red" id="userNameHeader">Guest</span></h1>
+            <p id="userEmailHeader">guest@suryacotton.com</p>
+            <div class="verification-row">
+              <span class="badge verification-badge" id="verificationBadge">Unverified</span>
+              <button class="btn-verify-email hidden" id="verifyEmailBtn">Verify Email</button>
+            </div>
+          </div>
+        </div>
+        <div class="dash-header-actions">
+          <button class="btn-outline logout-btn" id="logoutBtn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            LOG OUT
+          </button>
+        </div>
+      </header>
+      
+      <!-- DASHBOARD BODY: Two column grid -->
+      <div class="dash-body-grid">
+        
+        <!-- Left Side: Profile Details & Update Settings -->
+        <section class="dash-card profile-details-card">
+          <div class="card-header">
+            <h3>Account Settings</h3>
+            <p>Update your personal information &amp; shipping details</p>
+          </div>
+          <form id="profileForm">
+            <div class="form-row-grid">
+              <div class="form-input-group">
+                <label for="profileName">Full Name</label>
+                <input type="text" id="profileName" placeholder="Your Name" required autocomplete="name" />
+              </div>
+              <div class="form-input-group">
+                <label for="profilePhone">Phone Number</label>
+                <input type="tel" id="profilePhone" placeholder="+91 XXXXX XXXXX" autocomplete="tel" />
+              </div>
+            </div>
+            
+            <div class="form-input-group address-group" style="position:relative;">
+              <label for="profileAddress">Shipping Address</label>
+              <textarea id="profileAddress" placeholder="Street Address, City, PIN Code..." rows="3" autocomplete="shipping street-address"></textarea>
+              <div id="profileAddressSuggestions" class="autocomplete-suggestions"></div>
+            </div>
+            
+            <button type="submit" class="btn-primary save-profile-btn" id="saveProfileBtn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              <span>SAVE CHANGES</span>
+            </button>
+
+            <!-- Save success indicator -->
+            <div class="save-success-bar" id="saveSuccessBar">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              Profile saved successfully!
+            </div>
+          </form>
+        </section>
+        
+        <!-- Right Side: Order Tracking -->
+        <section class="dash-card orders-card">
+          <div class="card-header">
+            <h3>Order History</h3>
+            <p>Track your recent premium menswear purchases</p>
+          </div>
+          <div class="orders-list" id="ordersList">
+            <!-- Simulated / real orders dynamically loaded here -->
+            <div class="orders-empty">
+              <div class="empty-icon">🛍️</div>
+              <h4>No Orders Yet</h4>
+              <p>Explore our premium collections and place your first order!</p>
+              <a href="category.html?cat=all" class="btn-start-shopping">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                START SHOPPING
+              </a>
+            </div>
+          </div>
+        </section>
+        
+      </div>
+      
+      <!-- Wishlist Quick View Panel -->
+      <section class="dash-card wishlist-panel" id="wishlistPanel">
+        <div class="card-header">
+          <h3>Your Premium Wishlist ❤️</h3>
+          <p>Quick access to items you love</p>
+        </div>
+        <div class="wishlist-grid" id="wishlistGrid">
+          <!-- Dynamically generated wishlist grid -->
+        </div>
+      </section>
+      
+    </div>
+  </main>
+
+
+
+  <!-- ============ AVATAR SELECTION MODAL ============ -->
+  <div class="avatar-modal-overlay" id="avatarModalOverlay">
+    <div class="avatar-modal">
+      <button class="avatar-modal-close" id="avatarModalClose">✕</button>
+      <h3>Select Profile Avatar</h3>
+      <p>Choose from our premium male avatars or upload a custom image</p>
+      
+      <!-- Tab nav -->
+      <div class="avatar-tab-nav">
+        <button class="avatar-tab active" data-tab="presets">Preset Avatars</button>
+        <button class="avatar-tab" data-tab="custom">Custom URL</button>
+      </div>
+
+      <!-- Presets Tab -->
+      <div class="avatar-tab-content active" id="tabPresets">
+        <div class="avatar-presets">
+          <div class="avatar-preset-item">
+            <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=Liam&gender=male" class="avatar-preset-img" data-url="https://api.dicebear.com/7.x/adventurer/svg?seed=Liam&gender=male" alt="Liam" />
+            <span>Liam</span>
+          </div>
+          <div class="avatar-preset-item">
+            <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=Arjun&gender=male" class="avatar-preset-img" data-url="https://api.dicebear.com/7.x/adventurer/svg?seed=Arjun&gender=male" alt="Arjun" />
+            <span>Arjun</span>
+          </div>
+          <div class="avatar-preset-item">
+            <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=Karthik&gender=male" class="avatar-preset-img" data-url="https://api.dicebear.com/7.x/adventurer/svg?seed=Karthik&gender=male" alt="Karthik" />
+            <span>Karthik</span>
+          </div>
+          <div class="avatar-preset-item">
+            <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=Surya&gender=male" class="avatar-preset-img" data-url="https://api.dicebear.com/7.x/adventurer/svg?seed=Surya&gender=male" alt="Surya" />
+            <span>Surya</span>
+          </div>
+          <div class="avatar-preset-item">
+            <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=Rajan&gender=male" class="avatar-preset-img" data-url="https://api.dicebear.com/7.x/adventurer/svg?seed=Rajan&gender=male" alt="Rajan" />
+            <span>Rajan</span>
+          </div>
+          <div class="avatar-preset-item">
+            <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=Vikram&gender=male" class="avatar-preset-img" data-url="https://api.dicebear.com/7.x/adventurer/svg?seed=Vikram&gender=male" alt="Vikram" />
+            <span>Vikram</span>
+          </div>
+          <div class="avatar-preset-item">
+            <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=Dinesh&gender=male" class="avatar-preset-img" data-url="https://api.dicebear.com/7.x/adventurer/svg?seed=Dinesh&gender=male" alt="Dinesh" />
+            <span>Dinesh</span>
+          </div>
+          <div class="avatar-preset-item">
+            <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=Suresh&gender=male" class="avatar-preset-img" data-url="https://api.dicebear.com/7.x/adventurer/svg?seed=Suresh&gender=male" alt="Suresh" />
+            <span>Suresh</span>
+          </div>
+          <div class="avatar-preset-item">
+            <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=Muthu&gender=male" class="avatar-preset-img" data-url="https://api.dicebear.com/7.x/adventurer/svg?seed=Muthu&gender=male" alt="Muthu" />
+            <span>Muthu</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Custom URL Tab -->
+      <div class="avatar-tab-content" id="tabCustom">
+        <div class="custom-avatar-url-group">
+          <label for="customAvatarUrl">Image URL</label>
+          <div class="custom-url-input-row">
+            <input type="url" id="customAvatarUrl" placeholder="https://example.com/image.jpg" />
+            <button class="btn-primary" id="applyCustomAvatarBtn">APPLY</button>
+          </div>
+          <p class="custom-url-hint">Paste a direct link to any PNG, JPG or SVG image</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SAVE SUCCESS POPUP MODAL ============ -->
+  <div class="save-popup-overlay" id="savePopupOverlay">
+    <div class="save-popup-box">
+      <div class="save-popup-icon-wrap">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+      </div>
+      <h3 class="save-popup-title">Profile Saved!</h3>
+      <p class="save-popup-desc">Your details have been saved successfully.</p>
+      <button class="save-popup-btn" id="savePopupCloseBtn">CONTINUE</button>
+    </div>
+  </div>
+
+  <!-- ============ REVIEW MODAL ============ -->
+  <div class="review-modal-overlay" id="reviewModalOverlay">
+    <div class="review-modal">
+      <button class="review-modal-close" id="reviewModalClose">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+      
+      <!-- Product Preview -->
+      <div class="review-modal-product" id="reviewModalProduct">
+        <img id="reviewModalImg" src="" alt="Product" class="review-modal-img" />
+        <div class="review-modal-product-info">
+          <span class="review-modal-label">Reviewing</span>
+          <h4 id="reviewModalName">Product Name</h4>
+        </div>
+      </div>
+
+      <div class="review-modal-divider"></div>
+
+      <!-- Star Rating -->
+      <div class="review-modal-section">
+        <label class="review-modal-field-label">How would you rate this product?</label>
+        <div class="review-stars-row" id="reviewStarsRow">
+          <span class="review-star active" data-val="1">★</span>
+          <span class="review-star active" data-val="2">★</span>
+          <span class="review-star active" data-val="3">★</span>
+          <span class="review-star active" data-val="4">★</span>
+          <span class="review-star active" data-val="5">★</span>
+        </div>
+        <span class="review-stars-label" id="reviewStarsLabel">Excellent</span>
+        <input type="hidden" id="reviewRatingVal" value="5" />
+      </div>
+
+      <!-- Review Text -->
+      <div class="review-modal-section">
+        <label class="review-modal-field-label" for="reviewText">Your Review</label>
+        <textarea id="reviewText" class="review-modal-textarea" rows="4" placeholder="Share your experience with this product..." required></textarea>
+      </div>
+
+      <!-- Review Photo Upload -->
+      <div class="review-modal-section">
+        <label class="review-modal-field-label">Add a Photo (Optional)</label>
+        <div class="review-photo-upload-box" id="reviewPhotoUploadBox" style="border: 1.5px dashed #cbd5e1; border-radius: 12px; padding: 1.2rem; text-align: center; cursor: pointer; background: #f8fafc; transition: all 0.2s ease;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" style="margin: 0 auto 0.4rem; display: block;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          <span style="font-size: 0.85rem; color: #475569; font-weight: 600;">Click to attach product photo</span>
+          <input type="file" id="reviewImageInput" accept="image/*" style="display: none;" />
+        </div>
+        <div id="reviewImagePreviewWrap" style="display: none; margin-top: 0.75rem; position: relative; width: 80px; height: 80px; border-radius: 10px; overflow: hidden; border: 1.5px solid #e2e8f0;">
+          <img id="reviewImagePreview" src="" alt="Preview" style="width: 100%; height: 100%; object-fit: cover;" />
+          <button type="button" id="removeReviewImageBtn" style="position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,0.7); color: #fff; border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 0.7rem; cursor: pointer; display: flex; align-items: center; justify-content: center;">✕</button>
+        </div>
+      </div>
+
+      <!-- Hidden fields -->
+      <input type="hidden" id="reviewProductId" value="" />
+      <input type="hidden" id="reviewProductName" value="" />
+
+      <!-- Actions -->
+      <div class="review-modal-actions">
+        <button class="review-modal-cancel" id="reviewModalCancelBtn">Cancel</button>
+        <button class="review-modal-submit" id="reviewModalSubmitBtn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          Submit Review
+        </button>
+      </div>
+
+      <!-- Success State (hidden by default) -->
+      <div class="review-success-state" id="reviewSuccessState">
+        <div class="review-success-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="16 8.5 10.5 14.5 8 12"/>
+          </svg>
+        </div>
+        <h4>Review Submitted!</h4>
+        <p>Thank you for your feedback. Your review will appear on the product page.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <div class="footer-logo">SURYA<span>COTTANS</span></div>
+          <p>Premium menswear for the modern Indian man. Quality you can feel. Style you can own.</p>
+        </div>
+        <div class="footer-links-col">
+          <h4>Quick Links</h4>
+          <a href="index.html">Home</a>
+          <a href="index.html#collection">Collection</a>
+          <a href="category.html?cat=all">Shop</a>
+          <a href="story.html">About Us</a>
+          <a href="contact.html">Contact Us</a>
+        </div>
+        <div class="footer-links-col">
+          <h4>Support</h4>
+          <a href="shipping.html">Shipping Policy</a>
+          <a href="refunds.html">Refund Policy</a>
+          <a href="faq.html">FAQ</a>
+          <a href="size-guide.html">Size Guide</a>
+        </div>
+        <div class="footer-links-col">
+          <h4>Follow Us</h4>
+          <a href="https://www.instagram.com/suryacotton__menswear" target="_blank" rel="noopener noreferrer">Instagram</a>
+          <a href="https://www.facebook.com/people/Surya-Cotton/pfbid02zsaWiXrVBv8DPwRHeuibw82ed6ttGs3a51uJxhYohkFfYUBFmwKHaS59q6rcbT1ul/?mibextid=wwXIfr&rdid=oC9hthSujx4juXiY&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F1PmEnVT1k4%2F%3Fmibextid%3DwwXIfr" target="_blank" rel="noopener noreferrer">Facebook</a>
+          <a href="https://www.youtube.com/channel/UCP8Ewonc77HEhwC9HaeJr_w" target="_blank" rel="noopener noreferrer">YouTube</a>
+          <a href="https://wa.me/918072654677" target="_blank" rel="noopener noreferrer">WhatsApp</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2025 SuryaCottans. All rights reserved.</p>
+        <div class="footer-policy-links">
+          <a href="privacy.html">Privacy Policy</a>
+          <a href="terms.html">Terms of Service</a>
+        </div>
+        <p>Made with ❤️ in Tamil Nadu</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ============ CART DRAWER ============ -->
+  <div class="cart-overlay" id="cartOverlay"></div>
+  <div class="cart-drawer" id="cartDrawer">
+    <div class="cart-header">
+      <h3>Your Cart</h3>
+      <button class="cart-close" id="cartClose">✕</button>
+    </div>
+    <div class="cart-items" id="cartItems"><p class="cart-empty">Your cart is empty</p></div>
+    <div class="cart-footer">
+      <div class="cart-total">Total: <span id="cartTotal">₹0</span></div>
+      <button class="btn-primary" style="width:100%" id="checkoutBtn">CHECKOUT</button>
+    </div>
+  </div>
+
+  <!-- ============ TOAST ============ -->
+  <div class="toast" id="toast"></div>
+
+  <!-- ============ SCRIPTS ============ -->
+  <script src="profile.js" type="module"></script>
+  <script type="module" src="store-sync.js"></script>
+  <script src="menu.js"></script>
+</body>
+</html>

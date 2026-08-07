@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title id="pageTitle">Product – SuryaCottans</title>
+  <meta name="description" content="Shop premium menswear at SuryaCottans" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700;900&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="product.css" />
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="navbar scrolled" id="navbar">
+    <a href="index.html" class="nav-logo"><img src="Logo.png" alt="SuryaCottans" class="nav-logo-img"><span class="nav-logo-text">SuryaCotton</span></a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="index.html" class="nav-link">Home</a></li>
+      <li><a href="index.html#collection" class="nav-link">Collection</a></li>
+      <li><a href="category.html?cat=all" class="nav-link">Shop</a></li>
+      <li><a href="track.html" class="nav-link">Track Order</a></li>
+      <li><a href="story.html" class="nav-link">About Us</a></li>
+      <li><a href="contact.html" class="nav-link">Contact</a></li>
+    </ul>
+    <div class="nav-actions">
+      <a href="profile.html" class="nav-icon-btn profile-btn" id="profileBtn" aria-label="Profile">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </a>
+      <button class="nav-icon-btn cart-btn" id="cartBtn" aria-label="Cart">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        <span class="cart-count" id="cartCount">0</span>
+      </button>
+      <button class="hamburger" id="hamburger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ============ SIDE MENU DRAWER ============ -->
+  <div class="side-menu-overlay" id="sideMenuOverlay"></div>
+  <aside class="side-menu" id="sideMenu" aria-label="Side navigation">
+
+    <!-- Header -->
+    <div class="sm-header">
+      <div class="sm-brand">
+        <img src="Logo.png" alt="SuryaCottans" class="sm-logo" />
+        <div class="sm-brand-text">
+          <span class="sm-brand-name">SuryaCotton</span>
+          <span class="sm-brand-sub">Premium Menswear</span>
+        </div>
+      </div>
+      <button class="sm-close" id="sideMenuClose" aria-label="Close menu">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <!-- User greeting -->
+    <a href="profile.html" class="sm-user-bar" id="smUserBar" style="text-decoration:none; cursor:pointer;">
+      <div class="sm-user-avatar" id="smUserAvatar">
+        <img id="smAvatarImg" class="sm-avatar-img hidden" alt="Profile" />
+        <svg id="smAvatarIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </div>
+      <div class="sm-user-info">
+        <span class="sm-user-name" id="smUserName">Welcome!</span>
+        <span class="sm-user-sub" id="smUserSub">Login to view your orders</span>
+      </div>
+      <span class="sm-user-arrow">→</span>
+    </a>
+
+    <!-- Main Nav Links -->
+    <nav class="sm-nav">
+      <p class="sm-section-label">NAVIGATE</p>
+      <a href="index.html" class="sm-link" data-close>
+        <span class="sm-link-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </span>
+        <span>Home</span>
+      </a>
+      <a href="track.html" class="sm-link">
+        <span class="sm-link-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 8h5l2 5v5h-7V8z"></path><rect x="1" y="3" width="15" height="13" rx="1"></rect><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+        </span>
+        <span>My Orders</span>
+      </a>
+      <a href="index.html#collection" class="sm-link" data-close>
+        <span class="sm-link-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        </span>
+        <span>Collections</span>
+      </a>
+      <a href="category.html?cat=all" class="sm-link" data-close>
+        <span class="sm-link-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        </span>
+        <span>Shop Now</span>
+        <span class="sm-link-badge">New</span>
+      </a>
+
+      <a href="story.html" class="sm-link">
+        <span class="sm-link-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </span>
+        <span>About Us</span>
+      </a>
+      <a href="contact.html" class="sm-link">
+        <span class="sm-link-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </span>
+        <span>Contact</span>
+      </a>
+    </nav>
+
+    <!-- Categories -->
+    <div class="sm-categories">
+      <p class="sm-section-label">SHOP BY CATEGORY</p>
+      <div class="sm-cat-grid">
+        <a href="category.html?cat=shirt" class="sm-cat-chip">
+          <span class="sm-cat-emoji">👔</span> Shirts
+        </a>
+        <a href="category.html?cat=pant" class="sm-cat-chip">
+          <span class="sm-cat-emoji">👖</span> Pants
+        </a>
+        <a href="category.html?cat=tshirt" class="sm-cat-chip">
+          <span class="sm-cat-emoji">👕</span> T-Shirts
+        </a>
+      </div>
+    </div>
+
+    <!-- Support Links -->
+    <div class="sm-support">
+      <p class="sm-section-label">SUPPORT</p>
+      <div class="sm-support-links">
+        <a href="shipping.html">Shipping Policy</a>
+        <a href="refunds.html">Refund Policy</a>
+        <a href="faq.html">FAQ</a>
+        <a href="size-guide.html">Size Guide</a>
+      </div>
+    </div>
+
+    <!-- Social -->
+    <div class="sm-social">
+      <a href="https://www.instagram.com/suryacotton__menswear" target="_blank" rel="noopener" class="sm-social-btn" aria-label="Instagram">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+      </a>
+      <a href="https://www.facebook.com/people/Surya-Cotton/pfbid02zsaWiXrVBv8DPwRHeuibw82ed6ttGs3a51uJxhYohkFfYUBFmwKHaS59q6rcbT1ul" target="_blank" rel="noopener" class="sm-social-btn" aria-label="Facebook">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+      </a>
+      <a href="https://wa.me/918072654677" target="_blank" rel="noopener" class="sm-social-btn" aria-label="WhatsApp">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+      </a>
+      <a href="https://www.youtube.com/channel/UCP8Ewonc77HEhwC9HaeJr_w" target="_blank" rel="noopener" class="sm-social-btn" aria-label="YouTube">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46a2.78 2.78 0 0 0-1.95 1.96A29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58A2.78 2.78 0 0 0 3.41 19.6C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.95A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="currentColor" stroke="none"/></svg>
+      </a>
+    </div>
+
+    <!-- Footer note -->
+    <div class="sm-footer-note">
+      <span>© 2025 SuryaCottans</span>
+      <span>Made with ❤️ in Tamil Nadu</span>
+    </div>
+
+  </aside>
+
+  <!-- PRODUCT PAGE -->
+  <main class="pd-page">
+
+    <!-- BREADCRUMB -->
+    <div class="pd-breadcrumb container">
+      <a href="index.html">Home</a><span>›</span>
+      <a href="category.html?cat=all" id="bcCat">Shop</a><span>›</span>
+      <span id="bcName">Product</span>
+    </div>
+
+    <!-- LAYOUT -->
+    <div class="pd-layout container">
+
+      <!-- GALLERY -->
+      <div class="pd-gallery">
+        <div class="pd-thumbs" id="pdThumbs"></div>
+        <div class="pd-main-img-wrap" id="pdMainWrap">
+          <img id="pdMainImg" src="" alt="" class="pd-main-img" />
+          <div class="pd-badge" id="pdBadge"></div>
+          <button class="pd-img-nav pd-prev" id="pdPrev">‹</button>
+          <button class="pd-img-nav pd-next" id="pdNext">›</button>
+          <div class="pd-zoom-lens" id="pdZoomLens"></div>
+        </div>
+        <div class="pd-zoom-preview" id="pdZoomPreview"></div>
+      </div>
+
+      <!-- INFO -->
+      <div class="pd-info">
+
+        <div class="pd-rating-row">
+          <span class="pd-stars" id="pdStars">★★★★★</span>
+          <span class="pd-rating-val" id="pdRatingVal">4.8</span>
+          <span class="pd-review-count" id="pdReviewCount">(240 reviews)</span>
+        </div>
+
+        <h1 class="pd-name" id="pdName">Product Name</h1>
+
+        <div class="pd-price-row">
+          <span class="pd-price-current" id="pdPriceCurrent">₹1,299</span>
+          <span class="pd-price-original" id="pdPriceOriginal">₹1,899</span>
+          <span class="pd-price-off" id="pdPriceOff">32% OFF</span>
+        </div>
+
+        <div class="pd-divider"></div>
+
+        <!-- More in Category -->
+        <div class="pd-option-group" id="pdCatGroup">
+          <div class="pd-option-label">More in <strong id="pdCatLabel">this category</strong></div>
+          <div class="pd-cat-strip" id="pdCatStrip"></div>
+        </div>
+
+        <!-- Size -->
+        <div class="pd-option-group">
+          <div class="pd-option-label">
+            Size: <strong id="pdSizeName">M</strong>
+            <button class="pd-size-guide-btn" id="pdSizeGuideBtn">📐 Size Guide</button>
+          </div>
+          <div class="pd-sizes" id="pdSizes"></div>
+        </div>
+
+        <!-- Qty -->
+        <div class="pd-option-group">
+          <div class="pd-option-label">Quantity</div>
+          <div class="pd-qty-row">
+            <button class="pd-qty-btn" id="pdQtyMinus">−</button>
+            <span class="pd-qty-val" id="pdQtyVal">1</span>
+            <button class="pd-qty-btn" id="pdQtyPlus">+</button>
+          </div>
+        </div>
+
+        <!-- Desktop CTA -->
+        <div class="pd-cta-desktop">
+          <button class="pd-add-cart-btn" id="pdAddCartBtn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+            Add to Cart
+          </button>
+          <button class="pd-buy-btn" id="pdBuyBtn">Buy Now →</button>
+        </div>
+
+        <!-- Delivery Info -->
+        <div class="pd-delivery-info">
+          <div class="pd-di-item">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h5l2 5v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+            Express delivery at ₹40 per product
+          </div>
+          <div class="pd-di-item">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
+            Easy 4–5 day returns
+          </div>
+          <div class="pd-di-item">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            100% Authentic & Quality Assured
+          </div>
+        </div>
+
+        <div class="pd-divider"></div>
+
+        <!-- Tabs -->
+        <div class="pd-tabs">
+          <button class="pd-tab active" data-tab="desc">Description</button>
+          <button class="pd-tab" data-tab="size">Size & Fit</button>
+          <button class="pd-tab" data-tab="care">Care</button>
+        </div>
+        <div class="pd-tab-panels">
+          <div class="pd-tab-panel active" id="tab-desc">
+            <p id="pdDesc"></p>
+            <ul class="pd-features" id="pdFeatures"></ul>
+          </div>
+          <div class="pd-tab-panel" id="tab-size">
+            <table class="pd-size-table">
+              <thead><tr><th>Size</th><th>Chest (in)</th><th>Waist (in)</th><th>Length (in)</th></tr></thead>
+              <tbody>
+                <tr><td>S</td><td>36–38</td><td>30–32</td><td>28</td></tr>
+                <tr><td>M</td><td>38–40</td><td>32–34</td><td>29</td></tr>
+                <tr><td>L</td><td>40–42</td><td>34–36</td><td>30</td></tr>
+                <tr><td>XL</td><td>42–44</td><td>36–38</td><td>31</td></tr>
+                <tr><td>XXL</td><td>44–46</td><td>38–40</td><td>32</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="pd-tab-panel" id="tab-care">
+            <ul class="pd-care-list">
+              <li>🧺 Machine wash cold with similar colors</li>
+              <li>🚫 Do not bleach</li>
+              <li>🌡️ Tumble dry low</li>
+              <li>👕 Warm iron if needed</li>
+              <li>🧴 Do not dry clean</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Reviews -->
+        <div class="pd-reviews-snap">
+          <h3 class="pd-reviews-title">Customer Reviews</h3>
+          <div class="pd-reviews-list" id="pdReviewsList"></div>
+          
+          <!-- Reviews can only be submitted from Profile → Delivered Orders -->
+          <div class="pd-review-cta-note">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <p>Purchased this product? Write a review from your <a href="profile.html" style="color:var(--red);font-weight:600;">Profile → Order History</a></p>
+          </div>
+        </div>
+
+      </div><!-- /pd-info -->
+    </div><!-- /pd-layout -->
+
+    <!-- RELATED -->
+    <section class="pd-related container">
+      <h2 class="pd-related-title">You May Also <span style="color:var(--red)">Like</span></h2>
+      <div class="pd-related-grid" id="pdRelatedGrid"></div>
+    </section>
+
+  </main>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <div class="footer-logo">SURYA<span>COTTANS</span></div>
+          <p>Premium menswear for the modern Indian man. Quality you can feel. Style you can own.</p>
+        </div>
+        <div class="footer-links-col">
+          <h4>Quick Links</h4>
+          <a href="index.html">Home</a>
+          <a href="index.html#collection">Collection</a>
+          <a href="category.html?cat=all">Shop</a>
+          <a href="story.html">About Us</a>
+          <a href="contact.html">Contact Us</a>
+        </div>
+        <div class="footer-links-col">
+          <h4>Support</h4>
+          <a href="shipping.html">Shipping Policy</a>
+          <a href="refunds.html">Refund Policy</a>
+          <a href="faq.html">FAQ</a>
+          <a href="size-guide.html">Size Guide</a>
+        </div>
+        <div class="footer-links-col">
+          <h4>Follow Us</h4>
+          <a href="https://www.instagram.com/suryacotton__menswear" target="_blank" rel="noopener noreferrer">Instagram</a>
+          <a href="https://www.facebook.com/people/Surya-Cotton/pfbid02zsaWiXrVBv8DPwRHeuibw82ed6ttGs3a51uJxhYohkFfYUBFmwKHaS59q6rcbT1ul/?mibextid=wwXIfr&rdid=oC9hthSujx4juXiY&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F1PmEnVT1k4%2F%3Fmibextid%3DwwXIfr" target="_blank" rel="noopener noreferrer">Facebook</a>
+          <a href="https://www.youtube.com/channel/UCP8Ewonc77HEhwC9HaeJr_w" target="_blank" rel="noopener noreferrer">YouTube</a>
+          <a href="https://wa.me/918072654677" target="_blank" rel="noopener noreferrer">WhatsApp</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2025 SuryaCottans. All rights reserved.</p>
+        <div class="footer-policy-links">
+          <a href="privacy.html">Privacy Policy</a>
+          <a href="terms.html">Terms of Service</a>
+        </div>
+        <p>Made with ❤️ in Tamil Nadu</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- MOBILE FIXED CTA -->
+  <div class="pd-mobile-cta" id="pdMobileCta">
+    <button class="pd-mob-add-btn" id="pdMobAddBtn">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+      Add to Cart
+    </button>
+    <button class="pd-mob-buy-btn" id="pdMobBuyBtn">Buy Now</button>
+  </div>
+
+  <!-- SIZE MODAL -->
+  <div class="pd-modal-overlay" id="pdModalOverlay"></div>
+  <div class="pd-size-modal" id="pdSizeModal">
+    <button class="pd-modal-close" id="pdModalClose">✕</button>
+    <h3>Size Guide</h3>
+    <table class="pd-size-table">
+      <thead><tr><th>Size</th><th>Chest</th><th>Waist</th><th>Length</th><th>Shoulder</th></tr></thead>
+      <tbody>
+        <tr><td>S</td><td>36–38"</td><td>30–32"</td><td>28"</td><td>16"</td></tr>
+        <tr><td>M</td><td>38–40"</td><td>32–34"</td><td>29"</td><td>17"</td></tr>
+        <tr><td>L</td><td>40–42"</td><td>34–36"</td><td>30"</td><td>18"</td></tr>
+        <tr><td>XL</td><td>42–44"</td><td>36–38"</td><td>31"</td><td>19"</td></tr>
+        <tr><td>XXL</td><td>44–46"</td><td>38–40"</td><td>32"</td><td>20"</td></tr>
+      </tbody>
+    </table>
+    <p class="pd-size-tip">💡 Tip: If between sizes, go one size up for a relaxed fit.</p>
+  </div>
+
+  <!-- SELECT SIZE MODAL -->
+  <div class="pd-size-select-modal" id="pdSizeSelectModal">
+    <button class="pd-modal-close" id="pdSizeSelectClose">✕</button>
+    <div class="pd-ssm-header">
+      <h3>Select Size</h3>
+      <p>Please select a size before continuing.</p>
+    </div>
+    <div class="pd-ssm-sizes" id="pdSsmSizes">
+      <!-- Dynamically filled with sizes -->
+    </div>
+    <button class="pd-ssm-continue-btn" id="pdSsmContinueBtn">Continue</button>
+  </div>
+
+  <!-- CART DRAWER -->
+  <div class="cart-overlay" id="cartOverlay"></div>
+  <div class="cart-drawer" id="cartDrawer">
+    <div class="cart-header">
+      <h3>Your Cart</h3>
+      <button class="cart-close" id="cartClose">✕</button>
+    </div>
+    <div class="cart-items" id="cartItems"><p class="cart-empty">Your cart is empty 🛍️</p></div>
+    <div class="cart-footer">
+      <div class="cart-total">Total: <span id="cartTotal">₹0</span></div>
+      <button class="btn-primary" style="width:100%" id="checkoutBtn">CHECKOUT</button>
+    </div>
+  </div>
+
+  <!-- REVIEW PHOTO LIGHTBOX MODAL -->
+  <div class="pd-lightbox-overlay" id="pdLightboxOverlay" style="position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 99999; display: none; align-items: center; justify-content: center; padding: 1.5rem; backdrop-filter: blur(8px);">
+    <button id="pdLightboxClose" style="position: absolute; top: 1.5rem; right: 1.5rem; background: rgba(255,255,255,0.15); color: #fff; border: none; border-radius: 50%; width: 44px; height: 44px; font-size: 1.3rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s;">✕</button>
+    <img id="pdLightboxImg" src="" alt="Review Photo" style="max-width: 90vw; max-height: 85vh; border-radius: 12px; box-shadow: 0 25px 50px rgba(0,0,0,0.5); object-fit: contain;" />
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="product.js"></script>
+  <script type="module" src="store-sync.js"></script>
+  <script src="menu.js"></script>
+</body>
+</html>

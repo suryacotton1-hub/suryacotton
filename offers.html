@@ -1,0 +1,1763 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>சூர்யா காட்டன்ஸ் – நேரடி உற்பத்தி & மொத்த விற்பனை சலுகைகள் | SuryaCottans</title>
+  <meta name="description" content="சூர்யா காட்டன்ஸ் – ஃபார்மல் ஷர்ட்ஸ், டவல் மற்றும் பாரம்பரிய வேட்டி நேரடி உற்பத்தியாளர்கள். சில்லறை மற்றும் மொத்த கொள்முதல் (Wholesale & Retail)." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Arima:wght@400;600;700&family=Bebas+Neue&family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    :root {
+      --gold: #b8860b;
+      --gold-light: #8b6508;
+      --light-bg: #ffffff;
+      --section-alt-bg: #f8f9fb;
+      --card-bg: #ffffff;
+      --card-border: rgba(0, 0, 0, 0.08);
+      --text-dark: #0f172a;
+      --text-muted: #334155;
+      --red-accent: #e8000d;
+    }
+
+    body {
+      background-color: var(--light-bg);
+      color: var(--text-dark);
+      font-family: 'Inter', sans-serif;
+      overflow-x: hidden;
+    }
+
+    .tamil-text {
+      font-family: 'Arima', 'Inter', sans-serif;
+    }
+
+    /* TOP ANNOUNCEMENT STRIP (PLACED CLEARLY BELOW FIXED NAVBAR) */
+    .tamil-top-strip {
+      margin-top: 74px;
+      position: relative;
+      z-index: 100;
+      background: linear-gradient(90deg, #a50009, #e8000d, #a50009);
+      color: #ffffff;
+      text-align: center;
+      padding: 0.75rem 1.2rem;
+      font-size: clamp(0.82rem, 2vw, 0.92rem);
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      box-shadow: 0 4px 15px rgba(232,0,13,0.3);
+      line-height: 1.5;
+    }
+
+    /* SUBTLE ARCHITECTURAL GRID TEXTURE FOR LUXURY BACKGROUNDS */
+    .bg-grid-pattern {
+      background-image:
+        linear-gradient(rgba(0, 0, 0, 0.038) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 0, 0, 0.038) 1px, transparent 1px);
+      background-size: 36px 36px;
+    }
+
+    /* LUXURY WHITE HERO SECTION WITH TEXTURED LINES */
+    .tamil-hero {
+      position: relative;
+      padding: 4rem 0 5rem;
+      background-color: #ffffff;
+      border-bottom: 1px solid rgba(0,0,0,0.07);
+      overflow: hidden;
+    }
+
+    .tamil-hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(circle at 85% 20%, rgba(232,0,13,0.07) 0%, transparent 60%),
+                  radial-gradient(circle at 15% 80%, rgba(184,134,11,0.07) 0%, transparent 50%);
+      z-index: 0;
+    }
+
+    .tamil-hero-grid {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 3.5rem;
+      align-items: center;
+    }
+
+    @media (max-width: 992px) {
+      .tamil-hero-grid {
+        grid-template-columns: 1fr;
+        gap: 2.5rem;
+      }
+    }
+
+    .th-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      background: rgba(184, 134, 11, 0.1);
+      border: 1px solid rgba(184, 134, 11, 0.35);
+      color: var(--gold-light);
+      padding: 0.5rem 1.1rem;
+      border-radius: 50px;
+      font-size: clamp(0.75rem, 2vw, 0.82rem);
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 1.4rem;
+    }
+
+    .th-title {
+      font-family: 'Arima', 'Playfair Display', serif;
+      font-size: clamp(2.1rem, 6vw, 3.8rem);
+      font-weight: 900;
+      line-height: 1.25;
+      margin-bottom: 1.3rem;
+      color: var(--text-dark);
+    }
+
+    .th-title span.red-glow {
+      background: linear-gradient(135deg, #e8000d, #b9000b);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .th-title span.gold-glow {
+      background: linear-gradient(135deg, #b8860b, #8b6508);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .th-desc {
+      font-size: clamp(0.98rem, 2.2vw, 1.18rem);
+      line-height: 1.8;
+      color: var(--text-muted);
+      margin-bottom: 2rem;
+      font-weight: 500;
+    }
+
+    .th-features-pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-bottom: 2.4rem;
+    }
+
+    .th-fpill {
+      background: #ffffff;
+      border: 1px solid rgba(0,0,0,0.12);
+      padding: 0.6rem 1rem;
+      border-radius: 10px;
+      font-size: clamp(0.82rem, 2vw, 0.9rem);
+      color: var(--text-dark);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 600;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.04);
+    }
+
+    .th-fpill strong {
+      color: var(--gold);
+    }
+
+    .th-ctas {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    @media (max-width: 600px) {
+      .th-ctas {
+        flex-direction: column;
+        width: 100%;
+      }
+      .th-ctas a {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+
+    .btn-gold {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      color: #ffffff;
+      font-weight: 700;
+      padding: 1rem 1.8rem;
+      border-radius: 12px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      box-shadow: 0 8px 25px rgba(15,23,42,0.18);
+      transition: all 0.3s ease;
+      font-size: clamp(0.88rem, 2vw, 0.95rem);
+    }
+
+    .btn-gold:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 30px rgba(15,23,42,0.28);
+    }
+
+    .btn-whatsapp-hero {
+      background: #25d366;
+      color: #ffffff;
+      font-weight: 700;
+      padding: 1rem 1.8rem;
+      border-radius: 12px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      box-shadow: 0 8px 25px rgba(37,211,102,0.25);
+      transition: all 0.3s ease;
+      font-size: clamp(0.88rem, 2vw, 0.95rem);
+    }
+
+    .btn-whatsapp-hero:hover {
+      background: #1ebc59;
+      transform: translateY(-2px);
+      box-shadow: 0 12px 30px rgba(37,211,102,0.35);
+    }
+
+    /* HERO VISUAL COLLAGE (I1 & I2) */
+    .th-visual-wrapper {
+      position: relative;
+    }
+
+    .th-image-stack {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.2rem;
+      position: relative;
+    }
+
+    @media (max-width: 600px) {
+      .th-image-stack {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.8rem;
+      }
+    }
+
+    .th-img-box {
+      border-radius: 20px;
+      overflow: hidden;
+      border: 1px solid rgba(0,0,0,0.08);
+      box-shadow: 0 20px 45px rgba(0,0,0,0.1);
+      background: #ffffff;
+      position: relative;
+      transition: transform 0.4s ease;
+    }
+
+    .th-img-box:hover {
+      transform: translateY(-6px);
+    }
+
+    .th-img-box img,
+    .th-img-box video {
+      width: 100%;
+      height: clamp(260px, 45vw, 380px);
+      object-fit: cover;
+      display: block;
+    }
+
+    .th-img-caption {
+      position: absolute;
+      bottom: 0;
+      left: 0; right: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 100%);
+      padding: 1.5rem 1rem 1rem;
+      color: #fff;
+      font-weight: 700;
+      font-size: clamp(0.82rem, 2vw, 0.95rem);
+      pointer-events: none;
+    }
+
+    .video-mute-btn {
+      position: absolute;
+      bottom: 0.75rem;
+      right: 0.75rem;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(6px);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.95rem;
+      cursor: pointer;
+      z-index: 20;
+      transition: all 0.25s ease;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+    }
+
+    .video-mute-btn:hover {
+      background: var(--red-accent);
+      border-color: #ffffff;
+      transform: scale(1.12);
+    }
+
+    .th-img-box.secondary {
+      transform: translateY(2rem);
+    }
+
+    /* LIVE TRUST & RESELLER TICKER BAR */
+    .live-trust-bar {
+      background-color: #f8fafc;
+      border-top: 1px solid rgba(0,0,0,0.06);
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+      padding: 1rem 0;
+    }
+
+    .ltb-flex {
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      text-align: center;
+    }
+
+    .ltb-item {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: clamp(0.82rem, 2vw, 0.92rem);
+      font-weight: 700;
+      color: var(--text-dark);
+    }
+
+    .ltb-item span.icon {
+      font-size: 1.25rem;
+    }
+
+    /* FIXED DYNAMIC BANNER CONTEXT BANNER CARD (POSITIVE MARGIN SO NO OVERLAP) */
+    .banner-context-box {
+      background: #ffffff;
+      border: 1px solid rgba(232,0,13,0.22);
+      border-left: 5px solid var(--red-accent);
+      border-radius: 18px;
+      padding: 1.8rem 2.2rem;
+      margin: 2.5rem auto 3.5rem;
+      max-width: 1100px;
+      position: relative;
+      z-index: 20;
+      box-shadow: 0 12px 35px rgba(0,0,0,0.07);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    @media (max-width: 768px) {
+      .banner-context-box {
+        padding: 1.4rem 1.3rem;
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .banner-context-box a {
+        width: 100%;
+        text-align: center;
+        justify-content: center;
+      }
+    }
+
+    .bcb-info h3 {
+      font-size: clamp(1.15rem, 3.5vw, 1.35rem);
+      font-weight: 800;
+      color: var(--text-dark);
+      margin-bottom: 0.45rem;
+    }
+
+    .bcb-info p {
+      color: var(--text-muted);
+      font-size: clamp(0.9rem, 2.2vw, 0.98rem);
+      margin: 0;
+      max-width: 750px;
+      line-height: 1.65;
+      font-weight: 500;
+    }
+
+    /* 3 TITLES SECTION: FORMAL SHIRT, TOWEL, VESTTI */
+    .titles-showcase-section {
+      padding: 5.5rem 0;
+      background-color: #ffffff;
+      position: relative;
+    }
+
+    .section-header-tamil {
+      text-align: center;
+      margin-bottom: 4rem;
+    }
+
+    .section-header-tamil .sub-tag {
+      color: var(--gold);
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 0.6rem;
+      display: inline-block;
+    }
+
+    .section-header-tamil h2 {
+      font-family: 'Arima', serif;
+      font-size: clamp(2rem, 5.5vw, 3.4rem);
+      font-weight: 900;
+      color: var(--text-dark);
+    }
+
+    .section-header-tamil p {
+      max-width: 760px;
+      margin: 1rem auto 0;
+      color: var(--text-muted);
+      font-size: clamp(0.95rem, 2.2vw, 1.08rem);
+      line-height: 1.7;
+      font-weight: 500;
+    }
+
+    /* PREMIUM STACKED SHOWCASE (NEW LAYOUT) */
+    .premium-stacked-showcase {
+      display: flex;
+      flex-direction: column;
+      gap: 5rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .ps-row {
+      display: grid;
+      grid-template-columns: 1fr 1.15fr;
+      gap: 4rem;
+      align-items: center;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 28px;
+      padding: 2.5rem;
+      box-shadow: 0 15px 40px rgba(0,0,0,0.05);
+      transition: all 0.4s ease;
+    }
+
+    .ps-row:hover {
+      box-shadow: 0 25px 60px rgba(0,0,0,0.08);
+      border-color: rgba(184,134,11,0.3);
+    }
+
+    .ps-row.ps-reversed {
+      direction: rtl;
+    }
+    
+    .ps-row.ps-reversed > * {
+      direction: ltr; /* Reset direction for child elements */
+    }
+
+    @media (max-width: 1024px) {
+      .ps-row {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+        padding: 1.5rem;
+      }
+      .ps-row.ps-reversed {
+        direction: ltr; /* Reset to normal on mobile so image is always on top */
+      }
+    }
+
+    /* REUSING .ts-img-wrap BUT MODIFIED FOR STACKED */
+    .ps-img-wrap {
+      position: relative;
+      border-radius: 20px;
+      overflow: hidden;
+      height: 100%;
+      min-height: 450px;
+      background: #f3f4f6;
+    }
+    @media (max-width: 1024px) {
+      .ps-img-wrap {
+        min-height: 300px;
+        height: 350px;
+      }
+    }
+
+    .ps-img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center top;
+      transition: transform 0.6s ease;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+
+    .ps-row:hover .ps-img-wrap img {
+      transform: scale(1.05);
+    }
+
+    .ts-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 24px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      box-shadow: 0 12px 35px rgba(0,0,0,0.06);
+    }
+
+    .ts-card:hover {
+      transform: translateY(-8px);
+      border-color: rgba(184,134,11,0.45);
+      box-shadow: 0 22px 50px rgba(0,0,0,0.11);
+    }
+
+    .ts-img-wrap {
+      position: relative;
+      height: 310px;
+      overflow: hidden;
+      background: #f3f4f6;
+    }
+
+    .ts-img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center top;
+      transition: transform 0.6s ease;
+    }
+
+    .ts-card:hover .ts-img-wrap img {
+      transform: scale(1.07);
+    }
+
+    .ts-number-badge {
+      position: absolute;
+      top: 1.2rem;
+      left: 1.2rem;
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(0,0,0,0.08);
+      color: var(--text-dark);
+      padding: 0.45rem 0.9rem;
+      border-radius: 50px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .ts-tag-badge {
+      position: absolute;
+      top: 1.2rem;
+      right: 1.2rem;
+      background: var(--red-accent);
+      color: #fff;
+      padding: 0.45rem 0.9rem;
+      border-radius: 50px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      box-shadow: 0 4px 12px rgba(232,0,13,0.25);
+    }
+
+    .ts-body {
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+    }
+
+    .ts-title {
+      font-family: 'Arima', serif;
+      font-size: clamp(1.45rem, 3.5vw, 1.75rem);
+      font-weight: 800;
+      color: var(--text-dark);
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      box-sizing: border-box;
+      width: 100%;
+    }
+
+    .ts-sub {
+      color: var(--gold);
+      font-size: 0.9rem;
+      font-weight: 700;
+      margin-bottom: 1.2rem;
+      box-sizing: border-box;
+      width: 100%;
+      overflow-wrap: break-word;
+      word-wrap: break-word;
+    }
+
+    .ts-desc {
+      color: var(--text-muted);
+      line-height: 1.75;
+      font-size: clamp(0.93rem, 2.2vw, 0.97rem);
+      margin-bottom: 1.5rem;
+      font-weight: 500;
+    }
+
+    .ts-wholesale-note {
+      background: #fef2f2;
+      border-left: 3px solid var(--red-accent);
+      padding: 0.9rem 1rem;
+      border-radius: 0 8px 8px 0;
+      margin-bottom: 1.6rem;
+      font-size: clamp(0.84rem, 2vw, 0.88rem);
+      color: #991b1b;
+      line-height: 1.6;
+      font-weight: 600;
+    }
+
+    .ts-features-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .ts-fchip {
+      background: #f1f5f9;
+      border: 1px solid rgba(0,0,0,0.06);
+      padding: 0.38rem 0.75rem;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      color: #1e293b;
+      font-weight: 600;
+    }
+
+    .ts-middle-area {
+      display: flex;
+      flex-direction: column;
+      gap: 1.1rem;
+      margin-bottom: 1.5rem;
+      flex-grow: 1;
+      justify-content: flex-start;
+      box-sizing: border-box;
+      width: 100%;
+    }
+
+    .ts-lead-text {
+      color: var(--text-dark);
+      font-size: clamp(0.92rem, 2.1vw, 0.96rem);
+      line-height: 1.68;
+      font-weight: 600;
+      background: linear-gradient(135deg, #fdfbf7 0%, #fffefe 100%);
+      border: 1px solid rgba(184, 134, 11, 0.25);
+      border-radius: 14px;
+      padding: 0.95rem 1.1rem;
+      box-shadow: 0 4px 12px rgba(184, 134, 11, 0.04);
+      min-height: 85px;
+      display: block;
+      box-sizing: border-box;
+      width: 100%;
+      overflow-wrap: break-word;
+      word-wrap: break-word;
+      word-break: normal;
+    }
+
+    .ts-lead-text strong {
+      color: #8b6508;
+    }
+
+    .ts-points-box {
+      height: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      padding-right: 0px;
+      flex-shrink: 0;
+      box-sizing: border-box;
+      width: 100%;
+    }
+
+    .ts-points-box::-webkit-scrollbar {
+      width: 5px;
+    }
+
+    .ts-points-box::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 6px;
+    }
+
+    .ts-points-box::-webkit-scrollbar-thumb {
+      background: rgba(184, 134, 11, 0.35);
+      border-radius: 6px;
+    }
+
+    .ts-points-box::-webkit-scrollbar-thumb:hover {
+      background: rgba(184, 134, 11, 0.6);
+    }
+
+    .ts-point-card {
+      background: #ffffff;
+      border: 1px solid rgba(0,0,0,0.07);
+      border-radius: 12px;
+      padding: 0.85rem 1rem;
+      font-size: clamp(0.86rem, 2vw, 0.92rem);
+      line-height: 1.65;
+      color: var(--text-muted);
+      transition: all 0.25s ease;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+      box-sizing: border-box;
+      width: 100%;
+    }
+
+    .ts-point-card > div {
+      flex-grow: 1;
+      overflow-wrap: break-word;
+      word-wrap: break-word;
+      min-width: 0;
+    }
+
+    .ts-point-card:hover {
+      border-color: rgba(184, 134, 11, 0.35);
+      background: #fcfbf9;
+      transform: translateX(4px);
+    }
+
+    .ts-point-icon {
+      font-size: 1.15rem;
+      flex-shrink: 0;
+      margin-top: 0.1rem;
+    }
+
+    .ts-point-card strong {
+      color: var(--text-dark);
+      font-weight: 700;
+    }
+
+    .ts-special-note {
+      background: linear-gradient(135deg, #fff1f2 0%, #fef2f2 100%);
+      border: 1px solid rgba(232, 0, 13, 0.2);
+      border-left: 4px solid var(--red-accent);
+      padding: 0.95rem 1.1rem;
+      border-radius: 10px;
+      font-size: clamp(0.84rem, 2vw, 0.89rem);
+      color: #991b1b;
+      line-height: 1.65;
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(232, 0, 13, 0.04);
+      min-height: 125px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      flex-shrink: 0;
+      box-sizing: border-box;
+      width: 100%;
+      overflow-wrap: break-word;
+      word-wrap: break-word;
+    }
+
+    .ts-special-note strong {
+      color: #b9000b;
+    }
+
+    .ts-varieties-box {
+      background: #fdfbf7;
+      border: 1px solid rgba(184, 134, 11, 0.28);
+      border-radius: 16px;
+      padding: 1.1rem 1rem;
+      margin-bottom: 1.6rem;
+      box-shadow: 0 4px 15px rgba(184, 134, 11, 0.05);
+      height: auto;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .ts-varieties-header {
+      font-size: 0.86rem;
+      font-weight: 800;
+      color: #8b6508;
+      margin-bottom: 0.8rem;
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      letter-spacing: 0.3px;
+      flex-shrink: 0;
+    }
+
+    .ts-varieties-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      flex-grow: 1;
+      align-content: flex-start;
+      padding-right: 0px;
+    }
+
+    .ts-varieties-grid::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .ts-varieties-grid::-webkit-scrollbar-thumb {
+      background: rgba(184, 134, 11, 0.3);
+      border-radius: 4px;
+    }
+
+    .ts-variety-pill {
+      background: #ffffff;
+      border: 1px solid rgba(184, 134, 11, 0.32);
+      color: #1e293b;
+      padding: 0.4rem 0.8rem;
+      border-radius: 30px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+      transition: all 0.25s ease;
+      cursor: pointer;
+    }
+
+    .ts-variety-pill:hover {
+      background: #fef08a;
+      border-color: #ca8a04;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(202, 138, 4, 0.15);
+    }
+
+    .ts-action-row {
+      margin-top: auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.8rem;
+    }
+
+    @media (max-width: 480px) {
+      .ts-action-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .btn-retail {
+      background: #f1f5f9;
+      color: #0f172a;
+      border: 1px solid rgba(0,0,0,0.1);
+      padding: 0.85rem;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 0.88rem;
+      text-align: center;
+      text-decoration: none;
+      transition: all 0.25s ease;
+    }
+
+    .btn-retail:hover {
+      background: #e2e8f0;
+      color: #0f172a;
+    }
+
+    .btn-wholesale {
+      background: linear-gradient(135deg, #e8000d, #b9000b);
+      color: #fff;
+      border: none;
+      padding: 0.85rem;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 0.88rem;
+      text-align: center;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+
+    .btn-wholesale:hover {
+      background: #ff1a27;
+      box-shadow: 0 6px 20px rgba(232,0,13,0.25);
+    }
+
+    /* WHOLESALE & RESELLERS ADVANTAGE SECTION WITH ARCHITECTURAL GRID LINES */
+    .wholesale-adv-section {
+      padding: 5.5rem 0;
+      background-color: var(--section-alt-bg);
+      border-top: 1px solid rgba(0,0,0,0.07);
+      border-bottom: 1px solid rgba(0,0,0,0.07);
+    }
+
+    .wa-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.8rem;
+      margin-top: 3.5rem;
+    }
+
+    .wa-card {
+      background: #ffffff;
+      border: 1px solid rgba(0,0,0,0.08);
+      border-radius: 18px;
+      padding: clamp(1.6rem, 4vw, 2.2rem) clamp(1.4rem, 4vw, 1.8rem);
+      transition: all 0.3s ease;
+      position: relative;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.04);
+    }
+
+    .wa-card:hover {
+      border-color: var(--gold);
+      transform: translateY(-5px);
+      box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+    }
+
+    .wa-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
+      background: rgba(184,134,11,0.1);
+      border: 1px solid rgba(184,134,11,0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+      margin-bottom: 1.4rem;
+    }
+
+    .wa-card h3 {
+      font-size: clamp(1.15rem, 3vw, 1.25rem);
+      font-weight: 800;
+      color: var(--text-dark);
+      margin-bottom: 0.8rem;
+    }
+
+    .wa-card p {
+      color: var(--text-muted);
+      font-size: clamp(0.92rem, 2vw, 0.95rem);
+      line-height: 1.7;
+      margin: 0;
+      font-weight: 500;
+    }
+
+    /* INTERACTIVE QUANTITY & BULK PRICE QUOTE CALCULATOR WITH TEXTURED GRID */
+    .calculator-section {
+      padding: 5.5rem 0;
+      background-color: #ffffff;
+    }
+
+    .calc-card {
+      background: #ffffff;
+      border: 1px solid rgba(0,0,0,0.1);
+      border-radius: 28px;
+      padding: clamp(1.8rem, 5vw, 3.5rem);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.07);
+      max-width: 950px;
+      margin: 0 auto;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .calc-form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-top: 2.5rem;
+      position: relative;
+      z-index: 2;
+    }
+
+    @media (max-width: 768px) {
+      .calc-form-grid {
+        grid-template-columns: 1fr;
+        gap: 1.2rem;
+      }
+    }
+
+    .calc-field label {
+      display: block;
+      font-size: clamp(0.88rem, 2vw, 0.92rem);
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 0.6rem;
+    }
+
+    .calc-field select,
+    .calc-field input {
+      width: 100%;
+      background: #f8fafc;
+      border: 1px solid rgba(0,0,0,0.16);
+      color: var(--text-dark);
+      padding: 0.95rem 1.2rem;
+      border-radius: 12px;
+      font-size: 1rem;
+      outline: none;
+      font-weight: 600;
+      transition: border-color 0.2s ease;
+    }
+
+    .calc-field select:focus,
+    .calc-field input:focus {
+      border-color: var(--gold);
+      background: #ffffff;
+    }
+
+    .calc-result-box {
+      background: #fdfaf3;
+      border: 1px solid rgba(184,134,11,0.3);
+      border-radius: 16px;
+      padding: clamp(1.4rem, 4vw, 1.8rem);
+      margin-top: 2.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      position: relative;
+      z-index: 2;
+    }
+
+    @media (max-width: 600px) {
+      .calc-result-box {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .calc-result-box button {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+
+    .crb-info h4 {
+      font-size: clamp(1.1rem, 3vw, 1.3rem);
+      font-weight: 800;
+      color: #926b0a;
+      margin-bottom: 0.4rem;
+    }
+
+    .crb-info p {
+      color: #334155;
+      font-size: clamp(0.9rem, 2vw, 0.95rem);
+      margin: 0;
+      font-weight: 500;
+    }
+
+    /* CUSTOMER LOVE TESTIMONIAL CARDS IN TAMIL */
+    .tamil-reviews-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+      gap: 1.8rem;
+      margin-top: 3.5rem;
+    }
+
+    .tr-card {
+      background: #ffffff;
+      border: 1px solid rgba(0,0,0,0.08);
+      border-radius: 18px;
+      padding: clamp(1.5rem, 4vw, 2rem);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.04);
+    }
+
+    .tr-stars {
+      color: #f59e0b;
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+    }
+
+    .tr-quote {
+      color: var(--text-muted);
+      line-height: 1.7;
+      font-size: clamp(0.92rem, 2vw, 0.96rem);
+      margin-bottom: 1.5rem;
+      font-weight: 500;
+    }
+
+    .tr-author {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      border-top: 1px solid rgba(0,0,0,0.08);
+      padding-top: 1.2rem;
+    }
+
+    .tr-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--red-accent);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+    }
+
+    .tr-meta h4 {
+      color: var(--text-dark);
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin: 0 0 0.2rem 0;
+    }
+
+    .tr-meta span {
+      color: #64748b;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ============ TOP STRIP IN TAMIL ============ -->
+  <div class="tamil-top-strip">
+    🔥 சூர்யா காட்டன்ஸ் – நேரடி நெசவு & ஆடை உற்பத்தியாளர்கள் (Direct Factory Manufacturers) | சில்லறை (Retail) & மொத்த (Wholesale Bulk) கொள்முதலுக்கு தனி சிறப்பு விலை!
+  </div>
+
+  <!-- ============ NAV ============ -->
+  <nav class="navbar" id="navbar">
+    <a href="index.html" class="nav-logo"><img src="Logo.png" alt="SuryaCottans" class="nav-logo-img"><span class="nav-logo-text">SuryaCotton</span></a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="index.html" class="nav-link">Home</a></li>
+      <li><a href="index.html#collection" class="nav-link">Collection</a></li>
+      <li><a href="category.html?cat=all" class="nav-link">Shop</a></li>
+      <li><a href="track.html" class="nav-link">Track Order</a></li>
+      <li><a href="story.html" class="nav-link">About Us</a></li>
+      <li><a href="contact.html" class="nav-link">Contact</a></li>
+    </ul>
+    <div class="nav-actions">
+      <a href="category.html?cat=all" class="btn-primary" style="padding: 0.6rem 1.4rem; font-size: 0.75rem;">SHOP ALL</a>
+    </div>
+  </nav>
+
+  <!-- ============ DIRECT MANUFACTURER HERO (WITH ARCHITECTURAL GRID LINE TEXTURE) ============ -->
+  <section class="tamil-hero bg-grid-pattern">
+    <div class="container">
+      <div class="tamil-hero-grid">
+        
+        <div class="th-content">
+          <div class="th-badge">
+            <span>⭐ தமிழ்நாடு நேரடி உற்பத்தியாளர்கள் • DIRECT FACTORY</span>
+          </div>
+          <h1 class="th-title">
+            சூர்யா காட்டன்ஸ்<br />
+            <span class="gold-glow">நேரடி உற்பத்தி</span> &amp; <span class="red-glow">மொத்த விற்பனை</span>
+          </h1>
+          <p class="th-desc">
+            நாங்களே சொந்தமாக உற்பத்தி செய்வதால் (Direct Manufacturers), நீங்கள் <strong>1 பீஸ் சில்லறையாக (Retail)</strong> வாங்கினாலும் சரி அல்லது <strong>எவ்வளவு அதிக எண்ணிக்கையில் (Wholesale Bulk Orders)</strong> கேட்டாலும் சரி – மிக உயர்ந்த தரத்தில், குறித்த நேரத்தில் ரெடி பண்ணி கொடுத்துருவோம்!
+          </p>
+          
+          <div class="th-features-pill-row">
+            <div class="th-fpill">🏭 <strong>100%</strong> சொந்த உற்பத்தி</div>
+            <div class="th-fpill">📦 <strong>எவ்வளவு</strong> அதிக ஆர்டராக இருந்தாலும் ரெடி</div>
+            <div class="th-fpill">🤝 <strong>மறுவிற்பனையாளர்</strong> சிறப்பு விலை</div>
+            <div class="th-fpill">⚡ <strong>24–48 மணிநேர</strong> டெலிவரி</div>
+          </div>
+
+          <div class="th-ctas">
+            <a href="#threeTitlesShowcase" class="btn-gold">
+              👔 3 முக்கிய தயாரிப்புகளைப் பார்க்க
+            </a>
+            <a href="https://wa.me/918072654677?text=%E0%AE%B5%E0%AE%A3%E0%AE%95%E0%AF%8D%E0%AE%95%E0%AE%AE%E0%AF%8D%20SuryaCotton!%20%E0%AE%8E%E0%AE%A9%E0%AE%95%E0%AF%8D%E0%AE%95%E0%AF%8D%20%E0%AE%AE%E0%AF%8A%E0%AE%A4%E0%AF%8D%E0%AE%A4%E0%AE%AE%E0%AE%BE%E0%AE%95%20(Wholesale)%20%E0%AE%86%E0%AE%B0%E0%AF%8D%E0%AE%9F%E0%AE%B0%E0%AF%8D%20%E0%AE%9A%E0%AF%8E%E0%AE%AF%E0%AF%8D%E0%AE%AF%20%E0%AE%B5%E0%AE%BF%E0%AE%B2%E0%AF%88%E0%AE%AA%E0%AF%8D%E0%AE%AA%E0%AE%9F%E0%AF%8D%E0%AE%9F%E0%AE%BF%E0%AE%AF%E0%AE%B2%E0%AF%8D%20%E0%AE%A4%E0%AF%87%E0%AE%B5%E0%AF%88." target="_blank" rel="noopener" class="btn-whatsapp-hero">
+              💬 வாட்ஸ்அப் மொத்த ஆர்டர் விசாரணை
+            </a>
+          </div>
+        </div>
+
+        <!-- VIDEO STACK WITH Heros/V1.mp4 AND Heros/V2.mp4 -->
+        <div class="th-visual-wrapper">
+          <div class="th-image-stack">
+            <div class="th-img-box">
+              <video src="Heros/V1.mp4?v=2" id="heroVideo1" autoplay loop muted playsinline preload="auto"></video>
+              <div class="th-img-caption">100% தூய பருத்தி தரம்</div>
+            </div>
+            <div class="th-img-box secondary">
+              <video src="Heros/V2.mp4?v=2" id="heroVideo2" autoplay loop muted playsinline preload="auto"></video>
+              <div class="th-img-caption">நேரடி தொழிற்சாலை விலை</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ LIVE TRUST & RESELLER NETWORK BAR ============ -->
+  <div class="live-trust-bar">
+    <div class="container">
+      <div class="ltb-flex">
+        <div class="ltb-item">
+          <span class="icon">✨</span>
+          <span>தமிழ்நாடு முழுவதும் 500+ கடைகளின் நம்பிக்கை</span>
+        </div>
+        <div class="ltb-item">
+          <span class="icon">🛡️</span>
+          <span>100% தூய பருத்தி &amp; தரம் உத்தரவாதம்</span>
+        </div>
+        <div class="ltb-item">
+          <span class="icon">🚚</span>
+          <span>அனைத்து மாவட்டங்களுக்கும் அதிவேக டெலிவரி</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ DYNAMIC BANNER PARAMETER BANNER CARD ============ -->
+  <div class="container">
+    <div class="banner-context-box" id="bannerContextCard">
+      <div class="bcb-info">
+        <h3 id="bcbTitle">🎉 சிறப்பு திருவிழா &amp; நேரடி உற்பத்தியாளர் சலுகை</h3>
+        <p id="bcbDesc">
+          சூர்யா காட்டன்ஸ் நேரடி தொழிற்சாலை பக்கத்திற்கு நல்வரவு! நீங்கள் முகப்புப் பக்கத்தின் பேனரிலிருந்து இங்கு வந்துள்ளீர்கள். எங்கள் ஃபார்மல் ஷர்ட்ஸ், டவல் மற்றும் பாரம்பரிய வேட்டிகளை நேரடி தொழிற்சாலை விலையில் சில்லறையாகவோ அல்லது மொத்தமாகவோ (Wholesale) பெற்று மகிழுங்கள்.
+        </p>
+      </div>
+      <div>
+        <a href="#wholesaleCalculator" class="btn-primary" style="white-space:nowrap;">விலை மதிப்பீடு செய்ய ↓</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ THE 3 TITLES SHOWCASE (1. FORMAL SHIRT, 2. TOWEL, 3. VESTTI) ============ -->
+  <section class="titles-showcase-section" id="threeTitlesShowcase">
+    <div class="container">
+      <div class="section-header-tamil">
+        <span class="sub-tag">OUR 3 SIGNATURE COLLECTIONS</span>
+        <h2>எங்கள் 3 பிரதான <span style="color: var(--gold);">தயாரிப்புகள்</span></h2>
+        <p>
+          ஒவ்வொரு இழையும் தமிழரின் பாரம்பரிய நெசவுத் திறனுடன், நவீன தையல் நுட்பத்தில் உருவானவை. நீங்கள் ஒரு பீஸ் வாங்கினாலும் சரி அல்லது கடைகள் / வியாபாரத்திற்கு மொத்தமாக வாங்கினாலும் சரி – மிகச் சிறந்த தரம் உறுதி!
+        </p>
+      </div>
+
+      <div class="premium-stacked-showcase">
+        
+        <!-- ============ TITLE 1: FORMAL SHIRT ============ -->
+        <div class="ps-row">
+          <div class="ps-img-wrap">
+            <span class="ts-number-badge">TITLE 01</span>
+            <span class="ts-tag-badge">100% PURE COTTON</span>
+            <img src="Heros/Formal Shirt.webp" alt="Formal Shirt - ஃபார்மல் ஷர்ட்ஸ்" loading="lazy" />
+          </div>
+          <div class="ts-body">
+            <h3 class="ts-title">
+              <span>ஃபார்மல் ஷர்ட்ஸ்</span>
+              <span style="font-size: 1rem; color: var(--gold-light);">Formal Shirt</span>
+            </h3>
+            <p class="ts-sub">நேர்த்தியான அலுவலக &amp; விழா சட்டைகள்</p>
+            <div class="ts-middle-area">
+              <div class="ts-lead-text">
+                ✨ <strong>100% தூய பருத்தி நூலால் நெய்யப்பட்டு</strong>, நேர்த்தியான தையலுடன் தயாரிக்கப்பட்ட எங்களின் வெள்ளை சட்டைகளின் சிறப்பம்சங்கள்:
+              </div>
+              <div class="ts-points-box">
+                <div class="ts-point-card">
+                  <span class="ts-point-icon">1️⃣</span>
+                  <div><strong>வக்கீல்கள் கோட்டுடன் அணிய ஏற்ற உயர்தர வெள்ளை சட்டைகள்.</strong> கோட்டை கழற்றினாலும் எளிதில் சுருக்கம் விழாத தரமான துணியில் தயாரிக்கப்படுகின்றன.</div>
+                </div>
+                <div class="ts-point-card">
+                  <span class="ts-point-icon">2️⃣</span>
+                  <div><strong>லினன் வெள்ளை சட்டைகள்</strong> பல்வேறு மாடல்களில் எங்களிடம் கிடைக்கின்றன.</div>
+                </div>
+                <div class="ts-point-card">
+                  <span class="ts-point-icon">3️⃣</span>
+                  <div><strong>வெள்ளை காடன், பாலிஷ்ட் காடன் மற்றும் பாலி ரகங்களில்</strong> 20-க்கும் மேற்பட்ட மாடல்கள் கிடைக்கின்றன.</div>
+                </div>
+                <div class="ts-point-card">
+                  <span class="ts-point-icon">4️⃣</span>
+                  <div><strong>சைஸ் 36 முதல் 48 வரை</strong> அனைத்து சைஸ்களும் ரெடி ஸ்டாக்கில் கிடைக்கும்.</div>
+                </div>
+                <div class="ts-point-card">
+                  <span class="ts-point-icon">5️⃣</span>
+                  <div><strong>தமிழ்நாடு முழுவதும் கூரியர் வசதியுடன்</strong> சட்டைகள் விரைவாக அனுப்பி வைக்கப்படும்.</div>
+                </div>
+              </div>
+              <div class="ts-special-note">
+                <strong>💥 அரசியல் கட்சி பிரத்தியேக எம்பிராய்டரி ஆர்டர்கள்:</strong> அரசியல் கட்சிகளின் சின்னம், கொடி, பெயர், எழுத்துக்கள் மற்றும் பிரீமியம் லேபிள்கள் வெள்ளை சட்டைகளில் உயர்தர எம்பிராய்டரி செய்யப்படும். அரசியல் தலைவர்கள் மற்றும் இளைஞர் அணி (Youth Wing) உறுப்பினர்களுக்கு ஏற்ற காடன், கலர் மற்றும் முழுக்கை (Long Sleeve) சட்டைகள் மொத்த விலையில் கிடைக்கும்!
+              </div>
+            </div>
+            <div class="ts-varieties-box">
+              <div class="ts-varieties-header" title="கிடைக்கும் வகைகள்">👔 கிடைக்கும் சட்டை &amp; காம்போ ரகங்கள் <span style="font-size: 0.75rem; font-weight: 600; color: #64748b;">(கிளிக் செய்து விலை கணக்கிடலாம்)</span>:</div>
+              <div class="ts-varieties-grid">
+                <span class="ts-variety-pill" onclick="selectVarietyAndCalculate('ஒயிட் காட்டன் சட்டைகள்')">▫️ ஒயிட் காட்டன் சட்டைகள்</span>
+                <span class="ts-variety-pill" onclick="selectVarietyAndCalculate('ஒயிட் லினன் சட்டைகள்')">▫️ ஒயிட் லினன் சட்டைகள்</span>
+                <span class="ts-variety-pill" onclick="selectVarietyAndCalculate('கலர் காட்டன் சட்டைகள்')">▫️ கலர் காட்டன் சட்டைகள்</span>
+                <span class="ts-variety-pill" onclick="selectVarietyAndCalculate('காம்போ வேஷ்டி சட்டை செட்')">▫️ காம்போ வேஷ்டி சட்டை செட்</span>
+                <span class="ts-variety-pill" onclick="selectVarietyAndCalculate('டிஷ்யூ வேஷ்டி சட்டை செட்')">▫️ டிஷ்யூ வேஷ்டி சட்டை செட்</span>
+                <span class="ts-variety-pill" onclick="selectVarietyAndCalculate('டிஷ்யூ வேஷ்டி சட்டை ஸ்பெஷல்')">▫️ டிஷ்யூ வேஷ்டி சட்டை ஸ்பெஷல்</span>
+                <span class="ts-variety-pill" onclick="selectVarietyAndCalculate('டிஷ்யூ வேஷ்டி சட்டை பிரீமியம் குவாலிட்டி')">▫️ டிஷ்யூ வேஷ்டி சட்டை பிரீமியம் குவாலிட்டி</span>
+                <span class="ts-variety-pill" onclick="selectVarietyAndCalculate('செக்டு சட்டைகள்')">▫️ செக்டு சட்டைகள்</span>
+                <span class="ts-variety-pill" onclick="selectVarietyAndCalculate('பிரிண்டட் சட்டைகள்')">▫️ பிரிண்டட் சட்டைகள்</span>
+                <span class="ts-variety-pill" onclick="selectVarietyAndCalculate('கிஸா / ஜிட் காட்டன் சட்டைகள்')">▫️ கிஸா / ஜிட் காட்டன் சட்டைகள்</span>
+                <span class="ts-variety-pill" onclick="selectVarietyAndCalculate('ஒரே கலரில் செட் சட்டைகள்')">▫️ ஒரே கலரில் செட் சட்டைகள்</span>
+              </div>
+            </div>
+            <div class="ts-action-row">
+              <a href="category.html?cat=shirt" class="btn-retail">🛒 சில்லறையாக வாங்க</a>
+              <button class="btn-wholesale" onclick="orderWholesale('Formal Shirt - ஃபார்மல் ஷர்ட்ஸ்')">📦 மொத்த விலைக்கு கேட்க</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============ TITLE 2: TOWEL ============ -->
+        <div class="ps-row ps-reversed">
+          <div class="ps-img-wrap">
+            <span class="ts-number-badge">TITLE 02</span>
+            <span class="ts-tag-badge">SUPER ABSORBENT</span>
+            <img src="Heros/Pure Towel.webp" alt="Pure Cotton Towel - பிரீமியம் டவல்" loading="lazy" />
+          </div>
+          <div class="ts-body">
+            <h3 class="ts-title">
+              <span>பிரீமியம் டவல்</span>
+              <span style="font-size: 1rem; color: var(--gold-light);">Pure Towel</span>
+            </h3>
+            <p class="ts-sub">மென்மையான 100% பருத்தி துண்டுகள்</p>
+            <div class="ts-middle-area">
+              <div class="ts-lead-text">
+                ✨ <strong>எங்களது அனைத்து தயாரிப்புகளும் சொந்த தயாரிப்பாக இருப்பதால்</strong>, தரமான பொருட்களை மிகக் குறைந்த மொத்த விலையில் வழங்குகிறோம்.
+              </div>
+              <div class="ts-points-box">
+                <div class="ts-point-card">
+                  <span class="ts-point-icon">🧶</span>
+                  <div><strong>2 mm சொந்த தயாரிப்பு துண்டுகள் &amp; ப்ளைன் 2×3 துண்டுகள்</strong> உயர்தர பருத்தியில் எங்களிடம் கிடைக்கும்.</div>
+                </div>
+                <div class="ts-point-card">
+                  <span class="ts-point-icon">▫️</span>
+                  <div><strong>ஒயிட் ஐக்காடு, கலர் ஐக்காடு மற்றும் Honman ஒயிட் துண்டுகள்</strong> பல்வேறு அளவுகளில் கிடைக்கின்றன.</div>
+                </div>
+                <div class="ts-point-card">
+                  <span class="ts-point-icon">🎨</span>
+                  <div><strong>பிரிண்டட் கலர் துண்டுகள் மற்றும் குற்றாலம் துண்டுகள்</strong> மென்மையான இழை அமைப்புடன் கிடைக்கின்றன.</div>
+                </div>
+                <div class="ts-point-card">
+                  <span class="ts-point-icon">🌟</span>
+                  <div><strong>எக்ஸ்போர்ட் தரமான 30×60 துண்டுகள்</strong> மற்றும் கார் சீட்டிற்கு ஏற்ற பெரிய துண்டுகள் ரெடி ஸ்டாக்கில் உள்ளன.</div>
+                </div>
+                <div class="ts-point-card">
+                  <span class="ts-point-icon">🚩</span>
+                  <div><strong>TVK, DMK, AIADMK, VCK உள்ளிட்ட அனைத்து அரசியல் கட்சிகளுக்கும்</strong> ஏற்ற காடன் துண்டுகள் கிடைக்கும்.</div>
+                </div>
+              </div>
+              <div class="ts-special-note">
+                <strong>💥 பிரத்தியேக எம்பிராய்டரி &amp; கட்சி ஆர்டர்கள்:</strong> அரசியல் கட்சி வேஷ்டிகள், கட்சி துண்டுகள், சால்வைகள் மற்றும் கட்சி லோகோ/பெயர் எம்பிராய்டரி செய்யப்பட்ட தயாரிப்புகள் அனைத்தும் மொத்த விலையில், உயர்தரத்தில், மிகக் குறைந்த விலையில் கிடைக்கும்.
+              </div>
+            </div>
+            <div class="ts-varieties-box">
+              <div class="ts-varieties-header" title="கிடைக்கும் வகைகள்">🏷️ கிடைக்கும் டவல் ரகங்கள் &amp; பொன்னாடைகள் <span style="font-size: 0.75rem; font-weight: 600; color: #64748b;">(கிளிக் செய்து விலை கணக்கிடலாம்)</span>:</div>
+              <div class="ts-varieties-grid">
+                <span class="ts-variety-pill" onclick="selectVarietyAndCalculate('தூய காட்டன் டவல்கள்')">▫️ தூய காட்டன் டவல்கள்</span>
+                <span class="ts-variety-pill" onclick="selectVarietyAndCalculate('ஒயிட் டவல்')">▫️ ஒயிட் டவல்</span>
+                <span class="ts-variety-pill" onclick="selectVarietyAndCalculate('கலர் டவல்')">▫️ கலர் டவல்</span>
+                <span class="ts-variety-pill" onclick="selectVarietyAndCalculate('டர்க்கி டவல்')">▫️ டர்க்கி டவல்</span>
+                <span class="ts-variety-pill" onclick="selectVarietyAndCalculate('பிரிண்டட் டவல்')">▫️ பிரிண்டட் டவல்</span>
+                <span class="ts-variety-pill" onclick="selectVarietyAndCalculate('சால்வை யூஸ் டவல்')">▫️ சால்வை யூஸ் டவல்</span>
+                <span class="ts-variety-pill" onclick="selectVarietyAndCalculate('பொன்னாடைகள்')">▫️ பொன்னாடைகள்</span>
+                <span class="ts-variety-pill" onclick="selectVarietyAndCalculate('கட்சி டவல்கள்')">▫️ கட்சி டவல்கள்</span>
+                <span class="ts-variety-pill" onclick="selectVarietyAndCalculate('பாத் டவல்கள்')">▫️ பாத் டவல்கள்</span>
+              </div>
+            </div>
+            <div class="ts-action-row">
+              <a href="category.html?cat=all" class="btn-retail">🛒 சில்லறையாக வாங்க</a>
+              <button class="btn-wholesale" onclick="orderWholesale('Pure Cotton Towel - பிரீமியம் டவல்')">📦 மொத்த விலைக்கு கேட்க</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============ TITLE 3: VESTTI ============ -->
+        <div class="ps-row">
+          <div class="ps-img-wrap">
+            <span class="ts-number-badge">TITLE 03</span>
+            <span class="ts-tag-badge">TRADITIONAL PRIDE</span>
+            <img src="Heros/Traditional Vestti.webp" alt="Traditional Vestti - பாரம்பரிய வேட்டி" loading="lazy" />
+          </div>
+          <div class="ts-body">
+            <h3 class="ts-title">
+              <span>பாரம்பரிய வேட்டி</span>
+              <span style="font-size: 1rem; color: var(--gold-light);">Traditional Vestti</span>
+            </h3>
+            <p class="ts-sub">கம்பீரமான வெள்ளை வேட்டிகள்</p>
+            <div class="ts-middle-area">
+              <div class="ts-lead-text">
+                🇮🇳 <strong>எங்களிடம் இந்தியா முழுவதும் உள்ள அனைத்து அரசியல் கட்சிகளுக்குமான வேஷ்டிகள்</strong> உயர்தரத்தில் மொத்த விலையில் கிடைக்கும்.
+              </div>
+              <div class="ts-points-box">
+                <div class="ts-point-card">
+                  <span class="ts-point-icon">🚩</span>
+                  <div><strong>அனைத்து அரசியல் கட்சிகளுக்கும்:</strong> இந்தியா முழுவதும் உள்ள அனைத்து தேசிய மற்றும் மாநில அரசியல் கட்சிகளுக்கான வேஷ்டிகள் ரெடி ஸ்டாக் மற்றும் கஸ்டம் ஆர்டரில் கிடைக்கும்.</div>
+                </div>
+                <div class="ts-point-card">
+                  <span class="ts-point-icon">🔍</span>
+                  <div><strong>சிறிய கட்சிகளுக்கும் சிறப்பு தயாரிப்பு:</strong> நீங்கள் சார்ந்த கட்சி மிகவும் சிறிய கட்சியாக இருந்தாலும் அல்லது அந்தக் கட்சியின் வேஷ்டி தமிழ்நாட்டில் எங்கும் கிடைக்கவில்லை என்றாலும், எங்களைத் தொடர்புகொண்டால் மொத்த ஆர்டரின் அடிப்படையில் தயாரித்து வழங்கப்படும்.</div>
+                </div>
+                <div class="ts-point-card">
+                  <span class="ts-point-icon">⚡</span>
+                  <div><strong>புதிய கட்சிகளுக்கான கஸ்டம் ஆர்டர்:</strong> எந்த புதிய அரசியல் கட்சியாக இருந்தாலும், அந்தக் கட்சிக்கான வேஷ்டிகளும் (கரை வண்ணங்கள், சின்னம்) மொத்த ஆர்டரின் பேரில் தரமான முறையில் தயாரித்து வழங்கப்படும்.</div>
+                </div>
+                <div class="ts-point-card">
+                  <span class="ts-point-icon">👑</span>
+                  <div><strong>100% தூய பருத்தி &amp; பாரம்பரிய நெசவு:</strong> மங்களகரமான தங்க ஜரிகை பார்டர் மற்றும் வண்ண பார்டர்களுடன், உடல் காற்று புகும் வகையில் மென்மையாக நெய்யப்பட்ட பிரீமியம் வெள்ளை வேட்டிகள்.</div>
+                </div>
+                <div class="ts-point-card">
+                  <span class="ts-point-icon">🧵</span>
+                  <div><strong>4 முழம் &amp; 8 முழம் அனைத்து அளவுகள்:</strong> திருமணம், கோவில் விழாக்கள், சுபகாரியங்கள் மற்றும் அரசியல் மேடைகளுக்கு ஏற்ற 4 முழம் மற்றும் 8 முழம் வேட்டிகள் ரெடி ஸ்டாக்கில் கிடைக்கும்.</div>
+                </div>
+              </div>
+              <div class="ts-special-note">
+                <strong>💥 100% கஸ்டமைஸ்டு கட்சி வேஷ்டி உத்தரவாதம்:</strong> நீங்கள் சார்ந்த கட்சி மிகவும் சிறிய கட்சியாக இருந்தாலும், அல்லது எந்த புதிய அரசியல் கட்சியாக இருந்தாலும், அந்தக் கட்சியின் கரை வண்ணங்கள் மற்றும் சின்னத்துடன் மொத்த ஆர்டரின் பேரில் (Bulk Order) பிரத்தியேகமாகத் தரமான முறையில் தயாரித்து வழங்கப்படும்!
+              </div>
+            </div>
+            <div class="ts-varieties-box">
+              <div class="ts-varieties-header" title="கிடைக்கும் வகைகள்">👑 கிடைக்கும் வேட்டி ரகங்கள் <span style="font-size: 0.75rem; font-weight: 600; color: #64748b;">(கிளிக் செய்து விலை கணக்கிடலாம்)</span>:</div>
+              <div class="ts-varieties-grid">
+                <span class="ts-variety-pill" onclick="selectVarietyAndCalculate('லினன் வேஷ்டிகள்')">▫️ லினன் வேஷ்டிகள்</span>
+                <span class="ts-variety-pill" onclick="selectVarietyAndCalculate('கோல்டு வேஷ்டி')">▫️ கோல்டு வேஷ்டி</span>
+                <span class="ts-variety-pill" onclick="selectVarietyAndCalculate('சில்வர் வேஷ்டி')">▫️ சில்வர் வேஷ்டி</span>
+                <span class="ts-variety-pill" onclick="selectVarietyAndCalculate('ஃபேேன்ஸி கரை வேஷ்டிகள்')">▫️ ஃபேேன்ஸி கரை வேஷ்டிகள்</span>
+                <span class="ts-variety-pill" onclick="selectVarietyAndCalculate('பர்மாஸ் வேஷ்டிகள்')">▫️ பர்மாஸ் வேஷ்டிகள்</span>
+                <span class="ts-variety-pill" onclick="selectVarietyAndCalculate('சன்னகரை வேஷ்டிகள்')">▫️ சன்னகரை வேஷ்டிகள்</span>
+                <span class="ts-variety-pill" onclick="selectVarietyAndCalculate('கம்பிகரை வேஷ்டிகள்')">▫️ கம்பிகரை வேஷ்டிகள்</span>
+                <span class="ts-variety-pill" onclick="selectVarietyAndCalculate('க்ரீம் கலர் வேஷ்டி')">▫️ க்ரீம் கலர் வேஷ்டி</span>
+                <span class="ts-variety-pill" onclick="selectVarietyAndCalculate('கலர் வேஷ்டிகள்')">▫️ கலர் வேஷ்டிகள்</span>
+                <span class="ts-variety-pill" onclick="selectVarietyAndCalculate('சாமி வேஷ்டிகள்')">▫️ சாமி வேஷ்டிகள்</span>
+                <span class="ts-variety-pill" onclick="selectVarietyAndCalculate('கலர் பர்மாஸ் வேஷ்டிகள்')">▫️ கலர் பர்மாஸ் வேஷ்டிகள்</span>
+                <span class="ts-variety-pill" onclick="selectVarietyAndCalculate('அனைத்து கட்சி வேஷ்டிகள்')">▫️ அனைத்து கட்சி வேஷ்டிகள்</span>
+                <span class="ts-variety-pill" onclick="selectVarietyAndCalculate('கேரளா வேஷ்டிகள்')">▫️ கேரளா வேஷ்டிகள்</span>
+              </div>
+            </div>
+            <div class="ts-action-row">
+              <a href="category.html?cat=all" class="btn-retail">🛒 சில்லறையாக வாங்க</a>
+              <button class="btn-wholesale" onclick="orderWholesale('Traditional Vestti - பாரம்பரிய வேட்டி')">📦 மொத்த விலைக்கு கேட்க</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ WHY BUY WHOLESALE (WITH ARCHITECTURAL GRID LINES) ============ -->
+  <section class="wholesale-adv-section bg-grid-pattern">
+    <div class="container">
+      <div class="section-header-tamil">
+        <span class="sub-tag">WHY CHOOSE US FOR BULK &amp; RETAIL</span>
+        <h2>ஏன் எங்களிடம் <span style="color: var(--red-accent);">வாங்க வேண்டும்?</span></h2>
+        <p>
+          சொந்த உற்பத்தித் தரம், நேரடி விலை, மற்றும் எந்த அளவிலும் ஆர்டரை நிறைவேற்றும் திறனே சூர்யா காட்டன்ஸின் தனித்துவம்.
+        </p>
+      </div>
+
+      <div class="wa-grid">
+        
+        <div class="wa-card">
+          <div class="wa-icon">🏭</div>
+          <h3>இடைத்தரகர்கள் இல்லை (Direct Factory Price)</h3>
+          <p>
+            நாங்களே நேரடியாக உற்பத்தி செய்வதால், இடைத்தரகர் கமிஷன் இன்றி அசல் தொழிற்சாலை விலையிலேயே உங்களுக்குக் கிடைக்கும். இதனால் நீங்கள் அதிக சேமிப்பைப் பெறலாம்.
+          </p>
+        </div>
+
+        <div class="wa-card">
+          <div class="wa-icon">📦</div>
+          <h3>எவ்வளவு பெரிய ஆர்டராக இருந்தாலும் ரெடி</h3>
+          <p>
+            10 பீஸ் முதல் 10,000 பீஸ் வரை – உங்களுக்கு எவ்வளவு பெரிய ஆர்டர் தேவைப்பட்டாலும், சொன்ன தேதியில் குறித்த நேரத்தில் துல்லியமாக ரெடி பண்ணி கொடுத்துருவோம்.
+          </p>
+        </div>
+
+        <div class="wa-card">
+          <div class="wa-icon">📈</div>
+          <h3>மறுவிற்பனையாளர் லாபம் (Reseller Profit)</h3>
+          <p>
+            வீட்டிலிருந்தே ஆன்லைனில் விற்பனை செய்வோர் (Resellers) மற்றும் பூட்டிக்/கடைகள் நடத்துவோர் எங்களிடம் மொத்தமாக வாங்கி அதிக லாபத்துடன் விற்பனை செய்யலாம்.
+          </p>
+        </div>
+
+        <div class="wa-card">
+          <div class="wa-icon">✨</div>
+          <h3>உயர்தர சோதனை (100% Quality Checked)</h3>
+          <p>
+            ஒவ்வொரு சட்டை, டவல் மற்றும் வேட்டியும் பல கட்ட தரப் பரிசோதனைக்கு உட்படுத்தப்பட்டு அனுப்பப்படுவதால், வாடிக்கையாளர்களின் முழு நம்பிக்கை உறுதி.
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ INTERACTIVE WHOLESALE QUANTITY CALCULATOR ============ -->
+  <section class="calculator-section" id="wholesaleCalculator">
+    <div class="container">
+      <div class="calc-card bg-grid-pattern">
+        <div class="section-header-tamil" style="margin-bottom: 2rem;">
+          <span class="sub-tag">INSTANT WHOLESALE QUOTE</span>
+          <h2 style="font-size: clamp(1.8rem, 4.5vw, 2.4rem);">மொத்த கொள்முதல் <span style="color: var(--gold);">விலை மதிப்பீட்டாளர்</span></h2>
+          <p>உங்களுக்குத் தேவையான தயாரிப்பையும் எண்ணிக்கையையும் தேர்ந்தெடுத்து, நேரடி தொழிற்சாலை சலுகையை உடனே வாட்ஸ்அப்பில் பெறுங்கள்.</p>
+        </div>
+
+        <div class="calc-form-grid">
+          <div class="calc-field">
+            <label for="calcProduct">தயாரிப்பு (Select Product Category)</label>
+            <select id="calcProduct" onchange="updateCalcPreview()">
+              <optgroup label="1) ஃபார்மல் ஷர்ட்ஸ் &amp; காம்போ செட்கள்">
+                <option value="ஃபார்மல் ஷர்ட்ஸ் (Formal Shirt)">ஃபார்மல் ஷர்ட்ஸ் - பொதுவானது (All Formal Shirts)</option>
+                <option value="ஒயிட் காட்டன் சட்டைகள்">• ஒயிட் காட்டன் சட்டைகள்</option>
+                <option value="ஒயிட் லினன் சட்டைகள்">• ஒயிட் லினன் சட்டைகள்</option>
+                <option value="கலர் காட்டன் சட்டைகள்">• கலர் காட்டன் சட்டைகள்</option>
+                <option value="காம்போ வேஷ்டி சட்டை செட்">• காம்போ வேஷ்டி சட்டை செட்</option>
+                <option value="டிஷ்யூ வேஷ்டி சட்டை செட்">• டிஷ்யூ வேஷ்டி சட்டை செட்</option>
+                <option value="டிஷ்யூ வேஷ்டி சட்டை ஸ்பெஷல்">• டிஷ்யூ வேஷ்டி சட்டை ஸ்பெஷல்</option>
+                <option value="டிஷ்யூ வேஷ்டி சட்டை பிரீமியம் குவாலிட்டி">• டிஷ்யூ வேஷ்டி சட்டை பிரீமியம் குவாலிட்டி</option>
+                <option value="செக்டு சட்டைகள்">• செக்டு சட்டைகள்</option>
+                <option value="பிரிண்டட் சட்டைகள்">• பிரிண்டட் சட்டைகள்</option>
+                <option value="கிஸா / ஜிட் காட்டன் சட்டைகள்">• கிஸா / ஜிட் காட்டன் சட்டைகள்</option>
+                <option value="ஒரே கலரில் செட் சட்டைகள்">• ஒரே கலரில் செட் சட்டைகள்</option>
+              </optgroup>
+              <optgroup label="2) பிரீமியம் டவல் &amp; பொன்னாடைகள்">
+                <option value="பிரீமியம் டவல் (Pure Cotton Towel)">பிரீமியம் டவல் - பொதுவானது (All Towels)</option>
+                <option value="தூய காட்டன் டவல்கள்">• தூய காட்டன் டவல்கள்</option>
+                <option value="ஒயிட் டவல்">• ஒயிட் டவல்</option>
+                <option value="கலர் டவல்">• கலர் டவல்</option>
+                <option value="டர்க்கி டவல்">• டர்க்கி டவல்</option>
+                <option value="பிரிண்டட் டவல்">• பிரிண்டட் டவல்</option>
+                <option value="சால்வை யூஸ் டவல்">• சால்வை யூஸ் டவல்</option>
+                <option value="பொன்னாடைகள்">• பொன்னாடைகள்</option>
+                <option value="கட்சி டவல்கள்">• கட்சி டவல்கள்</option>
+                <option value="பாத் டவல்கள்">• பாத் டவல்கள்</option>
+              </optgroup>
+              <optgroup label="3) பாரம்பரிய வேட்டிகள்">
+                <option value="பாரம்பரிய வேட்டி (Traditional Vestti)">பாரம்பரிய வேட்டி - பொதுவானது (All Vesttis)</option>
+                <option value="லினன் வேஷ்டிகள்">• லினன் வேஷ்டிகள்</option>
+                <option value="கோல்டு வேஷ்டி">• கோல்டு வேஷ்டி</option>
+                <option value="சில்வர் வேஷ்டி">• சில்வர் வேஷ்டி</option>
+                <option value="ஃபேேன்ஸி கரை வேஷ்டிகள்">• ஃபேேன்ஸி கரை வேஷ்டிகள்</option>
+                <option value="பர்மாஸ் வேஷ்டிகள்">• பர்மாஸ் வேஷ்டிகள்</option>
+                <option value="சன்னகரை வேஷ்டிகள்">• சன்னகரை வேஷ்டிகள்</option>
+                <option value="கம்பிகரை வேஷ்டிகள்">• கம்பிகரை வேஷ்டிகள்</option>
+                <option value="க்ரீம் கலர் வேஷ்டி">• க்ரீம் கலர் வேஷ்டி</option>
+                <option value="கலர் வேஷ்டிகள்">• கலர் வேஷ்டிகள்</option>
+                <option value="சாமி வேஷ்டிகள்">• சாமி வேஷ்டிகள்</option>
+                <option value="கலர் பர்மாஸ் வேஷ்டிகள்">• கலர் பர்மாஸ் வேஷ்டிகள்</option>
+                <option value="அனைத்து கட்சி வேஷ்டிகள்">• அனைத்து கட்சி வேஷ்டிகள்</option>
+                <option value="கேரளா வேஷ்டிகள்">• கேரளா வேஷ்டிகள்</option>
+              </optgroup>
+            </select>
+          </div>
+
+          <div class="calc-field">
+            <label for="calcQty">தேவையான எண்ணிக்கை (Enter Quantity - e.g. 50, 100, 500+)</label>
+            <input type="number" id="calcQty" value="50" min="1" max="50000" oninput="updateCalcPreview()" />
+          </div>
+        </div>
+
+        <div class="calc-result-box">
+          <div class="crb-info">
+            <h4 id="calcStatusHeading">🎉 வியாபாரிகள் சிறப்பு விலை சலுகை (15%–20% தள்ளுபடி)</h4>
+            <p id="calcStatusText">
+              நீங்கள் தேர்ந்தெடுத்த எண்ணிக்கை: <strong>50 பீஸ்</strong>. நேரடி தொழிற்சாலை மொத்த விலையில் (Direct Wholesale Rate) உங்களுக்கு மிக சிறந்த சலுகை வழங்கப்படும்!
+            </p>
+          </div>
+          <div>
+            <button class="btn-whatsapp-hero" onclick="sendQuoteToWhatsApp()">
+              💬 வாட்ஸ்அப்பில் விலைப்பட்டியல் பெற
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TAMIL TESTIMONIALS SECTION ============ -->
+  <section style="padding: 4.5rem 0 6rem; background-color: var(--section-alt-bg);">
+    <div class="container">
+      <div class="section-header-tamil">
+        <span class="sub-tag">TRUSTED BY RETAILERS &amp; CUSTOMERS</span>
+        <h2>வாடிக்கையாளர்கள் &amp; வியாபாரிகளின் <span style="color: var(--gold);">கருத்துகள்</span></h2>
+      </div>
+
+      <div class="tamil-reviews-grid">
+        
+        <div class="tr-card">
+          <div>
+            <div class="tr-stars">★★★★★</div>
+            <p class="tr-quote">
+              "எங்கள் ஜவுளிக் கடைக்காக சூர்யா காட்டன்ஸில் இருந்து 200 ஃபார்மல் சட்டைகள் மற்றும் வேட்டிகள் மொத்தமாக ஆர்டர் செய்தோம். சொன்ன நேரத்திற்கு முன்பே அருமையான தரத்தில் அனுப்பி வைத்தார்கள். வாடிக்கையாளர்கள் மிகவும் விரும்புகின்றனர்!"
+            </p>
+          </div>
+          <div class="tr-author">
+            <div class="tr-avatar">ர</div>
+            <div class="tr-meta">
+              <h4>ரமேஷ் குமார்</h4>
+              <span>ஜவுளி கடை உரிமையாளர், கோயம்புத்தூர்</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="tr-card">
+          <div>
+            <div class="tr-stars">★★★★★</div>
+            <p class="tr-quote">
+              "என் அண்ணன் திருமணத்திற்கு குடும்பத்தினர் அனைவருக்கும் 40 வேட்டிகள் மற்றும் ஃபார்மல் சட்டைகள் இங்கு வாங்கினோம். துணியின் தரம் அபாரம், விலையும் தொழிற்சாலை விலை என்பதால் நிறைய சேமிக்க முடிந்தது."
+            </p>
+          </div>
+          <div class="tr-author">
+            <div class="tr-avatar">கா</div>
+            <div class="tr-meta">
+              <h4>கார்த்திகேயன்</h4>
+              <span>திருமண மொத்த ஆர்டர், மதுரை</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="tr-card">
+          <div>
+            <div class="tr-stars">★★★★★</div>
+            <p class="tr-quote">
+              "நான் ஆன்லைனில் ஆடைகள் மறுவிற்பனை (Reselling) செய்கிறேன். சூர்யா காட்டன்ஸ் டவல் மற்றும் சட்டைகளுக்கு வாடிக்கையாளர்களிடம் நல்ல வரவேற்பு உள்ளது. நேரடி விலை என்பதால் எனக்கு நல்ல லாபம் கிடைக்கிறது."
+            </p>
+          </div>
+          <div class="tr-author">
+            <div class="tr-avatar">தி</div>
+            <div class="tr-meta">
+              <h4>திவ்யா சுந்தர்</h4>
+              <span>ஆன்லைன் மறுவிற்பனையாளர், சென்னை</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <div class="footer-logo">SURYA<span>COTTANS</span></div>
+          <p>தமிழ்நாட்டின் பெருமைமிக்க நேரடி பருத்தி ஆடை உற்பத்தியாளர்கள். Quality you can feel. Style you can own.</p>
+        </div>
+        <div class="footer-links-col">
+          <h4>Quick Links</h4>
+          <a href="index.html">Home</a>
+          <a href="index.html#collection">Collection</a>
+          <a href="category.html?cat=all">Shop</a>
+          <a href="story.html">About Us</a>
+          <a href="contact.html">Contact Us</a>
+        </div>
+        <div class="footer-links-col">
+          <h4>Support</h4>
+          <a href="shipping.html">Shipping Policy</a>
+          <a href="refunds.html">Refund Policy</a>
+          <a href="faq.html">FAQ</a>
+          <a href="size-guide.html">Size Guide</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2025 SuryaCottans. All rights reserved.</p>
+        <p>Made with ❤️ in Tamil Nadu</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Handle URL parameters from Banner 1, 2, 3
+    (function handleBannerContext() {
+      const params = new URLSearchParams(window.location.search);
+      const bannerId = params.get('banner') || '1';
+      const bcbTitle = document.getElementById('bcbTitle');
+      const bcbDesc = document.getElementById('bcbDesc');
+
+      if (bannerId === '2') {
+        if (bcbTitle) bcbTitle.innerHTML = '✨ பிரீமியம் கல்யாண & விழா கலெக்‌ஷன் – நேரடி தொழிற்சாலை விலை!';
+        if (bcbDesc) bcbDesc.innerHTML = 'திருமணங்கள், குடும்ப விழாக்கள் மற்றும் மொத்த ஆர்டர்களுக்கு சூர்யா காட்டன்ஸின் ஃபார்மல் சட்டைகள் மற்றும் பாரம்பரிய வேட்டிகளில் சிறப்பு தள்ளுபடி! சில்லறையாகவும் வாங்கலாம், மொத்தமாகவும் ஆர்டர் செய்யலாம்.';
+      } else if (bannerId === '3') {
+        if (bcbTitle) bcbTitle.innerHTML = '👔 தினசரி பிரீமியம் ஆடைகள் & மறுவிற்பனையாளர் சலுகை!';
+        if (bcbDesc) bcbDesc.innerHTML = 'துணிக்கடைகள், ஷோரூம்கள் மற்றும் ஆன்லைன் மறுவிற்பனையாளர்களுக்கு (Wholesale Resellers) அதிக லாபம் தரும் நேரடி தொழிற்சாலை விலை. எந்த அளவிலும் ஆர்டர்களை ரெடி செய்து தருகிறோம்.';
+      } else {
+        if (bcbTitle) bcbTitle.innerHTML = '🎉 சிறப்பு திருவிழா சலுகை – சூர்யா காட்டன்ஸ் நேரடி உற்பத்தி!';
+        if (bcbDesc) bcbDesc.innerHTML = 'எங்கள் ஃபார்மல் ஷர்ட்ஸ், பிரீமியம் டவல் மற்றும் பாரம்பரிய வேட்டிகளை நேரடி தொழிற்சாலை விலையில் சில்லறையாகவோ அல்லது மொத்தமாகவோ (Wholesale) பெற்று மகிழுங்கள்.';
+      }
+    })();
+
+    // Wholesale Instant Inquiry Function
+    function orderWholesale(productName) {
+      const text = `வணக்கம் SuryaCotton! எனக்கு "${productName}" மொத்தமாக (Wholesale Bulk Order) கொள்முதல் செய்ய வேண்டும். தயவுசெய்து விலைப்பட்டியல் மற்றும் விவரங்களை அனுப்பவும்.`;
+      const url = `https://wa.me/918072654677?text=${encodeURIComponent(text)}`;
+      window.open(url, '_blank');
+    }
+
+    // Variety Selection and Scroll to Calculator
+    function selectVarietyAndCalculate(varietyName) {
+      const prodSelect = document.getElementById('calcProduct');
+      if (prodSelect) {
+        for (let i = 0; i < prodSelect.options.length; i++) {
+          if (prodSelect.options[i].value === varietyName) {
+            prodSelect.selectedIndex = i;
+            break;
+          }
+        }
+        updateCalcPreview();
+      }
+      const calcSection = document.getElementById('wholesaleCalculator');
+      if (calcSection) {
+        calcSection.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+
+    // Dynamic Calculator Update Function
+    function updateCalcPreview() {
+      const qtyInput = document.getElementById('calcQty');
+      const prodSelect = document.getElementById('calcProduct');
+      const statusHeading = document.getElementById('calcStatusHeading');
+      const statusText = document.getElementById('calcStatusText');
+
+      if (!qtyInput || !prodSelect || !statusHeading || !statusText) return;
+
+      let qty = parseInt(qtyInput.value, 10);
+      if (isNaN(qty) || qty < 1) qty = 1;
+
+      const product = prodSelect.value;
+
+      if (qty < 10) {
+        statusHeading.innerHTML = '🛒 சில்லறை கொள்முதல் (Retail Order)';
+        statusText.innerHTML = `நீங்கள் தேர்ந்தெடுத்த எண்ணிக்கை: <strong>${qty} பீஸ்</strong> (${product}). சில்லறை விலையிலும் மிகச் சிறந்த தரம் உறுதி!`;
+      } else if (qty < 50) {
+        statusHeading.innerHTML = '🎁 மொத்த கொள்முதல் ஆரம்ப சலுகை (5%–10% தள்ளுபடி)';
+        statusText.innerHTML = `நீங்கள் தேர்ந்தெடுத்த எண்ணிக்கை: <strong>${qty} பீஸ்</strong> (${product}). சிறிய மொத்த ஆர்டர்களுக்கான சிறப்பு சலுகை விலை கிடைக்கும்!`;
+      } else if (qty < 200) {
+        statusHeading.innerHTML = '🎉 வியாபாரிகள் சிறப்பு விலை சலுகை (15%–20% தள்ளுபடி)';
+        statusText.innerHTML = `நீங்கள் தேர்ந்தெடுத்த எண்ணிக்கை: <strong>${qty} பீஸ்</strong> (${product}). நேரடி தொழிற்சாலை மொத்த விலையில் (Wholesale Rate) சிறந்த சலுகை வழங்கப்படும்!`;
+      } else {
+        statusHeading.innerHTML = '🔥 நேரடி தொழிற்சாலை மெகா ஆஃபர் (Direct Factory Maximum Discount)';
+        statusText.innerHTML = `நீங்கள் தேர்ந்தெடுத்த எண்ணிக்கை: <strong>${qty} பீஸ்</strong> (${product}). எவ்வளவு பெரிய ஆர்டராக இருந்தாலும் குறித்த நேரத்தில் அதிகபட்ச தள்ளுபடியுடன் ரெடி செய்து தருவோம்!`;
+      }
+    }
+
+    // Send Quote Request from Calculator
+    function sendQuoteToWhatsApp() {
+      const qtyInput = document.getElementById('calcQty');
+      const prodSelect = document.getElementById('calcProduct');
+      const qty = qtyInput ? qtyInput.value : '50';
+      const product = prodSelect ? prodSelect.value : 'ஃபார்மல் ஷர்ட்ஸ்';
+
+      const text = `வணக்கம் SuryaCotton! எனக்கு "${product}" - ${qty} பீஸ் மொத்தமாக (Wholesale Order) கொள்முதல் செய்ய வேண்டும். நேரடி தொழிற்சாலை சிறப்பு விலைப்பட்டியல் அனுப்பவும்.`;
+      const url = `https://wa.me/918072654677?text=${encodeURIComponent(text)}`;
+      window.open(url, '_blank');
+    }
+
+    // Video Sound Mute/Unmute Toggle Function
+    function toggleVideoMute(videoId, btnElement) {
+      const vid = document.getElementById(videoId);
+      if (!vid) return;
+
+      vid.muted = !vid.muted;
+      const icon = btnElement.querySelector('.mute-icon');
+      if (vid.muted) {
+        if (icon) icon.textContent = '🔇';
+        btnElement.setAttribute('title', 'Sound Off (Click to Unmute)');
+      } else {
+        if (icon) icon.textContent = '🔊';
+        btnElement.setAttribute('title', 'Sound On (Click to Mute)');
+      }
+    }
+  </script>
+</body>
+</html>

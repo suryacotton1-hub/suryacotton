@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SuryaCottans – Premium Menswear</title>
+  <meta name="description"
+    content="SuryaCottans – Discover premium menswear crafted for the modern man. Shop shirts, blazers, kurtas, and more." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700;900&family=Playfair+Display:wght@700;900&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+
+</head>
+
+<body>
+  <script>
+    try {
+      let w = localStorage.getItem('sc_wish');
+      if (w && !w.startsWith('[')) localStorage.removeItem('sc_wish');
+      let c = localStorage.getItem('sc_cart');
+      if (c && !c.startsWith('[')) localStorage.removeItem('sc_cart');
+    } catch (e) { }
+  </script>
+
+  <!-- ============ NAV ============ -->
+  <nav class="navbar" id="navbar">
+    <a href="#" class="nav-logo"><img src="Logo.png" alt="SuryaCottans" class="nav-logo-img"><span
+        class="nav-logo-text">SuryaCotton</span></a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="index.html" class="nav-link">Home</a></li>
+      <li><a href="index.html#collection" class="nav-link">Collection</a></li>
+      <li><a href="category.html?cat=all" class="nav-link">Shop</a></li>
+      <li><a href="track.html" class="nav-link">Track Order</a></li>
+      <li><a href="story.html" class="nav-link">About Us</a></li>
+      <li><a href="contact.html" class="nav-link">Contact</a></li>
+    </ul>
+    <div class="nav-actions">
+      <button class="nav-icon-btn" id="searchBtn" aria-label="Search">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8" />
+          <path d="m21 21-4.35-4.35" />
+        </svg>
+      </button>
+      <a href="profile.html" class="nav-icon-btn profile-btn" id="profileBtn" aria-label="Profile">
+        <img id="navProfilePic" class="nav-profile-pic hidden" alt="Profile" />
+        <svg id="navProfileIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
+        </svg>
+      </a>
+      <button class="nav-icon-btn cart-btn" id="cartBtn" aria-label="Cart">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+          <line x1="3" y1="6" x2="21" y2="6" />
+          <path d="M16 10a4 4 0 0 1-8 0" />
+        </svg>
+        <span class="cart-count" id="cartCount">0</span>
+      </button>
+      <button class="hamburger" id="hamburger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ============ SIDE MENU DRAWER ============ -->
+  <div class="side-menu-overlay" id="sideMenuOverlay"></div>
+  <aside class="side-menu" id="sideMenu" aria-label="Side navigation">
+
+    <!-- Header -->
+    <div class="sm-header">
+      <div class="sm-brand">
+        <img src="Logo.png" alt="SuryaCottans" class="sm-logo" />
+        <div class="sm-brand-text">
+          <span class="sm-brand-name">SuryaCotton</span>
+          <span class="sm-brand-sub">Premium Menswear</span>
+        </div>
+      </div>
+      <button class="sm-close" id="sideMenuClose" aria-label="Close menu">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- User greeting -->
+    <a href="profile.html" class="sm-user-bar" id="smUserBar" style="text-decoration:none; cursor:pointer;">
+      <div class="sm-user-avatar" id="smUserAvatar">
+        <img id="smAvatarImg" class="sm-avatar-img hidden" alt="Profile" />
+        <svg id="smAvatarIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
+        </svg>
+      </div>
+      <div class="sm-user-info">
+        <span class="sm-user-name" id="smUserName">Welcome!</span>
+        <span class="sm-user-sub" id="smUserSub">Login to view your orders</span>
+      </div>
+      <span class="sm-user-arrow">→</span>
+    </a>
+
+    <!-- Main Nav Links -->
+    <nav class="sm-nav">
+      <p class="sm-section-label">NAVIGATE</p>
+      <a href="index.html" class="sm-link" data-close>
+        <span class="sm-link-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+            <polyline points="9 22 9 12 15 12 15 22" />
+          </svg>
+        </span>
+        <span>Home</span>
+      </a>
+      <a href="track.html" class="sm-link">
+        <span class="sm-link-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M16 8h5l2 5v5h-7V8z"></path>
+            <rect x="1" y="3" width="15" height="13" rx="1"></rect>
+            <circle cx="5.5" cy="18.5" r="2.5"></circle>
+            <circle cx="18.5" cy="18.5" r="2.5"></circle>
+          </svg>
+        </span>
+        <span>My Orders</span>
+      </a>
+      <a href="index.html#collection" class="sm-link" data-close>
+        <span class="sm-link-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7" />
+            <rect x="14" y="3" width="7" height="7" />
+            <rect x="14" y="14" width="7" height="7" />
+            <rect x="3" y="14" width="7" height="7" />
+          </svg>
+        </span>
+        <span>Collections</span>
+      </a>
+      <a href="category.html?cat=all" class="sm-link" data-close>
+        <span class="sm-link-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <path d="M16 10a4 4 0 0 1-8 0" />
+          </svg>
+        </span>
+        <span>Shop Now</span>
+        <span class="sm-link-badge">New</span>
+      </a>
+
+      <a href="story.html" class="sm-link">
+        <span class="sm-link-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <line x1="12" y1="16" x2="12.01" y2="16" />
+          </svg>
+        </span>
+        <span>About Us</span>
+      </a>
+      <a href="contact.html" class="sm-link">
+        <span class="sm-link-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+          </svg>
+        </span>
+        <span>Contact</span>
+      </a>
+    </nav>
+
+    <!-- Categories -->
+    <div class="sm-categories">
+      <p class="sm-section-label">SHOP BY CATEGORY</p>
+      <div class="sm-cat-grid">
+        <a href="category.html?cat=shirt" class="sm-cat-chip">
+          <span class="sm-cat-emoji">👔</span> Shirts
+        </a>
+        <a href="category.html?cat=pant" class="sm-cat-chip">
+          <span class="sm-cat-emoji">👖</span> Pants
+        </a>
+        <a href="category.html?cat=tshirt" class="sm-cat-chip">
+          <span class="sm-cat-emoji">👕</span> T-Shirts
+        </a>
+        <a href="category.html?cat=shorts" class="sm-cat-chip">
+          <span class="sm-cat-emoji">🩳</span> Shorts
+        </a>
+        <a href="category.html?cat=caps" class="sm-cat-chip">
+          <span class="sm-cat-emoji">🧢</span> Caps
+        </a>
+        <a href="category.html?cat=keychains" class="sm-cat-chip">
+          <span class="sm-cat-emoji">🔑</span> Keychains
+        </a>
+      </div>
+    </div>
+
+    <!-- Support Links -->
+    <div class="sm-support">
+      <p class="sm-section-label">SUPPORT</p>
+      <div class="sm-support-links">
+        <a href="shipping.html">Shipping Policy</a>
+        <a href="refunds.html">Refund Policy</a>
+        <a href="faq.html">FAQ</a>
+        <a href="size-guide.html">Size Guide</a>
+      </div>
+    </div>
+
+    <!-- Social -->
+    <div class="sm-social">
+      <a href="https://www.instagram.com/suryacotton__menswear" target="_blank" rel="noopener" class="sm-social-btn"
+        aria-label="Instagram">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="2" y="2" width="20" height="20" rx="5" />
+          <circle cx="12" cy="12" r="4" />
+          <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
+        </svg>
+      </a>
+      <a href="https://www.facebook.com/people/Surya-Cotton/pfbid02zsaWiXrVBv8DPwRHeuibw82ed6ttGs3a51uJxhYohkFfYUBFmwKHaS59q6rcbT1ul"
+        target="_blank" rel="noopener" class="sm-social-btn" aria-label="Facebook">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+        </svg>
+      </a>
+      <a href="https://wa.me/918072654677" target="_blank" rel="noopener" class="sm-social-btn" aria-label="WhatsApp">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path
+            d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+        </svg>
+      </a>
+      <a href="https://www.youtube.com/channel/UCP8Ewonc77HEhwC9HaeJr_w" target="_blank" rel="noopener"
+        class="sm-social-btn" aria-label="YouTube">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path
+            d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46a2.78 2.78 0 0 0-1.95 1.96A29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58A2.78 2.78 0 0 0 3.41 19.6C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.95A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z" />
+          <polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="currentColor" stroke="none" />
+        </svg>
+      </a>
+    </div>
+
+    <!-- Footer note -->
+    <div class="sm-footer-note">
+      <span>© 2025 SuryaCottans</span>
+      <span>Made with ❤️ in Tamil Nadu</span>
+    </div>
+
+  </aside>
+
+
+  <!-- ============ BRAND INTRO OVERLAY ============ -->
+  <div class="brand-intro" id="brandIntro">
+    <div class="bi-name" id="biName">
+      <span class="bi-surya">SURYA</span><span class="bi-cotton">COTTON</span><span class="bi-mw"> MENSWEAR</span>
+    </div>
+    <div class="bi-line" id="biLine"></div>
+    <div class="bi-tagline" id="biTagline">Premium. Crafted. Yours.</div>
+  </div>
+
+  <!-- ============ HERO WRAPPER ============ -->
+  <div class="hero-scroll-wrapper" id="heroScrollWrapper">
+    <!-- ============ HERO ============ -->
+    <section class="hero" id="hero">
+      <!-- LEFT PANEL: White content -->
+      <div class="hero-right" id="heroRight">
+        <div class="hero-right-inner">
+          <div class="hero-badge-new" id="heroBadge">NEW COLLECTION 2025</div>
+          <h1 class="hero-shop-name desktop-shop-name" id="heroShopName">
+            <span class="hsn-surya">SuryaCotton</span>
+            <span class="hsn-mw">Menswear</span>
+          </h1>
+          <p class="hero-desc" id="heroDesc">Crafted for the man who commands every room — premium fabrics, perfect
+            fits, handcrafted in Tamil Nadu.</p>
+          <div class="hero-cta-group" id="heroCtas">
+            <a href="category.html?cat=all" class="btn-primary">SHOP NOW</a>
+            <a href="index.html#collection" class="btn-ghost">EXPLORE →</a>
+          </div>
+          <div class="hero-stats" id="heroStats">
+            <div class="stat">
+              <span class="stat-num">2K+</span>
+              <span class="stat-label">Products</span>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat">
+              <span class="stat-num">15K+</span>
+              <span class="stat-label">Customers</span>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat">
+              <span class="stat-num">4.9★</span>
+              <span class="stat-label">Rating</span>
+            </div>
+          </div>
+
+          <!-- Mobile Delivery Cards -->
+          <div class="hero-delivery-cards mobile-delivery-cards">
+            <div class="hdc-card hdc-delivery">
+              <div class="hdc-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22">
+                  <rect x="1" y="3" width="15" height="13" rx="1" />
+                  <path d="M16 8h5l2 5v5h-7V8z" />
+                  <circle cx="5.5" cy="18.5" r="2.5" />
+                  <circle cx="18.5" cy="18.5" r="2.5" />
+                </svg>
+              </div>
+              <div class="hdc-info">
+                <span class="hdc-value">2–3 Days</span>
+                <span class="hdc-label">Delivery</span>
+              </div>
+            </div>
+            <div class="hdc-card hdc-returns">
+              <div class="hdc-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22">
+                  <polyline points="1 4 1 10 7 10" />
+                  <path d="M3.51 15a9 9 0 1 0 .49-3.5" />
+                </svg>
+              </div>
+              <div class="hdc-info">
+                <span class="hdc-value">4–5 Days</span>
+                <span class="hdc-label">Returns</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+        <!-- Decorative red corner accent -->
+        <div class="hero-right-accent"></div>
+      </div>
+
+      <!-- RIGHT PANEL: Red accent visual -->
+      <div class="hero-left" id="heroLeft">
+        <div class="hero-left-red-strip"></div>
+
+        <!-- Mobile Shop Name — top of hero -->
+        <div class="mobile-brand-top">
+          <div class="mbt-inner">
+            <div class="mbt-name-row">
+              <span class="mbt-surya"
+                style="font-size: clamp(3rem, 15vw, 6rem); letter-spacing: 6px; text-transform: uppercase;">MENSWEAR</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-image-slider" id="heroImageSlider">
+          <img src="Heros/Hero1.png" class="hero-slide active" alt="Hero 1">
+          <img src="Heros/Hero2.png" class="hero-slide next" alt="Hero 2">
+          <img src="Heros/Hero3.png" class="hero-slide" alt="Hero 3">
+        </div>
+
+        <div class="hero-left-content">
+          <div class="hero-delivery-cards">
+            <div class="hdc-card hdc-delivery">
+              <div class="hdc-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22">
+                  <rect x="1" y="3" width="15" height="13" rx="1" />
+                  <path d="M16 8h5l2 5v5h-7V8z" />
+                  <circle cx="5.5" cy="18.5" r="2.5" />
+                  <circle cx="18.5" cy="18.5" r="2.5" />
+                </svg>
+              </div>
+              <div class="hdc-info">
+                <span class="hdc-value">2–3 Days</span>
+                <span class="hdc-label">Delivery</span>
+              </div>
+            </div>
+            <div class="hdc-card hdc-returns">
+              <div class="hdc-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22">
+                  <polyline points="1 4 1 10 7 10" />
+                  <path d="M3.51 15a9 9 0 1 0 .49-3.5" />
+                </svg>
+              </div>
+              <div class="hdc-info">
+                <span class="hdc-value">4–5 Days</span>
+                <span class="hdc-label">Returns</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scroll indicator -->
+      <div class="hero-scroll-indicator">
+        <span>SCROLL</span>
+        <div class="scroll-line">
+          <div class="scroll-dot"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============ MARQUEE ============ -->
+  <div class="marquee-strip">
+    <div class="marquee-track">
+      <span>PREMIUM MENSWEAR</span><span class="dot">●</span>
+      <span>SHIPPING COST</span><span class="dot">●</span>
+      <span>HANDCRAFTED</span><span class="dot">●</span>
+      <span>SURYA COTTANS</span><span class="dot">●</span>
+      <span>NEW ARRIVALS</span><span class="dot">●</span>
+      <span>PREMIUM MENSWEAR</span><span class="dot">●</span>
+      <span>SHIPPING COST</span><span class="dot">●</span>
+      <span>HANDCRAFTED</span><span class="dot">●</span>
+      <span>SURYA COTTANS</span><span class="dot">●</span>
+      <span>NEW ARRIVALS</span><span class="dot">●</span>
+    </div>
+  </div>
+
+  <!-- ============ SUBCATEGORY MARQUEE BAR ============ -->
+  <div class="subcat-marquee-bar" id="subcatMarqueeBar">
+    <div class="subcat-marquee-inner">
+      <div class="subcat-marquee-track" id="subcatMarqueeTrack"></div>
+    </div>
+    <button class="subcat-close-btn" id="subcatCloseBtn" aria-label="Close">✕</button>
+  </div>
+
+  <!-- ============ COLLECTION SHOWCASE — 3 CATEGORIES ============ -->
+  <section class="collection-section" id="collection">
+    <div class="container">
+      <div class="section-header scroll-reveal" style="text-align:center;margin-bottom:3rem;">
+        <p class="section-tag" style="color:var(--red);">OUR COLLECTIONS</p>
+        <h2 class="section-title" style="color:var(--white);">Explore <span class="red">Styles</span></h2>
+      </div>
+      <div class="collection-trio">
+
+        <!-- Card 1: Shirt -->
+        <div class="ct-card coll-reveal" data-delay="0" data-cat="shirt">
+          <div class="ct-img-wrap"><img src="Products/Shirt/Plain shirt.jpg" alt="Shirts" loading="lazy"></div>
+          <div class="ct-overlay"></div>
+          <div class="ct-content">
+            <span class="ct-num">01</span>
+            <h3>Shirt</h3>
+            <p>Crisp. Elegant. Timeless.</p>
+            <span class="ct-link">Explore →</span>
+          </div>
+        </div>
+
+        <!-- Card 2: Pant -->
+        <div class="ct-card coll-reveal" data-delay="130" data-cat="pant">
+          <div class="ct-img-wrap"><img src="Products/Pant/Jean pant.png" alt="Pants" loading="lazy"></div>
+          <div class="ct-overlay"></div>
+          <div class="ct-content">
+            <span class="ct-num">02</span>
+            <h3>Pant</h3>
+            <p>Tailored for comfort.</p>
+            <span class="ct-link">Explore →</span>
+          </div>
+        </div>
+
+        <!-- Card 3: T-Shirt -->
+        <div class="ct-card coll-reveal" data-delay="260" data-cat="tshirt">
+          <div class="ct-img-wrap"><img src="Products/Tshirt/Hoodies tshirt.png" alt="T-Shirts" loading="lazy"></div>
+          <div class="ct-overlay"></div>
+          <div class="ct-content">
+            <span class="ct-num">03</span>
+            <h3>T&#8209;Shirt</h3>
+            <p>Bold colors. Perfect fit.</p>
+            <span class="ct-link">Explore →</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PROMOTIONAL BANNERS CAROUSEL (Right to Left Scroll) ============ -->
+  <section class="promo-slider-section" id="promoBanners">
+    <div class="promo-fullscreen-slider" id="promoFullscreenSlider">
+      <!-- Fullscreen Sequential Slider -->
+      <div class="promo-fs-slides" id="promoFsSlides">
+        <!-- Slide 1 -->
+        <a href="offers.html?banner=1" class="promo-fs-slide active" data-idx="0">
+          <img src="Heros/Banner1.webp" alt="SuryaCottans Featured Banner 1" />
+        </a>
+        <!-- Slide 2 -->
+        <a href="offers.html?banner=2" class="promo-fs-slide next" data-idx="1">
+          <img src="Heros/Banner2.webp" alt="SuryaCottans Featured Banner 2" />
+        </a>
+        <!-- Slide 3 -->
+        <a href="offers.html?banner=3" class="promo-fs-slide" data-idx="2">
+          <img src="Heros/Banner3.webp" alt="SuryaCottans Featured Banner 3" />
+        </a>
+      </div>
+
+      <!-- Navigation Dots -->
+      <div class="promo-fs-dots" id="promoFsDots">
+        <button class="promo-fs-dot active" data-slide="0" aria-label="Banner 1"></button>
+        <button class="promo-fs-dot" data-slide="1" aria-label="Banner 2"></button>
+        <button class="promo-fs-dot" data-slide="2" aria-label="Banner 3"></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PRODUCTS ============ -->
+  <section class="products-section" id="products">
+    <div class="container">
+      <div class="section-header scroll-reveal">
+        <p class="section-tag">SHOP NOW</p>
+        <h2 class="section-title">Best <span class="red">Sellers</span></h2>
+      </div>
+      <div class="filter-tabs" id="filterTabs">
+        <button class="filter-btn active" data-cat="all">All</button>
+        <button class="filter-btn" data-cat="shirt">Shirts</button>
+        <button class="filter-btn" data-cat="pant">Pants</button>
+        <button class="filter-btn" data-cat="tshirt">T-Shirts</button>
+        <button class="filter-btn" data-cat="shorts">Shorts</button>
+        <button class="filter-btn" data-cat="caps">Caps</button>
+        <button class="filter-btn" data-cat="keychains">Keychains</button>
+      </div>
+      <div class="products-grid" id="productsGrid"></div>
+      <div class="view-all-wrap">
+        <a href="category.html?cat=all" class="btn-primary">VIEW ALL PRODUCTS</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PARALLAX STATEMENT ============ -->
+  <div class="ps-scroll-wrapper" id="psScrollWrapper">
+    <section class="parallax-statement" id="parallaxStatement">
+      <div class="ps-overlay"></div>
+      <p class="ps-tag" id="psTag">OUR PHILOSOPHY</p>
+      <div class="ps-title" id="psSplitTitle">
+        <div class="ps-line ps-line-1">
+          <span class="ps-word" id="psWear">WEAR</span>
+          <span class="ps-word ps-confidence" id="psConfidence"><span class="ps-inner">CONFIDENCE.</span></span>
+        </div>
+        <div class="ps-line ps-line-2">
+          <span class="ps-word ps-live" id="psLive"><span class="ps-inner">LIVE</span></span>
+          <span class="ps-word" id="psBold">BOLD.</span>
+        </div>
+      </div>
+      <p class="ps-sub" id="psSub">Premium fabrics. Perfect fits. Handcrafted in India.</p>
+      <div class="ps-bg-shapes">
+        <div class="ps-shape s1"></div>
+        <div class="ps-shape s2"></div>
+      </div>
+    </section>
+  </div>
+
+
+  <!-- ============ TESTIMONIALS ============ -->
+  <section class="testimonials" id="testimonials">
+    <!-- Decorative Background Blobs -->
+    <div class="testi-blob testi-blob-1"></div>
+    <div class="testi-blob testi-blob-2"></div>
+
+    <div class="container" style="position: relative; z-index: 10;">
+      <div class="section-header scroll-reveal">
+        <span class="testi-trust-badge">✨ Trusted by Gentlemen</span>
+        <h2 class="section-title">Customer <span class="red">Love</span></h2>
+        <p class="testi-subtitle">Join thousands of satisfied customers experiencing the difference. Hover over any
+          testimonial to highlight it.</p>
+      </div>
+
+      <!-- Carousel Container -->
+      <div class="testi-carousel-container" id="testiCarousel">
+        <div class="testi-track" id="testiTrack">
+
+          <div class="testi-card">
+            <div class="testi-quote-icon">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path
+                  d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z">
+                </path>
+                <path
+                  d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25-.25 4-2.75 4v3c0 1 0 1 1 1z">
+                </path>
+              </svg>
+            </div>
+            <div class="testi-user-info">
+              <div class="testi-avatar"><img src="https://api.dicebear.com/7.x/initials/svg?seed=Arjun+R"
+                  alt="Arjun R."></div>
+              <div class="testi-meta">
+                <h3>Arjun R.</h3>
+                <p class="testi-role">Chennai</p>
+                <p class="testi-company"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                  </svg> Verified Buyer</p>
+              </div>
+            </div>
+            <div class="testi-stars-new">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <polygon
+                  points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                </polygon>
+              </svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <polygon
+                  points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                </polygon>
+              </svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <polygon
+                  points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                </polygon>
+              </svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <polygon
+                  points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                </polygon>
+              </svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <polygon
+                  points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                </polygon>
+              </svg>
+            </div>
+            <p class="testi-text">&ldquo;The blazer I ordered fits perfectly. Premium quality that rivals international
+              brands!&rdquo;</p>
+            <div class="testi-line"></div>
+          </div>
+
+          <div class="testi-card">
+            <div class="testi-quote-icon">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path
+                  d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z">
+                </path>
+                <path
+                  d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25-.25 4-2.75 4v3c0 1 0 1 1 1z">
+                </path>
+              </svg>
+            </div>
+            <div class="testi-user-info">
+              <div class="testi-avatar"><img src="https://api.dicebear.com/7.x/initials/svg?seed=Vikram+S"
+                  alt="Vikram S."></div>
+              <div class="testi-meta">
+                <h3>Vikram S.</h3>
+                <p class="testi-role">Coimbatore</p>
+                <p class="testi-company"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                  </svg> Verified Buyer</p>
+              </div>
+            </div>
+            <div class="testi-stars-new">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <polygon
+                  points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                </polygon>
+              </svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <polygon
+                  points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                </polygon>
+              </svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <polygon
+                  points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                </polygon>
+              </svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <polygon
+                  points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                </polygon>
+              </svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <polygon
+                  points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                </polygon>
+              </svg>
+            </div>
+            <p class="testi-text">&ldquo;Wore the kurta for my brother's wedding. Got compliments all evening.
+              Absolutely love it.&rdquo;</p>
+            <div class="testi-line"></div>
+          </div>
+
+          <div class="testi-card">
+            <div class="testi-quote-icon">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path
+                  d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z">
+                </path>
+                <path
+                  d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25-.25 4-2.75 4v3c0 1 0 1 1 1z">
+                </path>
+              </svg>
+            </div>
+            <div class="testi-user-info">
+              <div class="testi-avatar"><img src="https://api.dicebear.com/7.x/initials/svg?seed=Karthik+M"
+                  alt="Karthik M."></div>
+              <div class="testi-meta">
+                <h3>Karthik M.</h3>
+                <p class="testi-role">Bangalore</p>
+                <p class="testi-company"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                  </svg> Verified Buyer</p>
+              </div>
+            </div>
+            <div class="testi-stars-new">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <polygon
+                  points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                </polygon>
+              </svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <polygon
+                  points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                </polygon>
+              </svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <polygon
+                  points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                </polygon>
+              </svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <polygon
+                  points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                </polygon>
+              </svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <polygon
+                  points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                </polygon>
+              </svg>
+            </div>
+            <p class="testi-text">&ldquo;Fast delivery, great packaging, and the shirt quality is outstanding. Will buy
+              again!&rdquo;</p>
+            <div class="testi-line"></div>
+          </div>
+
+          <div class="testi-card">
+            <div class="testi-quote-icon">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path
+                  d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z">
+                </path>
+                <path
+                  d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25-.25 4-2.75 4v3c0 1 0 1 1 1z">
+                </path>
+              </svg>
+            </div>
+            <div class="testi-user-info">
+              <div class="testi-avatar"><img src="https://api.dicebear.com/7.x/initials/svg?seed=Suresh+P"
+                  alt="Suresh P."></div>
+              <div class="testi-meta">
+                <h3>Suresh P.</h3>
+                <p class="testi-role">Madurai</p>
+                <p class="testi-company"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                  </svg> Verified Buyer</p>
+              </div>
+            </div>
+            <div class="testi-stars-new">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <polygon
+                  points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                </polygon>
+              </svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <polygon
+                  points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                </polygon>
+              </svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <polygon
+                  points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                </polygon>
+              </svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <polygon
+                  points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                </polygon>
+              </svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <polygon
+                  points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                </polygon>
+              </svg>
+            </div>
+            <p class="testi-text">&ldquo;Finally a brand that understands what Indian men want. Modern, comfortable,
+              premium.&rdquo;</p>
+            <div class="testi-line"></div>
+          </div>
+
+          <div class="testi-card">
+            <div class="testi-quote-icon">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path
+                  d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z">
+                </path>
+                <path
+                  d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25-.25 4-2.75 4v3c0 1 0 1 1 1z">
+                </path>
+              </svg>
+            </div>
+            <div class="testi-user-info">
+              <div class="testi-avatar"><img src="https://api.dicebear.com/7.x/initials/svg?seed=Dinesh+K"
+                  alt="Dinesh K."></div>
+              <div class="testi-meta">
+                <h3>Dinesh K.</h3>
+                <p class="testi-role">Salem</p>
+                <p class="testi-company"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                  </svg> Verified Buyer</p>
+              </div>
+            </div>
+            <div class="testi-stars-new">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <polygon
+                  points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                </polygon>
+              </svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <polygon
+                  points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                </polygon>
+              </svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <polygon
+                  points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                </polygon>
+              </svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <polygon
+                  points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                </polygon>
+              </svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <polygon
+                  points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                </polygon>
+              </svg>
+            </div>
+            <p class="testi-text">&ldquo;The trousers are perfectly tailored. I get asked where I shop every time I wear
+              them.&rdquo;</p>
+            <div class="testi-line"></div>
+          </div>
+
+        </div>
+
+        <!-- Fading Edges -->
+        <div class="testi-fade testi-fade-left"></div>
+        <div class="testi-fade testi-fade-right"></div>
+      </div>
+
+      <!-- Pause Indicator -->
+      <div class="testi-pause-indicator" id="testiPauseIndicator">
+        ⏸ Paused - Move mouse away to continue scrolling
+      </div>
+
+      <!-- Stats Section -->
+      <div class="testi-stats scroll-reveal">
+        <div class="testi-stat-item">
+          <p class="ts-num">10K+</p>
+          <p class="ts-label">Happy Customers</p>
+        </div>
+        <div class="testi-stat-item">
+          <p class="ts-num">4.9/5</p>
+          <p class="ts-label">Average Rating</p>
+        </div>
+        <div class="testi-stat-item">
+          <p class="ts-num">98%</p>
+          <p class="ts-label">Satisfaction Rate</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <div class="footer-logo">SURYA<span>COTTANS</span></div>
+          <p>Premium menswear for the modern Indian man. Quality you can feel. Style you can own.</p>
+        </div>
+        <div class="footer-links-col">
+          <h4>Quick Links</h4>
+          <a href="index.html">Home</a>
+          <a href="index.html#collection">Collection</a>
+          <a href="category.html?cat=all">Shop</a>
+          <a href="story.html">About Us</a>
+          <a href="contact.html">Contact Us</a>
+        </div>
+        <div class="footer-links-col">
+          <h4>Support</h4>
+          <a href="shipping.html">Shipping Policy</a>
+          <a href="refunds.html">Refund Policy</a>
+          <a href="faq.html">FAQ</a>
+          <a href="size-guide.html">Size Guide</a>
+        </div>
+        <div class="footer-links-col">
+          <h4>Follow Us</h4>
+          <a href="https://www.instagram.com/suryacotton__menswear" target="_blank"
+            rel="noopener noreferrer">Instagram</a>
+          <a href="https://www.facebook.com/people/Surya-Cotton/pfbid02zsaWiXrVBv8DPwRHeuibw82ed6ttGs3a51uJxhYohkFfYUBFmwKHaS59q6rcbT1ul/?mibextid=wwXIfr&rdid=oC9hthSujx4juXiY&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F1PmEnVT1k4%2F%3Fmibextid%3DwwXIfr"
+            target="_blank" rel="noopener noreferrer">Facebook</a>
+          <a href="https://www.youtube.com/channel/UCP8Ewonc77HEhwC9HaeJr_w" target="_blank"
+            rel="noopener noreferrer">YouTube</a>
+          <a href="https://wa.me/918072654677" target="_blank" rel="noopener noreferrer">WhatsApp</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2025 SuryaCottans. All rights reserved.</p>
+        <div class="footer-policy-links">
+          <a href="privacy.html">Privacy Policy</a>
+          <a href="terms.html">Terms of Service</a>
+        </div>
+        <p>Made with ❤️ in Tamil Nadu</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ============ CART DRAWER ============ -->
+  <div class="cart-overlay" id="cartOverlay"></div>
+  <div class="cart-drawer" id="cartDrawer">
+    <div class="cart-header">
+      <h3>Your Cart</h3>
+      <button class="cart-close" id="cartClose">✕</button>
+    </div>
+    <div class="cart-items" id="cartItems">
+      <p class="cart-empty">Your cart is empty</p>
+    </div>
+    <div class="cart-footer">
+      <div class="cart-total">Total: <span id="cartTotal">₹0</span></div>
+      <button class="btn-primary" style="width:100%" id="checkoutBtn">CHECKOUT</button>
+    </div>
+  </div>
+
+  <!-- ============ TOAST ============ -->
+  <div class="toast" id="toast"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="script.js"></script>
+  <script type="module" src="store-sync.js"></script>
+  <script>
+    // Sync profile pic from localStorage on page load
+    (function () {
+      try {
+        const isLoggedIn = localStorage.getItem('sc_isLoggedIn') === 'true';
+        if (!isLoggedIn) return;
+        // Find any stored profile
+        const keys = Object.keys(localStorage).filter(k => k.startsWith('sc_profile_'));
+        if (!keys.length) return;
+        const profile = JSON.parse(localStorage.getItem(keys[0]) || '{}');
+        const avatar = profile.avatar;
+        if (!avatar) return;
+        // Update nav pic
+        const navPic = document.getElementById('navProfilePic');
+        const navIcon = document.getElementById('navProfileIcon');
+        if (navPic) { navPic.src = avatar; navPic.classList.remove('hidden'); }
+        if (navIcon) navIcon.style.display = 'none';
+        // Update side menu pic
+        const smImg = document.getElementById('smAvatarImg');
+        const smIcon = document.getElementById('smAvatarIcon');
+        if (smImg) { smImg.src = avatar; smImg.classList.remove('hidden'); }
+        if (smIcon) smIcon.style.display = 'none';
+        // Update side menu name
+        const name = profile.name;
+        if (name) {
+          const smName = document.getElementById('smUserName');
+          const smSub = document.getElementById('smUserSub');
+          if (smName) smName.textContent = name;
+          if (smSub) smSub.textContent = 'View your profile & orders';
+        }
+      } catch (e) { }
+    })();
+  </script> <!-- ============ WHATSAPP FLOAT ============ -->
+  <a href="https://wa.me/918072654677" target="_blank" rel="noopener" class="wa-float" aria-label="Chat on WhatsApp">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor">
+      <path
+        d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+    </svg>
+  </a>
+
+  <script src="menu.js"></script>
+</body>
+
+</html>

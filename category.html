@@ -5,6 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title id="pageTitle">Collection – SuryaCottans</title>
   <meta name="description" content="Browse our premium collection at SuryaCottans" />
+  <!-- Favicon & Brand Icons -->
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+  <link rel="icon" type="image/png" sizes="192x192" href="favicon-192x192.png" />
+  <link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png" />
+  <link rel="icon" type="image/png" sizes="48x48" href="favicon-48x48.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
+  <meta name="theme-color" content="#0f172a" />
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700;900&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet" />
@@ -183,6 +192,18 @@
     }
     .ticker-tag:hover .ticker-tag-label {
       color: var(--red);
+    }
+    .ticker-tag.active {
+      background: #0a0a0a !important;
+      border-color: #0a0a0a !important;
+      transform: scale(1.05);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+    }
+    .ticker-tag.active .ticker-tag-label {
+      color: #ffffff !important;
+    }
+    .ticker-tag.active .ticker-tag-img {
+      border-color: var(--red);
     }
     .ticker-divider {
       color: rgba(0,0,0,0.15);
@@ -404,35 +425,22 @@
 
   <script>
     /* ---- DATA ---- */
-    const defaultProducts = [
-      { id:1,  name:"Plain Shirt",           cat:"shirt",  img:"Products/Shirt/Plain shirt.jpg",              price:899,  original:1299, off:31, rating:4.7, reviews:312, badge:"Best Seller", subcat:"Plain Shirt" },
-      { id:2,  name:"Linen Shirt",           cat:"shirt",  img:"Products/Shirt/Linen shirt.png",              price:1199, original:1699, off:29, rating:4.8, reviews:198, badge:"New",         subcat:"Linen Shirt" },
-      { id:3,  name:"Printed Shirt",         cat:"shirt",  img:"Products/Shirt/Printed shirt.png",            price:999,  original:1399, off:29, rating:4.6, reviews:245, badge:"Trending",    subcat:"Printed Shirt" },
-      { id:4,  name:"Branded Shirt",         cat:"shirt",  img:"Products/Shirt/Branded shirt.png",            price:1499, original:2199, off:32, rating:4.9, reviews:167, badge:"Hot",         subcat:"Branded Shirt" },
-      { id:5,  name:"Checked Shirt",         cat:"shirt",  img:"Products/Shirt/Checked shirt.png",            price:1099, original:1499, off:27, rating:4.7, reviews:289, badge:"",            subcat:"Checked Shirt" },
-      { id:6,  name:"Stripped Shirt",        cat:"shirt",  img:"Products/Shirt/Stripped shirt.png",           price:999,  original:1399, off:29, rating:4.5, reviews:176, badge:"",            subcat:"Stripped Shirt" },
-      { id:7,  name:"Denim Shirt",           cat:"shirt",  img:"Products/Shirt/Denim shirt.png",              price:1399, original:1999, off:30, rating:4.8, reviews:203, badge:"New",         subcat:"Denim Shirt" },
-      { id:8,  name:"Jean Pant",             cat:"pant",   img:"Products/Pant/Jean pant.png",                 price:1299, original:1899, off:32, rating:4.8, reviews:421, badge:"Best Seller", subcat:"Jean Pant" },
-      { id:9,  name:"Cotton Pant",           cat:"pant",   img:"Products/Pant/Cotton pant.png",               price:999,  original:1399, off:29, rating:4.7, reviews:318, badge:"",            subcat:"Cotton Pant" },
-      { id:10, name:"Baggy Pant",            cat:"pant",   img:"Products/Pant/Baggy pant.png",                price:1199, original:1699, off:29, rating:4.6, reviews:256, badge:"Trending",    subcat:"Baggy Pant" },
-      { id:11, name:"Mom Fit Pant",          cat:"pant",   img:"Products/Pant/Mom fit pant.png",              price:1099, original:1599, off:31, rating:4.7, reviews:189, badge:"New",         subcat:"Mom Fit Pant" },
-      { id:12, name:"Track Pant",            cat:"pant",   img:"Products/Pant/Track pant.png",                price:799,  original:1099, off:27, rating:4.5, reviews:374, badge:"Hot",         subcat:"Track Pant" },
-      { id:13, name:"Hoodies T-Shirt",       cat:"tshirt", img:"Products/Tshirt/Hoodies tshirt.png",          price:1299, original:1899, off:32, rating:4.8, reviews:512, badge:"Best Seller", subcat:"Hoodies T-Shirt" },
-      { id:14, name:"Collar T-Shirt",        cat:"tshirt", img:"Products/Tshirt/Collar tshirt.png",           price:899,  original:1299, off:31, rating:4.7, reviews:298, badge:"",            subcat:"Collar T-Shirt" },
-      { id:15, name:"Drop Shoulder T-Shirt", cat:"tshirt", img:"Products/Tshirt/Drop shoulder Tshirt.png",    price:999,  original:1399, off:29, rating:4.6, reviews:341, badge:"Trending",    subcat:"Drop Shoulder T-Shirt" },
-      { id:16, name:"Full Sleeve T-Shirt",   cat:"tshirt", img:"Products/Tshirt/Full sleeve Tshirt.png",      price:1099, original:1499, off:27, rating:4.9, reviews:223, badge:"New",         subcat:"Full Sleeve T-Shirt" },
-    ];
+    const defaultProducts = [];
     let ALL_PRODUCTS = JSON.parse(localStorage.getItem('sc_products') || '[]');
-    if (!ALL_PRODUCTS || !ALL_PRODUCTS.length) {
-      ALL_PRODUCTS = [...defaultProducts];
+    if (!Array.isArray(ALL_PRODUCTS)) ALL_PRODUCTS = [];
+
+    // Remove any lingering dummy products
+    const dummyNames = ['Plain Shirt', 'Linen Shirt', 'Printed Shirt', 'Branded Shirt', 'Checked Shirt', 'Stripped Shirt', 'Denim Shirt', 'Jean Pant', 'Cotton Pant', 'Baggy Pant', 'Mom Fit Pant', 'Track Pant', 'Hoodies T-Shirt', 'Collar T-Shirt', 'Drop Shoulder T-Shirt', 'Full Sleeve T-Shirt'];
+    if (ALL_PRODUCTS.some(p => dummyNames.includes(p.name))) {
+      ALL_PRODUCTS = [];
+      localStorage.setItem('sc_products', JSON.stringify([]));
     }
+
     const seenMapCat = new Map();
     ALL_PRODUCTS.forEach(p => {
       if (!p) return;
-      const key = String(p.id || '').trim() || String(p.name || '').toLowerCase().trim();
-      if (seenMapCat.has(key)) {
-        seenMapCat.set(key, { ...seenMapCat.get(key), ...p });
-      } else {
+      const key = String(p.id || '').trim();
+      if (key) {
         seenMapCat.set(key, p);
       }
     });
@@ -477,21 +485,105 @@
     document.getElementById('catHeroImg').src          = meta.heroImg;
     document.getElementById('catHeroImg').alt          = meta.label;
 
+    /* ---- SMART SUBCATEGORY MATCHER ---- */
+    function matchProductSubcat(p, target) {
+      if (!p || !target || target === 'All') return true;
+      const tgt = target.toLowerCase().trim();
+      const sub = String(p.subcat || p.subcategory || '').toLowerCase().trim();
+      const name = String(p.name || '').toLowerCase().trim();
+      const cat = String(p.cat || p.category || '').toLowerCase().trim();
+      const fabric = String(p.fabric || '').toLowerCase().trim();
+      const fit = String(p.fit || '').toLowerCase().trim();
+      const neck = String(p.neck || '').toLowerCase().trim();
+      const sleeve = String(p.sleeve || '').toLowerCase().trim();
+      const desc = String(p.desc || '').toLowerCase().trim();
+
+      // 1. Direct subcategory field match
+      if (sub && (sub === tgt || sub.includes(tgt) || tgt.includes(sub))) return true;
+
+      // 2. Direct name match
+      if (name.includes(tgt)) return true;
+
+      // 3. Smart semantic category matches:
+      // Shirts
+      if (tgt === 'plain shirt') {
+        return sub.includes('plain') || name.includes('plain') || name.includes('solid') || desc.includes('plain') || desc.includes('solid') ||
+               (!name.includes('print') && !name.includes('check') && !name.includes('strip') && !name.includes('linen') && !name.includes('denim'));
+      }
+      if (tgt === 'linen shirt') {
+        return sub.includes('linen') || name.includes('linen') || fabric.includes('linen') || desc.includes('linen');
+      }
+      if (tgt === 'printed shirt') {
+        return sub.includes('print') || name.includes('print') || desc.includes('print');
+      }
+      if (tgt === 'checked shirt') {
+        return sub.includes('check') || name.includes('check') || desc.includes('check');
+      }
+      if (tgt === 'stripped shirt' || tgt === 'striped shirt') {
+        return sub.includes('strip') || name.includes('strip') || desc.includes('strip');
+      }
+      if (tgt === 'denim shirt') {
+        return sub.includes('denim') || name.includes('denim') || fabric.includes('denim') || desc.includes('denim');
+      }
+      if (tgt === 'branded shirt') {
+        return sub.includes('brand') || name.includes('brand') || (p.brand && String(p.brand).trim().length > 0);
+      }
+
+      // Pants
+      if (tgt === 'jean pant' || tgt === 'jeans') {
+        return sub.includes('jean') || sub.includes('denim') || name.includes('jean') || name.includes('denim') || fabric.includes('denim');
+      }
+      if (tgt === 'cotton pant' || tgt === 'chinos') {
+        return sub.includes('cotton') || sub.includes('chino') || name.includes('cotton') || name.includes('chino') || fabric.includes('cotton');
+      }
+      if (tgt === 'baggy pant') {
+        return sub.includes('baggy') || name.includes('baggy') || fit.includes('baggy');
+      }
+      if (tgt === 'mom fit pant') {
+        return sub.includes('mom') || name.includes('mom') || fit.includes('mom');
+      }
+      if (tgt === 'track pant') {
+        return sub.includes('track') || sub.includes('jogger') || name.includes('track') || name.includes('jogger') || fit.includes('jogger');
+      }
+
+      // T-Shirts
+      if (tgt === 'collar t-shirt' || tgt === 'collar') {
+        return sub.includes('collar') || sub.includes('polo') || name.includes('collar') || name.includes('polo') || neck.includes('collar');
+      }
+      if (tgt === 'drop shoulder t-shirt' || tgt === 'drop shoulder') {
+        return sub.includes('drop') || name.includes('drop') || fit.includes('drop') || fit.includes('oversized') || name.includes('oversized');
+      }
+      if (tgt === 'full sleeve t-shirt') {
+        return sub.includes('full sleeve') || name.includes('full sleeve') || sleeve.includes('full');
+      }
+      if (tgt === 'hoodies t-shirt' || tgt === 'hoodie') {
+        return sub.includes('hood') || name.includes('hood') || neck.includes('hood');
+      }
+
+      // Fallback for keyword tokens
+      const keywords = tgt.replace(/\b(shirt|pant|t-shirt|tshirt|shorts|caps|cap|keychain)\b/gi, '').trim().split(/\s+/).filter(w => w.length > 2);
+      if (keywords.length > 0) {
+        return keywords.some(k => name.includes(k) || fabric.includes(k) || fit.includes(k) || desc.includes(k) || sub.includes(k));
+      }
+
+      return false;
+    }
+
     /* ---- MARQUEE TICKER ---- */
     const tickerTrack = document.getElementById('catTickerTrack');
     // Get subcats excluding 'All', map to product img
     const tickerItems = meta.subcats.filter(s => s !== 'All').map(s => {
-      let prod = ALL_PRODUCTS.find(p => (p.subcat && p.subcat.toLowerCase() === s.toLowerCase()) || (p.name && p.name.toLowerCase().includes(s.toLowerCase())) || (p.cat && p.cat.toLowerCase() === s.toLowerCase()));
-      if (!prod || !prod.img) {
-        prod = defaultProducts.find(p => (p.subcat && p.subcat.toLowerCase() === s.toLowerCase()) || (p.name && p.name.toLowerCase().includes(s.toLowerCase())) || (p.cat && p.cat.toLowerCase() === s.toLowerCase()));
+      let prod = ALL_PRODUCTS.find(p => (catKey === 'all' || p.cat === catKey) && matchProductSubcat(p, s));
+      if (!prod) {
+        prod = ALL_PRODUCTS.find(p => matchProductSubcat(p, s));
       }
-      const imgUrl = (prod && ((prod.images && prod.images[0]) || prod.img)) ? ((prod.images && prod.images[0]) || prod.img) : 'Logo.png';
+      const imgUrl = (prod && ((prod.images && prod.images[0]) || prod.img)) ? ((prod.images && prod.images[0]) || prod.img) : (meta.heroImg || 'Logo.png');
       return { label: s, img: imgUrl };
     });
 
     function buildTickerHTML(items) {
       return items.map((item, i) => `
-        <a class="ticker-tag" href="category.html?cat=${catKey}" onclick="event.preventDefault();filterSubcat('${item.label}')">
+        <a class="ticker-tag ${activeSub === item.label ? 'active' : ''}" data-sub="${item.label}" href="category.html?cat=${catKey}" onclick="event.preventDefault();filterSubcat('${item.label}')">
           <img class="ticker-tag-img" src="${item.img}" alt="${item.label}" loading="lazy" onerror="this.src='Logo.png'" />
           <span class="ticker-tag-label">${item.label}</span>
         </a>
@@ -530,7 +622,17 @@
     }
 
     function filterSubcat(s) {
-      activeSub = s;
+      if (activeSub === s) {
+        activeSub = 'All'; // Clicking already active filter toggles back to All!
+      } else {
+        activeSub = s;
+      }
+
+      // Update ticker tags active state visually
+      document.querySelectorAll('.ticker-tag').forEach(tag => {
+        tag.classList.toggle('active', tag.getAttribute('data-sub') === activeSub);
+      });
+
       renderGrid();
     }
 
@@ -564,25 +666,27 @@
         if (k === 'keychains' && (c === 'keychain' || c === 'keychains')) return true;
         return false;
       });
-      const items = activeSub === 'All' ? catItems : catItems.filter(p => {
-        if (!p) return false;
-        const sub = String(p.subcat || p.subcategory || '').toLowerCase();
-        const cat = String(p.cat || p.category || '').toLowerCase();
-        const target = String(activeSub || '').toLowerCase();
-        return sub === target || cat === target || (activeSub === 'T-Shirt' && (cat === 'tshirt' || cat === 't-shirt')) || (sub && sub.includes(target));
-      });
+
+      // Match products smartly by activeSub
+      const items = activeSub === 'All' ? catItems : catItems.filter(p => matchProductSubcat(p, activeSub));
+
       const grid     = document.getElementById('catGrid');
       const countEl  = document.getElementById('catCount');
       const resEl    = document.getElementById('catResultsCount');
 
       countEl.textContent = items.length + ' Products';
-      resEl.textContent   = 'Showing ' + items.length + ' product' + (items.length !== 1 ? 's' : '');
+      if (activeSub === 'All') {
+        resEl.textContent = 'Showing ' + items.length + ' product' + (items.length !== 1 ? 's' : '');
+      } else {
+        resEl.innerHTML = `Showing ${items.length} product${items.length !== 1 ? 's' : ''} in <strong>"${activeSub}"</strong> <button type="button" onclick="filterSubcat('All')" style="margin-left: 10px; background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; border-radius: 6px; padding: 2px 8px; font-size: 0.75rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">✕ Clear Filter</button>`;
+      }
 
       if (!items.length) {
         grid.innerHTML = `<div class="cat-empty" style="grid-column:1/-1">
           <div class="cat-empty-icon">🔍</div>
-          <h3>No Products Found</h3>
-          <p>More styles coming soon!</p>
+          <h3>No Products Found in "${activeSub}"</h3>
+          <p>We are adding more styles in this collection soon!</p>
+          <button type="button" class="btn-primary" onclick="filterSubcat('All')" style="margin-top: 1rem; padding: 0.6rem 1.2rem; font-size: 0.85rem; border-radius: 8px;">View All Products</button>
         </div>`;
         return;
       }

@@ -11,7 +11,7 @@ if (!sideMenuMatch) {
 const sideMenuHtml = sideMenuMatch[1];
 console.log('Found side menu HTML length:', sideMenuHtml.length);
 
-const files = fs.readdirSync('./').filter(f => f.endsWith('.html') && f !== 'index.html' && f !== 'checkout.html' && f !== 'admin.html');
+const files = fs.readdirSync('./').filter(f => f.endsWith('.html') && f !== 'index.html' && f !== 'checkout.html' && f !== 'admin.html' && f !== 'surya-admin-798.html' && !f.includes('admin'));
 for (const file of files) {
   let content = fs.readFileSync(file, 'utf8');
   if (content.includes('id="sideMenu"')) {

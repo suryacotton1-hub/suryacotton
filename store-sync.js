@@ -27,13 +27,16 @@ signInAnonymously(auth).catch((error) => {
 let syncPromise = null;
 
 async function syncProductsFromFirestore(force = false) {
+  // Legacy dummy products filter
+  const dummyNames = ['Plain Shirt', 'Linen Shirt', 'Printed Shirt', 'Branded Shirt', 'Checked Shirt', 'Stripped Shirt', 'Denim Shirt', 'Jean Pant', 'Cotton Pant', 'Baggy Pant', 'Mom Fit Pant', 'Track Pant', 'Hoodies T-Shirt', 'Collar T-Shirt', 'Drop Shoulder T-Shirt', 'Full Sleeve T-Shirt'];
+  
   // Check sessionStorage for recent fetch (within last 30 seconds) unless forced
   const lastSync = sessionStorage.getItem('sc_last_sync_time');
   const now = Date.now();
   if (!force && lastSync && (now - parseInt(lastSync, 10)) < 30000 && localStorage.getItem('sc_products')) {
     try {
       const cached = JSON.parse(localStorage.getItem('sc_products'));
-      if (cached && cached.length > 0) {
+      if (Array.isArray(cached) && !cached.some(p => dummyNames.includes(p.name))) {
         dispatchSyncedEvents(cached);
         return;
       }
@@ -55,18 +58,17 @@ async function syncProductsFromFirestore(force = false) {
         fetchedProducts.push(data);
       });
 
+      let cleanProducts = [];
       if (fetchedProducts.length > 0) {
         const seenMap = new Map();
         fetchedProducts.forEach(p => {
           if (!p) return;
-          const key = String(p.id || '').trim() || String(p.name || '').toLowerCase().trim();
-          if (seenMap.has(key)) {
-            seenMap.set(key, { ...seenMap.get(key), ...p });
-          } else {
+          const key = String(p.id || '').trim();
+          if (key) {
             seenMap.set(key, p);
           }
         });
-        const cleanProducts = Array.from(seenMap.values()).map(p => {
+        cleanProducts = Array.from(seenMap.values()).map(p => {
           const origVal = parseInt(p.original) || 0;
           const priceVal = parseInt(p.price) || 0;
           const calcOff = (origVal > priceVal && origVal > 0) ? Math.round(((origVal - priceVal) / origVal) * 100) : (p.off || 0);
@@ -77,10 +79,11 @@ async function syncProductsFromFirestore(force = false) {
             reviews: p.reviews !== undefined ? p.reviews : 0
           };
         });
-        localStorage.setItem('sc_products', JSON.stringify(cleanProducts));
-        sessionStorage.setItem('sc_last_sync_time', Date.now().toString());
-        dispatchSyncedEvents(cleanProducts);
       }
+
+      localStorage.setItem('sc_products', JSON.stringify(cleanProducts));
+      sessionStorage.setItem('sc_last_sync_time', Date.now().toString());
+      dispatchSyncedEvents(cleanProducts);
     } catch (err) {
       console.error("Failed to sync products from Firestore:", err);
     } finally {

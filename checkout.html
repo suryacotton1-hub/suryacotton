@@ -4,10 +4,22 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Checkout – SuryaCottans</title>
+    <!-- Favicon & Brand Icons -->
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+  <link rel="icon" type="image/png" sizes="192x192" href="favicon-192x192.png" />
+  <link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png" />
+  <link rel="icon" type="image/png" sizes="48x48" href="favicon-48x48.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
+  <meta name="theme-color" content="#0f172a" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700;900&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
   <script>
+    // Set your Render backend URL here if hosted separately (e.g. 'https://suryacottans-api.onrender.com')
+    // Leave empty "" if frontend and backend are hosted on the same domain / server
+    window.BACKEND_URL = "https://backend-s6kq.onrender.com";
+
     // Protect checkout page
     if (localStorage.getItem('sc_isLoggedIn') !== 'true') {
       window.location.href = 'profile.html';
@@ -396,6 +408,7 @@
     }
   </style>
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </head>
 <body>
 
@@ -420,13 +433,17 @@
             <input type="text" id="name" placeholder="Full Name" required autocomplete="name">
             <label for="name">Name</label>
           </div>
+          <div class="form-group full">
+            <input type="email" id="email" placeholder="Email Address (for WhatsApp & Email order tracking)" required autocomplete="email">
+            <label for="email">Email Address (For WhatsApp/Email Notifications)</label>
+          </div>
           <div class="form-group full" style="position: relative;">
             <input type="text" id="address" placeholder="Door No, Street Name, Area" required autocomplete="shipping street-address">
             <label for="address">Address</label>
             <div id="addressSuggestions" class="autocomplete-suggestions"></div>
           </div>
           <div class="form-group">
-            <input type="tel" id="phone" placeholder="Mobile Number" required autocomplete="tel">
+            <input type="tel" id="phone" placeholder="10-digit Mobile Number" required pattern="[6-9][0-9]{9}" title="Please enter a valid 10-digit Indian mobile number starting with 6, 7, 8, or 9" autocomplete="tel">
             <label for="phone">Mobile Number</label>
           </div>
           <div class="form-group">
@@ -577,8 +594,9 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getFirestore, doc, getDoc, setDoc, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getActiveEmailConfig, EMAIL_CONFIG } from "./email-config.js";
 
     // Initialize Firebase
     const firebaseConfig = {
@@ -630,22 +648,24 @@
     let totalAmount = 0;
     let totalQty = 0;
 
-    if (cart.length === 0) {
-      checkoutItemsContainer.innerHTML = '<p style="color: #9ca3af; font-size: 0.95rem; text-align: center; padding: 2rem 0;">Your cart is beautifully empty.</p>';
-      payAmountBtn.textContent = '₹0';
-      if(document.getElementById('summaryShipping')) document.getElementById('summaryShipping').textContent = '₹0';
-    } else {
+    async function updateCheckoutSummary() {
+      if (cart.length === 0) {
+        checkoutItemsContainer.innerHTML = '<p style="color: #9ca3af; font-size: 0.95rem; text-align: center; padding: 2rem 0;">Your cart is beautifully empty.</p>';
+        payAmountBtn.textContent = '₹0';
+        if(document.getElementById('summaryShipping')) document.getElementById('summaryShipping').textContent = '₹0';
+        return;
+      }
+      let itemsTotal = 0;
       let html = '';
       cart.forEach(item => {
         const itemTotal = item.price * item.qty;
-        totalAmount += itemTotal;
-        totalQty += item.qty;
+        itemsTotal += itemTotal;
         html += `
           <div class="checkout-item">
             <img src="${item.img}" class="checkout-item-img" alt="${item.name}">
             <div class="checkout-item-info">
               <h4 class="checkout-item-name">${item.name}</h4>
-              <p class="checkout-item-qty">Qty: ${item.qty}</p>
+              <p class="checkout-item-qty">Qty: ${item.qty}${item.size ? ' | Size: ' + item.size : ''}</p>
               <div class="checkout-item-price">₹${itemTotal.toLocaleString()}</div>
             </div>
           </div>
@@ -653,15 +673,32 @@
       });
       checkoutItemsContainer.innerHTML = html;
       
-      const shippingCost = 40; // Flat ₹40 per order
-      totalAmount += shippingCost;
+      // Check free shipping setting
+      let isFreeShipping = localStorage.getItem('sc_free_shipping') === 'true';
+      try {
+        const settingsSnap = await Promise.race([
+          getDoc(doc(db, "settings", "shipping")),
+          new Promise(resolve => setTimeout(() => resolve(null), 1800))
+        ]);
+        if (settingsSnap && settingsSnap.exists()) {
+          isFreeShipping = !!settingsSnap.data().freeShipping;
+          localStorage.setItem('sc_free_shipping', String(isFreeShipping));
+        }
+      } catch(e) {}
+
+      const shippingCost = isFreeShipping ? 0 : 40;
+      totalAmount = itemsTotal + shippingCost;
       
       const formattedTotal = '₹' + totalAmount.toLocaleString();
-      subtotalEl.textContent = '₹' + (totalAmount - shippingCost).toLocaleString();
-      if(document.getElementById('summaryShipping')) document.getElementById('summaryShipping').textContent = '₹40';
+      subtotalEl.textContent = '₹' + itemsTotal.toLocaleString();
+      if(document.getElementById('summaryShipping')) {
+        document.getElementById('summaryShipping').innerHTML = isFreeShipping ? '<span style="color: #22c55e; font-weight: 800;">FREE</span>' : '₹40';
+      }
       totalEl.textContent = formattedTotal;
       payAmountBtn.textContent = formattedTotal;
     }
+
+    updateCheckoutSummary();
 
     // Database read/write helpers
     async function getUserProfile(uid) {
@@ -712,17 +749,23 @@
     }
 
     // Save order after successful Razorpay payment
-    async function saveOrderAfterPayment(razorpayPaymentId, razorpayOrderId) {
+    async function saveOrderAfterPayment(razorpayPaymentId, razorpayOrderId, verifiedInternalId = null, verifiedShiprocketData = null, emailAlreadySent = false) {
       try {
-        const orderId = Math.floor(100000 + Math.random() * 900000);
+        const orderId = verifiedInternalId || Math.floor(100000 + Math.random() * 900000);
+        const srInfo = verifiedShiprocketData || {};
+
         const newOrder = {
           id: orderId,
           date: new Date().toISOString(),
-          items: cart.map(i => ({ id: i.id, name: i.name, qty: i.qty, price: i.price, img: i.img })),
+          items: cart.map(i => ({ id: i.id, name: i.name, qty: i.qty, price: i.price, img: i.img, size: i.size || '' })),
           total: totalAmount,
           status: 'Processing',
           razorpay_payment_id: razorpayPaymentId,
-          razorpay_order_id: razorpayOrderId
+          razorpay_order_id: razorpayOrderId,
+          shipment_id: srInfo.shipment_id || null,
+          awb_code: srInfo.awb_code || null,
+          courier_name: srInfo.courier_name || 'Pending Courier Selection',
+          tracking_url: srInfo.tracking_url || (srInfo.awb_code ? `https://shiprocket.co/tracking/${srInfo.awb_code}` : null)
         };
 
         // Save order to profile if logged in
@@ -750,26 +793,37 @@
         }
 
         // Save order globally for Admin Dashboard
+        const userEmailInput = document.getElementById('email') ? document.getElementById('email').value.trim() : '';
+        const userEmail = userEmailInput || ((currentUser && currentUser.email) ? currentUser.email : 'care@suryacottans.com');
+
         const fullOrderObj = {
           ...newOrder,
           customerName: document.getElementById('name').value,
-          customerEmail: currentUser ? currentUser.email : 'N/A',
+          customerEmail: userEmail,
           customerPhone: document.getElementById('phone').value,
           customerAltPhone: document.getElementById('altPhone').value,
           customerAddress: document.getElementById('address').value,
           customerState: document.getElementById('state').value,
           customerCity: document.getElementById('city').value,
-          customerPin: document.getElementById('pin').value
+          customerPin: document.getElementById('pin').value,
+          paymentMethod: 'Prepaid'
         };
+
+        console.log(`[ORDER] Order ${orderId} saved locally & synced with verified Shiprocket data (AWB: ${newOrder.awb_code || 'N/A'})`);
+
         const allOrders = JSON.parse(localStorage.getItem('sc_all_orders') || '[]');
         allOrders.push(fullOrderObj);
         localStorage.setItem('sc_all_orders', JSON.stringify(allOrders));
 
-        // Sync to Firebase Firestore orders collection
+        // Sync to Firebase Firestore orders collection (awaited with timeout safeguard)
         try {
-          addDoc(collection(db, "orders"), fullOrderObj).catch(err => console.warn("Firestore order sync error:", err));
+          await Promise.race([
+            addDoc(collection(db, "orders"), fullOrderObj),
+            new Promise((_, reject) => setTimeout(() => reject(new Error("Firestore sync timeout")), 8000))
+          ]);
+          console.log("Order successfully saved to Firestore!");
         } catch(err) {
-          console.warn("Firestore sync exception:", err);
+          console.warn("Firestore sync error:", err);
         }
 
         // Decrement purchased quantities from product inventory
@@ -800,12 +854,94 @@
           console.warn("Inventory decrement error:", invErr);
         }
 
+        // Send Order Confirmation Email (EmailJS client fallback)
+        try {
+          await sendConfirmationEmailClient(fullOrderObj, emailAlreadySent);
+        } catch (emailErr) {
+          console.warn("[EMAIL] Client email notice:", emailErr);
+        }
+
         // Clear cart
         localStorage.removeItem(storageKey);
       } catch (error) {
         console.error("Order save error:", error);
       }
     }
+
+    async function sendConfirmationEmailClient(orderObj, emailAlreadySent = false) {
+      if (emailAlreadySent) {
+        console.log('[EMAIL] Confirmation email already dispatched by server.');
+        return;
+      }
+      try {
+        const config = await getActiveEmailConfig(BACKEND_URL);
+        if (!config.templateId || !config.publicKey) {
+          console.warn('[EMAIL] EmailJS credentials pending (Template ID or Public Key not set).');
+          return;
+        }
+        if (typeof window.emailjs === 'undefined') {
+          console.warn('[EMAIL] EmailJS SDK not available.');
+          return;
+        }
+
+        window.emailjs.init({ publicKey: config.publicKey });
+
+        const formattedId = String(orderObj.id).startsWith('SC-') ? String(orderObj.id) : `SC-${orderObj.id}`;
+        const items = orderObj.items || [];
+        const itemsSummary = items.map(i => `• ${i.qty || 1}x ${i.name || 'Item'}${i.size ? ' (Size: ' + i.size + ')' : ''} - ₹${((i.price || 0) * (i.qty || 1)).toLocaleString('en-IN')}`).join('\n');
+        const itemsHtml = items.map(i => `
+          <tr style="border-bottom: 1px solid #e2e8f0;">
+            <td style="padding: 10px 8px; font-weight: 600; color: #0f172a;">${i.name || 'Item'}</td>
+            <td style="padding: 10px 8px; text-align: center;">${i.size || '-'}</td>
+            <td style="padding: 10px 8px; text-align: center; font-weight: 600;">${i.qty || 1}</td>
+            <td style="padding: 10px 8px; text-align: right; font-weight: 700;">₹${((i.price || 0) * (i.qty || 1)).toLocaleString('en-IN')}</td>
+          </tr>
+        `).join('');
+
+        const addr = [
+          orderObj.customerAddress,
+          orderObj.customerCity,
+          orderObj.customerState,
+          orderObj.customerPin
+        ].filter(Boolean).join(', ');
+
+        const templateParams = {
+          to_name: orderObj.customerName || 'Valued Customer',
+          to_email: orderObj.customerEmail,
+          customer_name: orderObj.customerName || 'Valued Customer',
+          customer_email: orderObj.customerEmail,
+          customer_phone: orderObj.customerPhone || '',
+          order_id: formattedId,
+          order_date: new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+          order_total: `₹${Number(orderObj.total || 0).toLocaleString('en-IN')}`,
+          total_amount: `₹${Number(orderObj.total || 0).toLocaleString('en-IN')}`,
+          payment_id: orderObj.razorpay_payment_id || 'PREPAID',
+          shipping_address: addr || 'Address provided at checkout',
+          items_summary: itemsSummary,
+          items_html: itemsHtml,
+          tracking_url: orderObj.tracking_url || `https://suryacottans.com/track.html?order=${formattedId}`,
+          courier_name: orderObj.courier_name || 'Assigned upon dispatch',
+          awb_code: orderObj.awb_code || 'Pending Dispatch',
+          name: 'SuryaCottans',
+          from_name: 'SuryaCottans',
+          email: 'suryacotton1@gmail.com',
+          reply_to: 'suryacotton1@gmail.com',
+          store_name: config.storeName || 'SuryaCottans',
+          support_email: config.supportEmail || 'suryacotton1@gmail.com'
+        };
+
+        const res = await window.emailjs.send(config.serviceId, config.templateId, templateParams);
+        console.log('[EMAIL] ✅ Confirmation email sent to ' + orderObj.customerEmail, res);
+      } catch (err) {
+        console.warn('[EMAIL] Client EmailJS dispatch notice:', err);
+      }
+    }
+
+    const BACKEND_URL = (typeof window !== 'undefined' && window.BACKEND_URL) 
+      ? window.BACKEND_URL.replace(/\/$/, '') 
+      : (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+          ? 'http://localhost:3000' 
+          : 'https://backend-s6kq.onrender.com');
 
     // Main checkout form submit handler
     checkoutForm.addEventListener('submit', async (e) => {
@@ -824,13 +960,13 @@
 
       try {
         // Step 1: Fetch Razorpay key from server
-        const keyRes = await fetch('/api/razorpay-key');
+        const keyRes = await fetch(`${BACKEND_URL}/api/razorpay-key`);
         if (!keyRes.ok) throw new Error('Failed to fetch Razorpay key');
         const { key_id } = await keyRes.json();
 
         // Step 2: Create order on backend
         const amountInPaise = Math.round(totalAmount * 100);
-        const orderRes = await fetch('/api/create-order', {
+        const orderRes = await fetch(`${BACKEND_URL}/api/create-order`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -847,6 +983,9 @@
 
         const orderData = await orderRes.json();
 
+        const userEmailInput = document.getElementById('email') ? document.getElementById('email').value.trim() : '';
+        const userEmail = userEmailInput || ((currentUser && currentUser.email) ? currentUser.email : 'care@suryacottans.com');
+
         // Step 3: Open Razorpay checkout modal
         const options = {
           key: key_id,
@@ -857,6 +996,7 @@
           order_id: orderData.order_id,
           prefill: {
             name: document.getElementById('name').value || '',
+            email: userEmail,
             contact: document.getElementById('phone').value || ''
           },
           theme: {
@@ -864,24 +1004,47 @@
           },
           handler: async function (response) {
             // Step 4: Verify payment signature on backend
-            showRzpStatus('processing', 'Verifying Payment...', 'Please wait while we confirm your payment with Razorpay.');
+            showRzpStatus('processing', 'Verifying Payment...', 'Please wait while we confirm your payment with Razorpay and generate shipment details.');
+
+            const orderDetailsObj = {
+              id: Math.floor(100000 + Math.random() * 900000),
+              date: new Date().toISOString(),
+              customerName: document.getElementById('name').value,
+              customerEmail: userEmail,
+              customerPhone: document.getElementById('phone').value,
+              customerAltPhone: document.getElementById('altPhone').value,
+              customerAddress: document.getElementById('address').value,
+              customerState: document.getElementById('state').value,
+              customerCity: document.getElementById('city').value,
+              customerPin: document.getElementById('pin').value,
+              items: cart.map(i => ({ id: i.id, name: i.name, qty: i.qty, price: i.price, img: i.img, size: i.size || '' })),
+              total: totalAmount,
+              paymentMethod: 'Prepaid'
+            };
 
             try {
-              const verifyRes = await fetch('/api/verify-payment', {
+              const verifyRes = await fetch(`${BACKEND_URL}/api/verify-payment`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                   razorpay_order_id: response.razorpay_order_id,
                   razorpay_payment_id: response.razorpay_payment_id,
-                  razorpay_signature: response.razorpay_signature
+                  razorpay_signature: response.razorpay_signature,
+                  orderDetails: orderDetailsObj
                 })
               });
 
               const verifyData = await verifyRes.json();
 
               if (verifyData.verified) {
-                // Payment verified! Save order and show success
-                await saveOrderAfterPayment(response.razorpay_payment_id, response.razorpay_order_id);
+                // Payment verified! Save order with exact internal ID and Shiprocket info returned by backend
+                await saveOrderAfterPayment(
+                  response.razorpay_payment_id,
+                  response.razorpay_order_id,
+                  verifyData.internalOrderId,
+                  verifyData.shiprocket,
+                  verifyData.email_sent
+                );
                 showRzpStatus(
                   'success',
                   'Payment Successful!',
@@ -956,7 +1119,7 @@
       }
     });
 
-    // Auth observer to pre-fill info
+    // Auth observer to pre-fill info & ensure write permissions
     onAuthStateChanged(auth, async (user) => {
       if (user) {
         currentUser = user;
@@ -970,6 +1133,11 @@
           const fullName = profile.name || user.displayName || '';
           if (fullName && document.getElementById('name')) document.getElementById('name').value = fullName;
         }
+      } else {
+        // Sign in anonymously so guest buyers have valid Firestore write permissions
+        signInAnonymously(auth).catch((error) => {
+          console.warn("Anonymous auth failed during checkout:", error);
+        });
       }
     });
 

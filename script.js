@@ -214,72 +214,23 @@ function initParallax() {
 }
 
 // ---- PRODUCT DATA ----
-const defaultProducts = [
-  // ---- SHIRTS ----
-  { id: 1,  name: "Plain Shirt",          cat: "shirt",  img: "Products/Shirt/Plain shirt.jpg",     price: 899,  original: 1299, off: 31, rating: 4.7, reviews: 312, badge: "Best Seller" },
-  { id: 101,name: "Plain Shirt - Slim Fit",cat: "shirt", img: "Products/Shirt/Plain shirt.jpg",     price: 999,  original: 1399, off: 28, rating: 4.8, reviews: 145, badge: "" },
-  { id: 102,name: "Plain Shirt - Premium",cat: "shirt",  img: "Products/Shirt/Plain shirt.jpg",     price: 1099, original: 1599, off: 31, rating: 4.9, reviews: 200, badge: "New" },
-  { id: 2,  name: "Linen Shirt",          cat: "shirt",  img: "Products/Shirt/Linen shirt.png",     price: 1199, original: 1699, off: 29, rating: 4.8, reviews: 198, badge: "New"         },
-  { id: 103,name: "Linen Shirt - Solid",  cat: "shirt",  img: "Products/Shirt/Linen shirt.png",     price: 1299, original: 1799, off: 27, rating: 4.7, reviews: 112, badge: "" },
-  { id: 3,  name: "Printed Shirt",        cat: "shirt",  img: "Products/Shirt/Printed shirt.png",   price: 999,  original: 1399, off: 29, rating: 4.6, reviews: 245, badge: "Trending"   },
-  { id: 104,name: "Printed Shirt - Floral",cat: "shirt", img: "Products/Shirt/Printed shirt.png",   price: 1099, original: 1499, off: 26, rating: 4.8, reviews: 321, badge: "Hot" },
-  { id: 105,name: "Printed Shirt - Abstract",cat: "shirt",img: "Products/Shirt/Printed shirt.png",  price: 949,  original: 1399, off: 32, rating: 4.5, reviews: 89,  badge: "" },
-  { id: 4,  name: "Branded Shirt",        cat: "shirt",  img: "Products/Shirt/Branded shirt.png",   price: 1499, original: 2199, off: 32, rating: 4.9, reviews: 167, badge: "Hot"         },
-  { id: 5,  name: "Checked Shirt",        cat: "shirt",  img: "Products/Shirt/Checked shirt.png",   price: 1099, original: 1499, off: 27, rating: 4.7, reviews: 289, badge: ""            },
-  { id: 106,name: "Checked Shirt - Vintage",cat: "shirt",img: "Products/Shirt/Checked shirt.png",   price: 1199, original: 1599, off: 25, rating: 4.6, reviews: 150, badge: "Trending" },
-  { id: 6,  name: "Stripped Shirt",       cat: "shirt",  img: "Products/Shirt/Stripped shirt.png",  price: 999,  original: 1399, off: 29, rating: 4.5, reviews: 176, badge: ""            },
-  { id: 7,  name: "Denim Shirt",          cat: "shirt",  img: "Products/Shirt/Denim shirt.png",     price: 1399, original: 1999, off: 30, rating: 4.8, reviews: 203, badge: "New"         },
-  { id: 107,name: "Denim Shirt - Dark Wash",cat: "shirt",img: "Products/Shirt/Denim shirt.png",     price: 1499, original: 2099, off: 28, rating: 4.9, reviews: 312, badge: "Premium" },
-  // ---- PANTS ----
-  { id: 8,  name: "Jean Pant",            cat: "pant",   img: "Products/Pant/Jean pant.png",        price: 1299, original: 1899, off: 32, rating: 4.8, reviews: 421, badge: "Best Seller" },
-  { id: 108,name: "Jean Pant - Black Wash",cat: "pant",  img: "Products/Pant/Jean pant.png",        price: 1399, original: 1999, off: 30, rating: 4.7, reviews: 215, badge: "New" },
-  { id: 109,name: "Jean Pant - Slim Fit", cat: "pant",   img: "Products/Pant/Jean pant.png",        price: 1499, original: 2199, off: 31, rating: 4.9, reviews: 310, badge: "Premium" },
-  { id: 9,  name: "Cotton Pant",          cat: "pant",   img: "Products/Pant/Cotton pant.png",      price: 999,  original: 1399, off: 29, rating: 4.7, reviews: 318, badge: ""            },
-  { id: 110,name: "Cotton Pant - Beige",  cat: "pant",   img: "Products/Pant/Cotton pant.png",      price: 1099, original: 1499, off: 26, rating: 4.6, reviews: 150, badge: "" },
-  { id: 10, name: "Baggy Pant",           cat: "pant",   img: "Products/Pant/Baggy pant.png",       price: 1199, original: 1699, off: 29, rating: 4.6, reviews: 256, badge: "Trending"   },
-  { id: 111,name: "Baggy Pant - Vintage", cat: "pant",   img: "Products/Pant/Baggy pant.png",       price: 1299, original: 1799, off: 27, rating: 4.8, reviews: 180, badge: "Hot" },
-  { id: 11, name: "Mom Fit Pant",         cat: "pant",   img: "Products/Pant/Mom fit pant.png",     price: 1099, original: 1599, off: 31, rating: 4.7, reviews: 189, badge: "New"         },
-  { id: 112,name: "Mom Fit Pant - Light", cat: "pant",   img: "Products/Pant/Mom fit pant.png",     price: 1199, original: 1699, off: 29, rating: 4.5, reviews: 90, badge: "" },
-  { id: 12, name: "Track Pant",           cat: "pant",   img: "Products/Pant/Track pant.png",       price: 799,  original: 1099, off: 27, rating: 4.5, reviews: 374, badge: "Hot"         },
-  { id: 113,name: "Track Pant - Pro",     cat: "pant",   img: "Products/Pant/Track pant.png",       price: 899,  original: 1299, off: 30, rating: 4.7, reviews: 210, badge: "Premium" },
-  { id: 114,name: "Track Pant - Casual",  cat: "pant",   img: "Products/Pant/Track pant.png",       price: 849,  original: 1199, off: 29, rating: 4.6, reviews: 150, badge: "" },
-  // ---- T-SHIRTS ----
-  { id: 13, name: "Hoodies T-Shirt",      cat: "tshirt", img: "Products/Tshirt/Hoodies tshirt.png",        price: 1299, original: 1899, off: 32, rating: 4.8, reviews: 512, badge: "Best Seller" },
-  { id: 115,name: "Hoodies T-Shirt - Black",cat: "tshirt", img: "Products/Tshirt/Hoodies tshirt.png",      price: 1399, original: 1999, off: 30, rating: 4.9, reviews: 320, badge: "New" },
-  { id: 116,name: "Hoodies T-Shirt - Graphic",cat: "tshirt",img: "Products/Tshirt/Hoodies tshirt.png",     price: 1499, original: 2099, off: 28, rating: 4.7, reviews: 210, badge: "" },
-  { id: 14, name: "Collar T-Shirt",       cat: "tshirt", img: "Products/Tshirt/Collar tshirt.png",         price: 899,  original: 1299, off: 31, rating: 4.7, reviews: 298, badge: ""            },
-  { id: 117,name: "Collar T-Shirt - Polo",cat: "tshirt", img: "Products/Tshirt/Collar tshirt.png",         price: 999,  original: 1399, off: 28, rating: 4.8, reviews: 150, badge: "Trending" },
-  { id: 15, name: "Drop Shoulder T-Shirt",cat: "tshirt", img: "Products/Tshirt/Drop shoulder Tshirt.png",  price: 999,  original: 1399, off: 29, rating: 4.6, reviews: 341, badge: "Trending"   },
-  { id: 118,name: "Drop Shoulder T-Shirt - Oversized",cat: "tshirt", img: "Products/Tshirt/Drop shoulder Tshirt.png",price: 1099, original: 1499, off: 26, rating: 4.9, reviews: 250, badge: "Premium" },
-  { id: 119,name: "Drop Shoulder T-Shirt - Print",cat: "tshirt", img: "Products/Tshirt/Drop shoulder Tshirt.png",price: 1049, original: 1499, off: 30, rating: 4.7, reviews: 180, badge: "" },
-  { id: 16, name: "Full Sleeve T-Shirt",  cat: "tshirt", img: "Products/Tshirt/Full sleeve Tshirt.png",    price: 1099, original: 1499, off: 27, rating: 4.9, reviews: 223, badge: "New"         },
-  { id: 120,name: "Full Sleeve T-Shirt - Ribbed",cat: "tshirt",img: "Products/Tshirt/Full sleeve Tshirt.png", price: 1199, original: 1699, off: 29, rating: 4.8, reviews: 140, badge: "" },
-  { id: 121,name: "Cargo Denim Shorts", cat: "shorts", img: "Logo.png", price: 699, original: 999, off: 30, rating: 4.7, reviews: 142, badge: "New" },
-  { id: 122,name: "Cotton Chino Shorts", cat: "shorts", img: "Logo.png", price: 599, original: 899, off: 33, rating: 4.6, reviews: 98, badge: "" },
-  { id: 123,name: "SuryaCotton Embroidered Cap", cat: "caps", img: "Logo.png", price: 399, original: 599, off: 33, rating: 4.8, reviews: 210, badge: "Trending" },
-  { id: 124,name: "Classic Baseball Cap", cat: "caps", img: "Logo.png", price: 349, original: 499, off: 30, rating: 4.5, reviews: 115, badge: "" },
-  { id: 125,name: "Leather Loop Keychain", cat: "keychains", img: "Logo.png", price: 199, original: 299, off: 33, rating: 4.9, reviews: 320, badge: "Hot" },
-  { id: 126,name: "Metallic Crest Keychain", cat: "keychains", img: "Logo.png", price: 149, original: 249, off: 40, rating: 4.7, reviews: 180, badge: "" }
-];
+const defaultProducts = [];
 // Load cached products or fallback to default data
 let products = JSON.parse(localStorage.getItem('sc_products') || '[]');
-if (!products || !products.length) {
-  products = [...defaultProducts];
-} else {
-  // Push any newly added default products that aren't in localStorage yet
-  defaultProducts.forEach(dp => {
-    if (!products.some(p => String(p.id) === String(dp.id))) {
-      products.push(dp);
-    }
-  });
+if (!Array.isArray(products)) products = [];
+
+// Remove any lingering dummy products
+const dummyProductNames = ['Plain Shirt', 'Linen Shirt', 'Printed Shirt', 'Branded Shirt', 'Checked Shirt', 'Stripped Shirt', 'Denim Shirt', 'Jean Pant', 'Cotton Pant', 'Baggy Pant', 'Mom Fit Pant', 'Track Pant', 'Hoodies T-Shirt', 'Collar T-Shirt', 'Drop Shoulder T-Shirt', 'Full Sleeve T-Shirt', 'Cargo Denim Shorts', 'Cotton Chino Shorts', 'SuryaCotton Embroidered Cap', 'Classic Baseball Cap', 'Leather Loop Keychain', 'Metallic Crest Keychain'];
+if (products.some(p => dummyProductNames.includes(p.name))) {
+  products = [];
+  localStorage.setItem('sc_products', JSON.stringify([]));
 }
+
 const seenMap = new Map();
 products.forEach(p => {
   if (!p) return;
-  const key = String(p.id || '').trim() || String(p.name || '').toLowerCase().trim();
-  if (seenMap.has(key)) {
-    seenMap.set(key, { ...seenMap.get(key), ...p });
-  } else {
+  const key = String(p.id || '').trim();
+  if (key) {
     seenMap.set(key, p);
   }
 });

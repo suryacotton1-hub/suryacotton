@@ -1,3 +1,15 @@
+// Automatic Clean URL Sanitizer (Removes .html from address bar without reloading)
+(function () {
+  try {
+    if (window.location.protocol.startsWith('http') && window.location.pathname.endsWith('.html')) {
+      let cleanPath = window.location.pathname.replace(/\.html$/, '');
+      if (cleanPath.endsWith('/index')) cleanPath = cleanPath.slice(0, -6) || '/';
+      const cleanUrl = cleanPath + window.location.search + window.location.hash;
+      window.history.replaceState(null, '', cleanUrl);
+    }
+  } catch (e) {}
+})();
+
 // Global Mobile Side Menu Logic
 document.addEventListener('DOMContentLoaded', () => {
   let hamburger = document.getElementById('hamburger');

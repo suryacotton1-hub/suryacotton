@@ -38,20 +38,15 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 // ---- PRODUCTS DATABASE FOR WISHLIST ----
-const defaultProducts = [
-  { id: 1, name: "Classic White Oxford Shirt",  cat: "shirts",  img: "product_shirt.png",   price: 1299, original: 1899, off: 32, rating: 4.8, reviews: 240, badge: "Best Seller" },
-  { id: 2, name: "Premium Navy Blazer",          cat: "blazers", img: "product_blazer.png",  price: 3499, original: 5499, off: 36, rating: 4.9, reviews: 187, badge: "New"         },
-  { id: 3, name: "Slim Fit Charcoal Trousers",   cat: "shirts",  img: "product_trousers.png",price: 1599, original: 2299, off: 30, rating: 4.7, reviews: 312, badge: ""            },
-  { id: 4, name: "White Embroidered Kurta",      cat: "ethnic",  img: "product_kurta.png",   price: 1799, original: 2499, off: 28, rating: 4.9, reviews: 428, badge: "Trending"   },
-  { id: 5, name: "Bold Red Premium Tee",         cat: "casual",  img: "product_tshirt.png",  price:  899, original: 1299, off: 31, rating: 4.6, reviews: 560, badge: "Hot"         },
-  { id: 6, name: "Linen Formal Shirt",           cat: "shirts",  img: "product_shirt.png",   price: 1399, original: 1999, off: 30, rating: 4.7, reviews: 198, badge: ""            },
-  { id: 7, name: "Royal Sherwani Kurta",         cat: "ethnic",  img: "product_kurta.png",   price: 2799, original: 3999, off: 30, rating: 4.8, reviews: 143, badge: "New"         },
-  { id: 8, name: "Casual Slim Jogger",           cat: "casual",  img: "product_trousers.png",price:  999, original: 1499, off: 33, rating: 4.5, reviews: 389, badge: ""            },
-];
-let products = JSON.parse(localStorage.getItem('sc_products'));
-if (!products) {
-  products = defaultProducts;
-  localStorage.setItem('sc_products', JSON.stringify(products));
+const defaultProducts = [];
+let products = JSON.parse(localStorage.getItem('sc_products') || '[]');
+if (!Array.isArray(products)) products = [];
+
+// Remove any lingering dummy products
+const dummyNames = ['Classic White Oxford Shirt', 'Premium Navy Blazer', 'Slim Fit Charcoal Trousers', 'White Embroidered Kurta', 'Bold Red Premium Tee', 'Linen Formal Shirt', 'Royal Sherwani Kurta', 'Casual Slim Jogger', 'Plain Shirt'];
+if (products.some(p => dummyNames.includes(p.name))) {
+  products = [];
+  localStorage.setItem('sc_products', JSON.stringify([]));
 }
 
 // ---- DOM ELEMENTS ----
@@ -585,6 +580,9 @@ onAuthStateChanged(auth, async (user) => {
       
       // Load orders from profile data
       renderOrders(profile.orders || []);
+      
+      // Background Shiprocket status sync for user's orders
+      syncUserOrderStatuses(profile.orders || []);
     } else {
       // Local fallback checking if profile was stored under local sc_profile
       const fallback = localStorage.getItem(`sc_profile_${user.uid}`);
@@ -597,6 +595,7 @@ onAuthStateChanged(auth, async (user) => {
           updateNavProfilePic(parsed.avatar);
         }
         renderOrders(parsed.orders || []);
+        syncUserOrderStatuses(parsed.orders || []);
       } else {
         renderOrders([]);
       }
@@ -631,6 +630,7 @@ const STEPS = [
 
 function getStepIndex(status) {
   const s = (status || '').toLowerCase();
+  if (s.includes('cancel')) return -1; // Special: cancelled
   if (s.includes('deliver')) return 3;
   if (s.includes('ship') || s.includes('transit')) return 2;
   if (s.includes('pend') || s.includes('process') || s.includes('confirm')) return 1;
@@ -639,6 +639,19 @@ function getStepIndex(status) {
 
 function renderTracker(status) {
   const active = getStepIndex(status);
+  
+  // Cancelled orders get a distinct red badge instead of the stepper
+  if (active === -1) {
+    return `
+      <div class="order-tracker" style="padding: 1rem 0;">
+        <div style="display:flex; align-items:center; justify-content:center; gap:10px; background:#fee2e2; padding:0.8rem 1.2rem; border-radius:12px; border:1.5px solid #fecaca;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#b91c1c" stroke-width="2.5" width="22" height="22"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+          <span style="color:#b91c1c; font-weight:800; font-size:0.95rem; letter-spacing:0.5px;">Cancelled</span>
+        </div>
+      </div>
+    `;
+  }
+  
   const stepsHTML = STEPS.map((step, i) => {
     let cls = 'tracker-step';
     if (i < active) cls += ' completed';
@@ -677,12 +690,18 @@ function renderOrders(orders) {
     .filter(r => r.uid === uid)
     .map(r => r.productId);
   
-  // Merge status from global sc_all_orders to reflect admin changes
+  // Merge status from global sc_all_orders to reflect admin changes AND Shiprocket status
   const allGlobalOrders = JSON.parse(localStorage.getItem('sc_all_orders') || '[]');
   const syncedOrders = orders.map(order => {
     const globalMatch = allGlobalOrders.find(go => go.id === order.id);
-    if (globalMatch && globalMatch.status) {
-      return { ...order, status: globalMatch.status };
+    if (globalMatch) {
+      const merged = { ...order };
+      if (globalMatch.status) merged.status = globalMatch.status;
+      // Sync shipment_status from global orders (reflects Supabase/Shiprocket state)
+      if (globalMatch.shipment_status) merged.shipment_status = globalMatch.shipment_status;
+      if (globalMatch.awb_code) merged.awb_code = globalMatch.awb_code;
+      if (globalMatch.courier_name) merged.courier_name = globalMatch.courier_name;
+      return merged;
     }
     return order;
   });
@@ -691,7 +710,11 @@ function renderOrders(orders) {
   const sortedOrders = [...syncedOrders].sort((a, b) => new Date(b.date) - new Date(a.date));
   
   ordersList.innerHTML = sortedOrders.map(order => {
-    const isDelivered = getStepIndex(order.status) === 3;
+    // Determine effective display status — shipment_status takes priority for cancelled
+    const shipStatus = (order.shipment_status || '').toUpperCase();
+    const isCancelled = shipStatus === 'CANCELLED';
+    const displayStatus = isCancelled ? 'Cancelled' : (order.status || 'Processing');
+    const isDelivered = !isCancelled && getStepIndex(displayStatus) === 3;
     
     const itemsHTML = (order.items || []).map(item => {
       let productId = item.id || item.productId;
@@ -735,30 +758,240 @@ function renderOrders(orders) {
       year: 'numeric'
     });
     
+    const awbHTML = order.awb_code ? `
+      <div style="margin-top: 6px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+        <span style="background: #e0f2fe; color: #0369a1; padding: 0.2rem 0.6rem; border-radius: 6px; font-size: 0.78rem; font-weight: 700;">AWB: ${order.awb_code}</span>
+        <span style="font-size: 0.78rem; color: #475569; font-weight: 500;">Courier: ${order.courier_name || 'Shiprocket Partner'}</span>
+      </div>
+    ` : `
+      <div style="margin-top: 6px; display: flex; align-items: center; gap: 8px;">
+        <span style="background: #f1f5f9; color: #64748b; padding: 0.2rem 0.6rem; border-radius: 6px; font-size: 0.75rem; font-weight: 600;">AWB: Pending Courier Assignment</span>
+      </div>
+    `;
+
+    // Status badge styling — red for cancelled
+    const statusBadgeStyle = isCancelled
+      ? 'background:#fee2e2; color:#b91c1c; border:1px solid #fecaca;'
+      : '';
+
     return `
       <div class="order-card">
         <div class="order-header">
           <div class="order-meta-info">
             <span class="order-id">Order ID: #${order.id}</span>
             <span class="order-date">Placed on ${formattedDate}</span>
+            ${awbHTML}
             <span style="font-size: 0.72rem; color: #64748b; margin-top: 4px; display: block;">* You can write a review here once the product is delivered.</span>
           </div>
-          <span class="order-status-badge">${order.status || 'Processing'}</span>
+          <span class="order-status-badge" ${statusBadgeStyle ? `style="${statusBadgeStyle}"` : ''}>${displayStatus}</span>
         </div>
-        ${renderTracker(order.status)}
+        ${renderTracker(isCancelled ? 'cancelled' : displayStatus)}
         <div class="order-items-grid">
           ${itemsHTML}
         </div>
         <div class="order-total-price">
           Total Amount: ₹${order.total.toLocaleString()}
         </div>
-        <div style="text-align: right; margin-top: 15px;">
-          <button onclick="window.location.href='category.html?cat=all'" style="background: #0a0a0a; color: #fff; border: none; border-radius: 8px; font-size: 0.8rem; font-weight: 600; padding: 0.7rem 1.5rem; cursor: pointer; letter-spacing: 1px;">CONTINUE SHOPPING</button>
+        <div style="text-align: right; margin-top: 15px; display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap;">
+          ${!isCancelled ? `<button onclick="window.trackShipmentLive('${order.awb_code || order.id}')" style="background: #e8000d; color: #fff; border: none; border-radius: 8px; font-size: 0.8rem; font-weight: 700; padding: 0.7rem 1.4rem; cursor: pointer; letter-spacing: 1px;">TRACK LIVE 🚚</button>` : ''}
+          <button onclick="window.location.href='category.html?cat=all'" style="background: #0a0a0a; color: #fff; border: none; border-radius: 8px; font-size: 0.8rem; font-weight: 600; padding: 0.7rem 1.4rem; cursor: pointer; letter-spacing: 1px;">CONTINUE SHOPPING</button>
         </div>
       </div>
     `;
   }).join('');
 }
+
+// ─── Background Shiprocket Status Sync for User Orders ───
+// Non-blocking: checks Shiprocket status for user's recent orders on profile load
+async function syncUserOrderStatuses(userOrders) {
+  if (!userOrders || userOrders.length === 0) return;
+
+  const BACKEND_URL = (typeof window !== 'undefined' && window.BACKEND_URL)
+    ? window.BACKEND_URL.replace(/\/$/, '')
+    : (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+        ? 'http://localhost:3000'
+        : 'https://backend-s6kq.onrender.com');
+
+  // Only sync orders that have Shiprocket data and are not in terminal states
+  const ordersToSync = userOrders
+    .filter(o => (o.awb_code || o.shiprocket_order_id) &&
+                 !(o.shipment_status || '').toUpperCase().match(/^(DELIVERED|CANCELLED)$/))
+    .slice(0, 5); // Max 5 to avoid excessive API calls
+
+  if (ordersToSync.length === 0) return;
+
+  let hasChanges = false;
+  const allGlobalOrders = JSON.parse(localStorage.getItem('sc_all_orders') || '[]');
+
+  for (const order of ordersToSync) {
+    const trackId = order.awb_code || order.id;
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/shiprocket/track?id=${encodeURIComponent(trackId)}`);
+      if (!res.ok) continue;
+      const data = await res.json();
+      if (!data.success) continue;
+
+      // The tracking endpoint auto-syncs status to Supabase as a side-effect.
+      // Also update local state if the status has changed.
+      const liveStatus = (data.shipment_status || data.current_status || '').toUpperCase();
+      const localStatus = (order.shipment_status || '').toUpperCase();
+
+      if (liveStatus && liveStatus !== localStatus) {
+        console.log(`[SHIPROCKET FALLBACK] User order ${order.id}: status changed ${localStatus || 'UNKNOWN'} → ${liveStatus}`);
+        // Update in global orders for local persistence
+        const globalIdx = allGlobalOrders.findIndex(go => String(go.id) === String(order.id));
+        if (globalIdx > -1) {
+          allGlobalOrders[globalIdx].shipment_status = liveStatus;
+        }
+        hasChanges = true;
+      }
+    } catch (e) {
+      // Non-critical: silently continue
+    }
+  }
+
+  if (hasChanges) {
+    localStorage.setItem('sc_all_orders', JSON.stringify(allGlobalOrders));
+    // Re-render orders with updated data
+    renderOrders(userOrders);
+    console.log('[SHIPROCKET FALLBACK] User profile orders re-rendered with updated statuses.');
+  }
+}
+
+// ─── LIVE SHIPROCKET TRACKING SEARCH LOGIC ───────────────
+window.trackShipmentLive = async function(trackId) {
+  const resultBox = document.getElementById('liveTrackResult');
+  const searchInput = document.getElementById('trackSearchInput');
+
+  if (!trackId && searchInput) {
+    trackId = searchInput.value.trim();
+  }
+
+  if (!trackId) {
+    alert('Please enter an Order ID or AWB Tracking Number.');
+    return;
+  }
+
+  if (!resultBox) {
+    window.location.href = `track.html?id=${encodeURIComponent(trackId)}`;
+    return;
+  }
+
+  if (searchInput) searchInput.value = trackId;
+
+  resultBox.style.display = 'block';
+  resultBox.innerHTML = `
+    <div style="text-align: center; padding: 2rem 0;">
+      <div class="rzp-spinner" style="margin: 0 auto 1rem;"></div>
+      <h4 style="font-weight: 700; color: #0a0a0a;">Fetching Live Tracking Details...</h4>
+      <p style="font-size: 0.88rem; color: #64748b;">Contacting Shiprocket Logistics servers</p>
+    </div>
+  `;
+  resultBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+  try {
+    const BACKEND_URL = (typeof window !== 'undefined' && window.BACKEND_URL)
+      ? window.BACKEND_URL.replace(/\/$/, '')
+      : (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+          ? 'http://localhost:3000' 
+          : 'https://backend-s6kq.onrender.com');
+    let trackEndpoint = `${BACKEND_URL}/api/shiprocket/track?id=${encodeURIComponent(trackId)}`;
+    if (!BACKEND_URL && window.location.hostname.includes('netlify')) {
+      trackEndpoint = `/.netlify/functions/shiprocket-track?id=${encodeURIComponent(trackId)}`;
+    }
+
+    const res = await fetch(trackEndpoint);
+    const data = await res.json();
+
+    if (resultBox) {
+      if (data.success) {
+        const scansHTML = (data.scans && data.scans.length > 0) ? data.scans.map(s => `
+          <div style="display: flex; gap: 1rem; padding: 0.75rem 0; border-bottom: 1px dashed #e2e8f0; font-size: 0.88rem;">
+            <div style="font-weight: 700; color: #e8000d; min-width: 120px;">${s.date || 'Scan'}</div>
+            <div style="flex: 1; color: #334155; font-weight: 500;">${s.activity} ${s.location ? '<span style="color: #64748b;">(' + s.location + ')</span>' : ''}</div>
+          </div>
+        `).join('') : `
+          <div style="padding: 1rem 0; color: #64748b; font-size: 0.88rem; font-style: italic;">
+            Order registered in Shiprocket. Tracking scans will update once package is picked up by courier.
+          </div>
+        `;
+
+        const officialTrackBtn = data.awb_code ? `
+          <a href="https://shiprocket.co/tracking/${data.awb_code}" target="_blank" rel="noopener" style="background: #0a0a0a; color: #fff; padding: 0.75rem 1.4rem; border-radius: 10px; text-decoration: none; font-size: 0.82rem; font-weight: 700; letter-spacing: 1px; display: inline-flex; align-items: center; gap: 6px;">
+            OFFICIAL SHIPROCKET TRACKING ↗
+          </a>
+        ` : `
+          <span style="background: #f1f5f9; color: #64748b; padding: 0.6rem 1rem; border-radius: 8px; font-size: 0.8rem; font-weight: 600;">AWB Pending</span>
+        `;
+
+        resultBox.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
+            <div>
+              <span style="font-size: 0.75rem; font-weight: 800; color: #e8000d; text-transform: uppercase; letter-spacing: 1px;">Shiprocket Logistics Status</span>
+              <h3 style="font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; margin: 0.2rem 0;">Status: ${data.current_status || 'ORDER_CREATED'}</h3>
+              <p style="font-size: 0.88rem; color: #475569; margin: 0;">Courier Partner: <strong>${data.courier_name || 'Pending Assignment'}</strong> • AWB: <strong>${data.awb_code || 'AWB PENDING'}</strong></p>
+            </div>
+            ${officialTrackBtn}
+          </div>
+
+          <div style="background: #f8fafc; padding: 1.2rem; border-radius: 12px; margin-bottom: 1.5rem; display: flex; justify-content: space-around; flex-wrap: wrap; gap: 1rem; text-align: center;">
+            <div>
+              <span style="font-size: 0.75rem; color: #64748b; display: block; text-transform: uppercase; font-weight: 700;">Origin</span>
+              <strong style="font-size: 0.95rem; color: #0a0a0a;">${data.origin || 'SuryaCottans Hub'}</strong>
+            </div>
+            <div>
+              <span style="font-size: 0.75rem; color: #64748b; display: block; text-transform: uppercase; font-weight: 700;">Estimated Delivery</span>
+              <strong style="font-size: 0.95rem; color: #16a34a;">${data.etd || '3-5 Business Days'}</strong>
+            </div>
+          </div>
+
+          <h5 style="font-size: 0.95rem; font-weight: 700; color: #0a0a0a; margin-bottom: 0.8rem;">Shipment Scan Activity</h5>
+          <div style="max-height: 250px; overflow-y: auto; background: #fff; padding: 0.5rem 1rem; border-radius: 10px; border: 1px solid #f1f5f9;">
+            ${scansHTML}
+          </div>
+        `;
+      } else {
+        resultBox.innerHTML = `
+          <div style="text-align: center; padding: 1.5rem 0; color: #e8000d;">
+            <h4 style="font-weight: 700; margin-bottom: 0.4rem;">Order Tracking Info</h4>
+            <p style="font-size: 0.9rem; color: #64748b;">${data.error || 'Tracking details will appear as soon as courier partner picks up package.'}</p>
+          </div>
+        `;
+      }
+    }
+  } catch (err) {
+    if (resultBox) {
+      resultBox.innerHTML = `
+        <div style="text-align: center; padding: 1.5rem 0;">
+          <h4 style="font-weight: 700; color: #0a0a0a;">Order Received & Processing</h4>
+          <p style="font-size: 0.9rem; color: #64748b; margin-top: 0.3rem;">Order ID #${trackId} is registered. Shipment tracking updates will populate once dispatched.</p>
+        </div>
+      `;
+    }
+  }
+};
+
+// Bind Track Search Button & Auto-track on URL param
+document.addEventListener('DOMContentLoaded', () => {
+  const btn = document.getElementById('trackSearchBtn');
+  const input = document.getElementById('trackSearchInput');
+
+  if (btn) {
+    btn.addEventListener('click', () => window.trackShipmentLive());
+  }
+  if (input) {
+    input.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') window.trackShipmentLive();
+    });
+  }
+
+  // Auto trigger tracking if URL parameter 'id', 'awb', or 'order_id' is present
+  const urlParams = new URLSearchParams(window.location.search);
+  const trackIdFromUrl = urlParams.get('id') || urlParams.get('awb') || urlParams.get('order_id');
+  if (trackIdFromUrl && document.getElementById('liveTrackResult')) {
+    window.trackShipmentLive(trackIdFromUrl);
+  }
+});
 
 // ---- WISHLIST RENDER ----
 function renderWishlist() {

@@ -3,53 +3,18 @@
    ============================================= */
 
 // ---- PRODUCT DATA ----
-const defaultProducts = [
-  // ---- SHIRTS ----
-  { id: 1,  name: "Plain Shirt",          cat: "shirt",  img: "Products/Shirt/Plain shirt.jpg",     price: 899,  original: 1299, off: 31, rating: 4.7, reviews: 312, badge: "Best Seller" },
-  { id: 101,name: "Plain Shirt - Slim Fit",cat: "shirt", img: "Products/Shirt/Plain shirt.jpg",     price: 999,  original: 1399, off: 28, rating: 4.8, reviews: 145, badge: "" },
-  { id: 102,name: "Plain Shirt - Premium",cat: "shirt",  img: "Products/Shirt/Plain shirt.jpg",     price: 1099, original: 1599, off: 31, rating: 4.9, reviews: 200, badge: "New" },
-  { id: 2,  name: "Linen Shirt",          cat: "shirt",  img: "Products/Shirt/Linen shirt.png",     price: 1199, original: 1699, off: 29, rating: 4.8, reviews: 198, badge: "New"         },
-  { id: 103,name: "Linen Shirt - Solid",  cat: "shirt",  img: "Products/Shirt/Linen shirt.png",     price: 1299, original: 1799, off: 27, rating: 4.7, reviews: 112, badge: "" },
-  { id: 3,  name: "Printed Shirt",        cat: "shirt",  img: "Products/Shirt/Printed shirt.png",   price: 999,  original: 1399, off: 29, rating: 4.6, reviews: 245, badge: "Trending"   },
-  { id: 104,name: "Printed Shirt - Floral",cat: "shirt", img: "Products/Shirt/Printed shirt.png",   price: 1099, original: 1499, off: 26, rating: 4.8, reviews: 321, badge: "Hot" },
-  { id: 105,name: "Printed Shirt - Abstract",cat: "shirt",img: "Products/Shirt/Printed shirt.png",  price: 949,  original: 1399, off: 32, rating: 4.5, reviews: 89,  badge: "" },
-  { id: 4,  name: "Branded Shirt",        cat: "shirt",  img: "Products/Shirt/Branded shirt.png",   price: 1499, original: 2199, off: 32, rating: 4.9, reviews: 167, badge: "Hot"         },
-  { id: 5,  name: "Checked Shirt",        cat: "shirt",  img: "Products/Shirt/Checked shirt.png",   price: 1099, original: 1499, off: 27, rating: 4.7, reviews: 289, badge: ""            },
-  { id: 106,name: "Checked Shirt - Vintage",cat: "shirt",img: "Products/Shirt/Checked shirt.png",   price: 1199, original: 1599, off: 25, rating: 4.6, reviews: 150, badge: "Trending" },
-  { id: 6,  name: "Stripped Shirt",       cat: "shirt",  img: "Products/Shirt/Stripped shirt.png",  price: 999,  original: 1399, off: 29, rating: 4.5, reviews: 176, badge: ""            },
-  { id: 7,  name: "Denim Shirt",          cat: "shirt",  img: "Products/Shirt/Denim shirt.png",     price: 1399, original: 1999, off: 30, rating: 4.8, reviews: 203, badge: "New"         },
-  { id: 107,name: "Denim Shirt - Dark Wash",cat: "shirt",img: "Products/Shirt/Denim shirt.png",     price: 1499, original: 2099, off: 28, rating: 4.9, reviews: 312, badge: "Premium" },
-  // ---- PANTS ----
-  { id: 8,  name: "Jean Pant",            cat: "pant",   img: "Products/Pant/Jean pant.png",        price: 1299, original: 1899, off: 32, rating: 4.8, reviews: 421, badge: "Best Seller" },
-  { id: 108,name: "Jean Pant - Black Wash",cat: "pant",  img: "Products/Pant/Jean pant.png",        price: 1399, original: 1999, off: 30, rating: 4.7, reviews: 215, badge: "New" },
-  { id: 109,name: "Jean Pant - Slim Fit", cat: "pant",   img: "Products/Pant/Jean pant.png",        price: 1499, original: 2199, off: 31, rating: 4.9, reviews: 310, badge: "Premium" },
-  { id: 9,  name: "Cotton Pant",          cat: "pant",   img: "Products/Pant/Cotton pant.png",      price: 999,  original: 1399, off: 29, rating: 4.7, reviews: 318, badge: ""            },
-  { id: 110,name: "Cotton Pant - Beige",  cat: "pant",   img: "Products/Pant/Cotton pant.png",      price: 1099, original: 1499, off: 26, rating: 4.6, reviews: 150, badge: "" },
-  { id: 10, name: "Baggy Pant",           cat: "pant",   img: "Products/Pant/Baggy pant.png",       price: 1199, original: 1699, off: 29, rating: 4.6, reviews: 256, badge: "Trending"   },
-  { id: 111,name: "Baggy Pant - Vintage", cat: "pant",   img: "Products/Pant/Baggy pant.png",       price: 1299, original: 1799, off: 27, rating: 4.8, reviews: 180, badge: "Hot" },
-  { id: 11, name: "Mom Fit Pant",         cat: "pant",   img: "Products/Pant/Mom fit pant.png",     price: 1099, original: 1599, off: 31, rating: 4.7, reviews: 189, badge: "New"         },
-  { id: 112,name: "Mom Fit Pant - Light", cat: "pant",   img: "Products/Pant/Mom fit pant.png",     price: 1199, original: 1699, off: 29, rating: 4.5, reviews: 90, badge: "" },
-  { id: 12, name: "Track Pant",           cat: "pant",   img: "Products/Pant/Track pant.png",       price: 799,  original: 1099, off: 27, rating: 4.5, reviews: 374, badge: "Hot"         },
-  { id: 113,name: "Track Pant - Pro",     cat: "pant",   img: "Products/Pant/Track pant.png",       price: 899,  original: 1299, off: 30, rating: 4.7, reviews: 210, badge: "Premium" },
-  { id: 114,name: "Track Pant - Casual",  cat: "pant",   img: "Products/Pant/Track pant.png",       price: 849,  original: 1199, off: 29, rating: 4.6, reviews: 150, badge: "" },
-  // ---- T-SHIRTS ----
-  { id: 13, name: "Hoodies T-Shirt",      cat: "tshirt", img: "Products/Tshirt/Hoodies tshirt.png",        price: 1299, original: 1899, off: 32, rating: 4.8, reviews: 512, badge: "Best Seller" },
-  { id: 115,name: "Hoodies T-Shirt - Black",cat: "tshirt", img: "Products/Tshirt/Hoodies tshirt.png",      price: 1399, original: 1999, off: 30, rating: 4.9, reviews: 320, badge: "New" },
-  { id: 116,name: "Hoodies T-Shirt - Graphic",cat: "tshirt",img: "Products/Tshirt/Hoodies tshirt.png",     price: 1499, original: 2099, off: 28, rating: 4.7, reviews: 210, badge: "" },
-  { id: 14, name: "Collar T-Shirt",       cat: "tshirt", img: "Products/Tshirt/Collar tshirt.png",         price: 899,  original: 1299, off: 31, rating: 4.7, reviews: 298, badge: ""            },
-  { id: 117,name: "Collar T-Shirt - Polo",cat: "tshirt", img: "Products/Tshirt/Collar tshirt.png",         price: 999,  original: 1399, off: 28, rating: 4.8, reviews: 150, badge: "Trending" },
-  { id: 15, name: "Drop Shoulder T-Shirt",cat: "tshirt", img: "Products/Tshirt/Drop shoulder Tshirt.png",  price: 999,  original: 1399, off: 29, rating: 4.6, reviews: 341, badge: "Trending"   },
-  { id: 118,name: "Drop Shoulder T-Shirt - Oversized",cat: "tshirt", img: "Products/Tshirt/Drop shoulder Tshirt.png",price: 1099, original: 1499, off: 26, rating: 4.9, reviews: 250, badge: "Premium" },
-  { id: 119,name: "Drop Shoulder T-Shirt - Print",cat: "tshirt", img: "Products/Tshirt/Drop shoulder Tshirt.png",price: 1049, original: 1499, off: 30, rating: 4.7, reviews: 180, badge: "" },
-  { id: 16, name: "Full Sleeve T-Shirt",  cat: "tshirt", img: "Products/Tshirt/Full sleeve Tshirt.png",    price: 1099, original: 1499, off: 27, rating: 4.9, reviews: 223, badge: "New"         },
-  { id: 120,name: "Full Sleeve T-Shirt - Ribbed",cat: "tshirt",img: "Products/Tshirt/Full sleeve Tshirt.png", price: 1199, original: 1699, off: 29, rating: 4.8, reviews: 140, badge: "" },
-];
+const defaultProducts = [];
 // Load cached products or fallback to default data
 let products = JSON.parse(localStorage.getItem('sc_products') || '[]');
-if (!products || !products.length) {
-  products = [...defaultProducts];
-  localStorage.setItem('sc_products', JSON.stringify(products));
+if (!Array.isArray(products)) products = [];
+
+// Remove any lingering dummy products
+const dummyProductNames = ['Plain Shirt', 'Linen Shirt', 'Printed Shirt', 'Branded Shirt', 'Checked Shirt', 'Stripped Shirt', 'Denim Shirt', 'Jean Pant', 'Cotton Pant', 'Baggy Pant', 'Mom Fit Pant', 'Track Pant', 'Hoodies T-Shirt', 'Collar T-Shirt', 'Drop Shoulder T-Shirt', 'Full Sleeve T-Shirt'];
+if (products.some(p => dummyProductNames.includes(p.name))) {
+  products = [];
+  localStorage.setItem('sc_products', JSON.stringify([]));
 }
+
 if (typeof window !== 'undefined') {
   window.products = products;
 }
@@ -204,10 +169,19 @@ function renderProduct(p) {
   document.getElementById('pageTitle').textContent = `${p.name} – SuryaCottans`;
   document.getElementById('bcName').textContent = p.name;
   document.getElementById('bcCat').textContent = p.cat.charAt(0).toUpperCase() + p.cat.slice(1);
-  document.getElementById('bcCat').href = `category.html?cat=all`;
+  document.getElementById('bcCat').href = `category.html?cat=${encodeURIComponent(p.cat)}`;
 
+  const isAccessories = p.cat === 'caps' || p.cat === 'cap' || p.cat === 'keychains';
   if (!p.sizes || p.sizes.length === 0) {
-    p.sizes = (p.cat === 'pant' || String(p.cat).toLowerCase() === 'pant') ? ['28', '30', '32', '34', '36', '38'] : ['S', 'M', 'L', 'XL', 'XXL'];
+    if (p.size) {
+      p.sizes = [p.size];
+    } else if (p.cat === 'pant' || String(p.cat).toLowerCase() === 'pant') {
+      p.sizes = ['28', '30', '32', '34', '36', '38'];
+    } else if (isAccessories) {
+      p.sizes = ['Free Size'];
+    } else {
+      p.sizes = ['S', 'M', 'L', 'XL', 'XXL'];
+    }
   }
   if (!p.colors || p.colors.length === 0) p.colors = [{ hex: '#212121', name: 'Black' }, { hex: '#ffffff', name: 'White' }];
 
@@ -229,6 +203,34 @@ function renderProduct(p) {
   const badgeEl = document.getElementById('pdBadge');
   badgeEl.textContent = p.badge || '';
 
+  // 1. Render Product Highlights Badges
+  const hlEl = document.getElementById('pdHighlights');
+  if (hlEl) {
+    const chips = [];
+    if (p.brand) chips.push(`<span class="pd-highlight-chip"><span class="chip-icon">🏷️</span> Brand: <strong>${p.brand}</strong></span>`);
+    if (p.fabric) chips.push(`<span class="pd-highlight-chip"><span class="chip-icon">🧵</span> Fabric: <strong>${p.fabric}</strong></span>`);
+    if (p.fit) chips.push(`<span class="pd-highlight-chip"><span class="chip-icon">✂️</span> Fit: <strong>${p.fit}</strong></span>`);
+    if (p.sleeve) chips.push(`<span class="pd-highlight-chip"><span class="chip-icon">👔</span> Sleeve: <strong>${p.sleeve}</strong></span>`);
+    if (p.neck) chips.push(`<span class="pd-highlight-chip"><span class="chip-icon">👔</span> Collar: <strong>${p.neck}</strong></span>`);
+    if (p.color) chips.push(`<span class="pd-highlight-chip"><span class="chip-icon">🎨</span> Color: <strong>${p.color}</strong></span>`);
+    hlEl.innerHTML = chips.join('');
+    hlEl.style.display = chips.length > 0 ? 'flex' : 'none';
+  }
+
+  // 2. Color Option Display
+  const colorGroup = document.getElementById('pdColorGroup');
+  const colorName = document.getElementById('pdColorName');
+  const colorTag = document.getElementById('pdColorTag');
+  if (colorGroup && colorName && colorTag) {
+    if (p.color && String(p.color).trim().length > 0) {
+      colorGroup.style.display = 'block';
+      colorName.textContent = p.color;
+      colorTag.innerHTML = `<span>🎨</span> <span>${p.color}</span>`;
+    } else {
+      colorGroup.style.display = 'none';
+    }
+  }
+
   // Gallery
   currentImgIdx = 0;
   renderGallery(p);
@@ -240,12 +242,65 @@ function renderProduct(p) {
   selectedSize = '';
   renderSizes(p);
 
+  // 3. Product Specifications Grid
+  const specsGrid = document.getElementById('pdSpecsGrid');
+  const specsCard = document.getElementById('pdSpecsCard');
+  if (specsGrid && specsCard) {
+    const specs = [];
+    if (p.brand) specs.push({ label: 'Brand', icon: '🏷️', val: p.brand });
+    if (p.fabric) specs.push({ label: 'Fabric / Material', icon: '🧵', val: p.fabric });
+    if (p.fit) specs.push({ label: 'Fit Type', icon: '✂️', val: p.fit });
+    if (p.sleeve) specs.push({ label: 'Sleeve Length', icon: '👔', val: p.sleeve });
+    if (p.neck) specs.push({ label: 'Collar / Neck Style', icon: '👔', val: p.neck });
+    if (p.color) specs.push({ label: 'Primary Color', icon: '🎨', val: p.color });
+    if (p.subcat || p.subcategory) specs.push({ label: 'Style / Subcategory', icon: '✨', val: p.subcat || p.subcategory });
+    if (p.cat) specs.push({ label: 'Category', icon: '📂', val: p.cat.toUpperCase() });
+
+    // Stock availability
+    const totalStock = p.sizeStock && typeof p.sizeStock === 'object' && Object.keys(p.sizeStock).length > 0 
+      ? Object.values(p.sizeStock).reduce((a, b) => a + (parseInt(b) || 0), 0)
+      : (p.stock !== undefined ? parseInt(p.stock) : 10);
+    const stockStatus = totalStock <= 0 ? 'Out of Stock' : (totalStock < 10 ? `Low Stock (Only ${totalStock} left)` : `In Stock (${totalStock} available)`);
+    specs.push({ label: 'Availability', icon: '📦', val: stockStatus });
+
+    if (p.waist && Array.isArray(p.waist) && p.waist.length > 0) {
+      specs.push({ label: 'Waist Sizes Available', icon: '👖', val: p.waist.join(', ') });
+    } else if (p.sizes && Array.isArray(p.sizes) && p.sizes.length > 0) {
+      specs.push({ label: 'Sizes Available', icon: '📏', val: p.sizes.join(', ') });
+    }
+
+    if (specs.length > 0) {
+      specsCard.style.display = 'block';
+      specsGrid.innerHTML = specs.map(s => `
+        <div class="pd-spec-item">
+          <span class="pd-spec-label"><span>${s.icon}</span> ${s.label}</span>
+          <span class="pd-spec-val">${s.val}</span>
+        </div>
+      `).join('');
+    } else {
+      specsCard.style.display = 'none';
+    }
+  }
+
+  // 4. Size & Fit Tab Note
+  const sizeFitNote = document.getElementById('pdSizeFitNote');
+  if (sizeFitNote) {
+    sizeFitNote.textContent = p.fit ? `Fit Style: ${p.fit}. Please refer to the size chart below for the ideal fit.` : 'Please refer to the size chart below for the ideal fit.';
+  }
+
   // Desc
   document.getElementById('pdDesc').textContent = p.desc || 'No description available for this product.';
   const featEl = document.getElementById('pdFeatures');
   if (featEl) {
-    const features = p.features || ['Premium Quality', 'Authentic Product'];
-    featEl.innerHTML = features.map(f => `<li>${f}</li>`).join('');
+    const dynamicFeatures = [];
+    if (p.brand) dynamicFeatures.push(`Crafted by ${p.brand} with superior attention to detail`);
+    if (p.fabric) dynamicFeatures.push(`Material: ${p.fabric} for maximum comfort & breathable wear`);
+    if (p.fit) dynamicFeatures.push(`Tailored ${p.fit} for a modern, confident silhouette`);
+    if (p.sleeve) dynamicFeatures.push(`Sleeve Type: ${p.sleeve}`);
+    if (p.neck) dynamicFeatures.push(`Collar / Neck Style: ${p.neck}`);
+    if (p.color) dynamicFeatures.push(`Color: ${p.color}`);
+    dynamicFeatures.push('Authentic & 100% Quality Assured from SuryaCottons');
+    featEl.innerHTML = dynamicFeatures.map(f => `<li>${f}</li>`).join('');
   }
 
   // Reviews
@@ -403,6 +458,13 @@ function renderCategoryStrip(current) {
 function renderSizes(p) {
   const el = document.getElementById('pdSizes');
   const nameEl = document.getElementById('pdSizeName');
+  const guideBtn = document.getElementById('pdSizeGuideBtn');
+
+  // Hide size guide button for caps and keychains
+  if (guideBtn) {
+    const isAccessories = p.cat === 'caps' || p.cat === 'cap' || p.cat === 'keychains';
+    guideBtn.style.display = isAccessories ? 'none' : '';
+  }
   
   if (!p.sizes || p.sizes.length === 0) return;
 
@@ -431,6 +493,14 @@ function renderSizes(p) {
       }
     });
   });
+
+  // If only 1 size option (e.g. Free Size / Adjustable for caps), auto-select it
+  if (p.sizes.length === 1) {
+    const singleBtn = el.querySelector('.pd-size-btn:not(.out)');
+    if (singleBtn) {
+      singleBtn.click();
+    }
+  }
 }
 
 function renderRelated(current) {

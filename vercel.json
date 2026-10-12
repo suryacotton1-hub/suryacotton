@@ -1,0 +1,38 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "outputDirectory": ".",
+  "cleanUrls": true,
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/surya-vault-9v2x4m",
+      "destination": "/surya-vault-9v2x4m.html"
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/admin",
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/admin.html",
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/surya-admin-798",
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/surya-admin-798.html",
+      "destination": "/",
+      "permanent": false
+    }
+  ]
+}

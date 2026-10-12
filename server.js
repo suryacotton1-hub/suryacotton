@@ -977,11 +977,16 @@ app.get('/api/admin/sync-shiprocket-status', async (req, res) => {
 });
 
 // ─── Start Server ─────────────────────────────────────────
-app.listen(PORT, () => {
-  console.log(`\n🛍️  SuryaCotton server running at http://localhost:${PORT}`);
-  console.log(`   Razorpay Key: ${process.env.RAZORPAY_KEY_ID ? '✅ Loaded' : '❌ MISSING'}`);
-  console.log(`   Razorpay Secret: ${process.env.RAZORPAY_KEY_SECRET ? '✅ Loaded' : '❌ MISSING'}`);
-  console.log(`   Supabase Client: ${supabaseUrl ? '✅ Loaded' : '❌ MISSING'}`);
-  console.log(`   Shiprocket Integration: ✅ Active (Routes: /api/verify-payment, /create-order, /track, /webhook, /admin/retry-shiprocket, /admin/sync-shiprocket-status)`);
-  console.log(`   Email Service (EmailJS): Service ID: ${process.env.EMAILJS_SERVICE_ID || 'service_daknf95'} | Template: ${process.env.EMAILJS_TEMPLATE_ID ? '✅ Loaded' : '⚠️ Set in .env'} | Public Key: ${process.env.EMAILJS_PUBLIC_KEY ? '✅ Loaded' : '⚠️ Set in .env'}\n`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`\n🛍️  SuryaCotton server running at http://localhost:${PORT}`);
+    console.log(`   Razorpay Key: ${process.env.RAZORPAY_KEY_ID ? '✅ Loaded' : '❌ MISSING'}`);
+    console.log(`   Razorpay Secret: ${process.env.RAZORPAY_KEY_SECRET ? '✅ Loaded' : '❌ MISSING'}`);
+    console.log(`   Supabase Client: ${supabaseUrl ? '✅ Loaded' : '❌ MISSING'}`);
+    console.log(`   Shiprocket Integration: ✅ Active (Routes: /api/verify-payment, /create-order, /track, /webhook, /admin/retry-shiprocket, /admin/sync-shiprocket-status)`);
+    console.log(`   Email Service (EmailJS): Service ID: ${process.env.EMAILJS_SERVICE_ID || 'service_daknf95'} | Template: ${process.env.EMAILJS_TEMPLATE_ID ? '✅ Loaded' : '⚠️ Set in .env'} | Public Key: ${process.env.EMAILJS_PUBLIC_KEY ? '✅ Loaded' : '⚠️ Set in .env'}\n`);
+  });
+}
+
+module.exports = app;
+

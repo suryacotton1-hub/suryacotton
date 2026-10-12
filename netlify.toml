@@ -21,10 +21,22 @@
   status = 302
   force = true
 
-# Clean URLs without .html
 [[redirects]]
   from = "/surya-admin-798"
-  to = "/surya-admin-798.html"
+  to = "/index.html"
+  status = 302
+  force = true
+
+[[redirects]]
+  from = "/surya-admin-798.html"
+  to = "/index.html"
+  status = 302
+  force = true
+
+# Clean URLs without .html
+[[redirects]]
+  from = "/surya-vault-9v2x4m"
+  to = "/surya-vault-9v2x4m.html"
   status = 200
 
 [[redirects]]
@@ -104,6 +116,11 @@
   status = 200
 
 [[redirects]]
+  from = "/api/email-config"
+  to = "/.netlify/functions/email-config"
+  status = 200
+
+[[redirects]]
   from = "/api/create-order"
   to = "/.netlify/functions/create-order"
   status = 200
@@ -112,3 +129,69 @@
   from = "/api/verify-payment"
   to = "/.netlify/functions/verify-payment"
   status = 200
+
+[[redirects]]
+  from = "/api/orders"
+  to = "/.netlify/functions/orders"
+  status = 200
+
+[[redirects]]
+  from = "/api/send-order-email"
+  to = "/.netlify/functions/send-order-email"
+  status = 200
+
+[[redirects]]
+  from = "/api/test-email"
+  to = "/.netlify/functions/test-email"
+  status = 200
+
+[[redirects]]
+  from = "/api/admin/schedule-pickup"
+  to = "/.netlify/functions/admin-schedule-pickup"
+  status = 200
+
+[[redirects]]
+  from = "/api/admin/retry-shiprocket"
+  to = "/.netlify/functions/admin-retry-shiprocket"
+  status = 200
+
+[[redirects]]
+  from = "/api/admin/clear-orders"
+  to = "/.netlify/functions/admin-clear-orders"
+  status = 200
+
+[[redirects]]
+  from = "/api/admin/sync-shiprocket-status"
+  to = "/.netlify/functions/admin-sync-shiprocket-status"
+  status = 200
+
+[[redirects]]
+  from = "/api/shiprocket/track"
+  to = "/.netlify/functions/shiprocket-track"
+  status = 200
+
+[[redirects]]
+  from = "/api/shiprocket/create-order"
+  to = "/.netlify/functions/shiprocket-order"
+  status = 200
+
+[[redirects]]
+  from = "/api/shiprocket/webhook"
+  to = "/.netlify/functions/shiprocket-webhook"
+  status = 200
+
+[[redirects]]
+  from = "/api/ping"
+  to = "/.netlify/functions/ping"
+  status = 200
+
+[[redirects]]
+  from = "/api/health"
+  to = "/.netlify/functions/ping"
+  status = 200
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+

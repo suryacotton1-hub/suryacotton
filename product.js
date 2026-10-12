@@ -1,5 +1,5 @@
 /* =============================================
-   SURYA COTTANS — PRODUCT PAGE JS
+   SURYA COTTON — PRODUCT PAGE JS
    ============================================= */
 
 // ---- PRODUCT DATA ----
@@ -140,6 +140,7 @@ if (checkoutBtn) {
       return;
     }
     
+    try { fetch('/api/razorpay-key', { cache: 'no-store' }).catch(() => {}); } catch(e) {}
     window.location.href = 'checkout.html';
   });
 }
@@ -165,8 +166,8 @@ function getProductId() {
 }
 
 function renderProduct(p) {
-  document.title = `${p.name} – SuryaCottans`;
-  document.getElementById('pageTitle').textContent = `${p.name} – SuryaCottans`;
+  document.title = `${p.name} – SuryaCotton`;
+  document.getElementById('pageTitle').textContent = `${p.name} – SuryaCotton`;
   document.getElementById('bcName').textContent = p.name;
   document.getElementById('bcCat').textContent = p.cat.charAt(0).toUpperCase() + p.cat.slice(1);
   document.getElementById('bcCat').href = `category.html?cat=${encodeURIComponent(p.cat)}`;
@@ -299,7 +300,7 @@ function renderProduct(p) {
     if (p.sleeve) dynamicFeatures.push(`Sleeve Type: ${p.sleeve}`);
     if (p.neck) dynamicFeatures.push(`Collar / Neck Style: ${p.neck}`);
     if (p.color) dynamicFeatures.push(`Color: ${p.color}`);
-    dynamicFeatures.push('Authentic & 100% Quality Assured from SuryaCottons');
+    dynamicFeatures.push('Authentic & 100% Quality Assured from SuryaCotton');
     featEl.innerHTML = dynamicFeatures.map(f => `<li>${f}</li>`).join('');
   }
 
@@ -634,6 +635,7 @@ function handleBuyNow() {
     size: selectedSize
   }];
   localStorage.setItem('sc_buy_now', JSON.stringify(buyNowCart));
+  try { fetch('/api/razorpay-key', { cache: 'no-store' }).catch(() => {}); } catch(e) {}
   window.location.href = 'checkout.html?mode=buynow';
 }
 
@@ -750,14 +752,74 @@ modalOverlay.addEventListener('click', () => { sizeModal.classList.remove('open'
 const mainImg = document.getElementById('pdMainImg');
 mainImg.style.transition = 'opacity 0.18s ease, transform 0.18s ease';
 
+// ---- MOBILE CTA SCROLL AWARENESS ----
+function initMobileCtaScroll() {
+  const cta = document.getElementById('pdMobileCta');
+  if (!cta) return;
+
+  const descPanels = document.querySelector('.pd-tab-panels') || document.getElementById('tab-desc');
+  let lastScrollY = window.pageYOffset || document.documentElement.scrollTop;
+  let ticking = false;
+
+  function updateCta() {
+    const currentScrollY = window.pageYOffset || document.documentElement.scrollTop;
+    const isMobile = window.innerWidth <= 768;
+
+    if (!isMobile) {
+      cta.classList.remove('hidden');
+      ticking = false;
+      return;
+    }
+
+    const scrollDiff = currentScrollY - lastScrollY;
+    
+    // Check if user has scrolled past the end of the description
+    let pastDescription = false;
+    if (descPanels) {
+      const rect = descPanels.getBoundingClientRect();
+      // Description is completely scrolled past when its bottom is scrolled near or above viewport top/mid
+      pastDescription = rect.bottom <= 180;
+    }
+
+    if (currentScrollY < 120) {
+      // Near top of product page -> always show
+      cta.classList.remove('hidden');
+    } else if (scrollDiff < -4) {
+      // User scrolls UP -> smoothly slide in and reveal
+      cta.classList.remove('hidden');
+    } else if (pastDescription && scrollDiff > 2) {
+      // User has scrolled past description and continues scrolling down -> smoothly hide
+      cta.classList.add('hidden');
+    } else if (!pastDescription) {
+      // User is still viewing product details & description -> keep visible
+      cta.classList.remove('hidden');
+    }
+
+    lastScrollY = currentScrollY;
+    ticking = false;
+  }
+
+  window.addEventListener('scroll', () => {
+    if (!ticking) {
+      window.requestAnimationFrame(updateCta);
+      ticking = true;
+    }
+  }, { passive: true });
+
+  window.addEventListener('resize', updateCta);
+  updateCta();
+}
+
 // ---- INIT ----
 updateCartUI();
+initMobileCtaScroll();
 const pid = getProductId();
 const product = products.find(p => String(p.id) === String(pid) || Number(p.id) === Number(pid));
 if (typeof window !== 'undefined') {
   window.getProductId = getProductId;
   window.renderProduct = renderProduct;
   window.initProductAnimations = initProductAnimations;
+  window.initMobileCtaScroll = initMobileCtaScroll;
 }
 if (product) {
   renderProduct(product);

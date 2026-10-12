@@ -1,5 +1,5 @@
 /* =========================================================
-   SURYA COTTANS — CLOUDINARY CONFIGURATION & MEDIA HELPERS
+   SURYA COTTON — CLOUDINARY CONFIGURATION & MEDIA HELPERS
    ========================================================= */
 
 export const CLOUDINARY_CONFIG = {

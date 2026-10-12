@@ -1,7 +1,7 @@
 {
-  "name": "suryacottans",
+  "name": "suryacotton",
   "version": "1.0.0",
-  "description": "SuryaCottans – Premium Menswear E-Commerce",
+  "description": "SuryaCotton – Premium Menswear E-Commerce",
   "main": "server.js",
   "scripts": {
     "dev": "node server.js",

@@ -15,6 +15,6 @@ exports.handler = async (event) => {
   return {
     statusCode: 200,
     headers,
-    body: JSON.stringify({ key_id: process.env.RAZORPAY_KEY_ID }),
+    body: JSON.stringify({ key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_TMheDs5vqXN9S7' }),
   };
 };

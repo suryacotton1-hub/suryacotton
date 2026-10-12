@@ -1,5 +1,5 @@
 /* =========================================================
-   SURYA COTTANS — SHIPROCKET API INTEGRATION MODULE
+   SURYA COTTON — SHIPROCKET API INTEGRATION MODULE
    Auto Authentication, Order Push, AWB Generation & Real-time Tracking
    ========================================================= */
 
@@ -20,12 +20,12 @@ class ShiprocketService {
       return this.token;
     }
 
-    const email = process.env.SHIPROCKET_EMAIL;
-    const password = process.env.SHIPROCKET_PASSWORD;
+    const email = process.env.SHIPROCKET_EMAIL || 'botuusurya@gmail.com';
+    const password = process.env.SHIPROCKET_PASSWORD || 'LAhhod9K4e@@Pt8sm71WE%8iw$s6RfCx';
 
-    if (!email || !password || email.includes('YOUR_') || password.includes('YOUR_')) {
-      console.warn('⚠️ Shiprocket credentials missing or default in .env file!');
-      throw new Error('Shiprocket API credentials (SHIPROCKET_EMAIL, SHIPROCKET_PASSWORD) are not configured in .env file.');
+    if (!email || !password) {
+      console.warn('⚠️ Shiprocket credentials missing!');
+      throw new Error('Shiprocket API credentials are not configured.');
     }
 
     try {
@@ -155,7 +155,7 @@ class ShiprocketService {
       const pin = String(order.customerPin || order.pincode || order.pin || '').trim();
 
       const rawEmail = String(order.customerEmail || order.customer_email || order.email || '').trim();
-      const validEmail = (rawEmail && rawEmail !== 'N/A' && rawEmail.includes('@')) ? rawEmail : 'care@suryacottans.com';
+      const validEmail = (rawEmail && rawEmail !== 'N/A' && rawEmail.includes('@')) ? rawEmail : 'care@suryacotton.com';
 
       const rawPhone = String(order.customerPhone || order.customer_phone || order.phone || '9876543210');
       const cleanPhone = rawPhone.replace(/\D/g, '').slice(-10) || '9876543210';
@@ -214,7 +214,7 @@ class ShiprocketService {
         order_id: String(order.id).startsWith('SC-') ? String(order.id) : `SC-${order.id || Date.now()}`,
         order_date: formattedDate,
         pickup_location: pickupLocation,
-        comment: "SuryaCottans Online Store Order",
+        comment: "SuryaCotton Online Store Order",
 
         // Billing Details (all required by Shiprocket)
         billing_customer_name: firstName,
@@ -488,7 +488,7 @@ class ShiprocketService {
           awb_code: realAwb,
           courier_name: shipmentTrack.courier_name || 'Shiprocket Partner',
           current_status: shipmentTrack.current_status || 'ORDER_CREATED',
-          origin: shipmentTrack.origin || 'SuryaCottans Hub',
+          origin: shipmentTrack.origin || 'SuryaCotton Hub',
           destination: shipmentTrack.destination || '',
           etd: shipmentTrack.etd || '3-5 Business Days',
           scans: scans.map(s => ({

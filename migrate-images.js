@@ -1,5 +1,5 @@
 /* =========================================================
-   SURYA COTTANS — EXISTING PRODUCT IMAGE MIGRATION MODULE
+   SURYA COTTON — EXISTING PRODUCT IMAGE MIGRATION MODULE
    ========================================================= */
 
 import { uploadProductImage } from "./supabase-config.js";

@@ -16,9 +16,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700;900&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
   <script>
-    // Set your Render backend URL here if hosted separately (e.g. 'https://suryacottans-api.onrender.com')
+    // Netlify Serverless: API endpoints are served from same origin /api/* (Zero cold starts)
     // Leave empty "" if frontend and backend are hosted on the same domain / server
-    window.BACKEND_URL = "https://backend-s6kq.onrender.com";
+    window.BACKEND_URL = (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) ? 'http://localhost:3000' : '';
 
     // Protect checkout page
     if (localStorage.getItem('sc_isLoggedIn') !== 'true') {
@@ -216,6 +216,30 @@
     .btn-pay:hover::before { transform: translateY(0); }
     .btn-pay:hover { transform: translateY(-4px); box-shadow: 0 15px 30px rgba(232,0,13,0.25); }
     .btn-pay span { position: relative; z-index: 1; display: flex; align-items: center; gap: 8px; }
+    .btn-pay.is-loading,
+    .btn-pay:disabled {
+      cursor: not-allowed;
+      opacity: 0.92;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+    .btn-pay.is-loading::before {
+      transform: translateY(0);
+      background: #1e293b;
+    }
+    .btn-spinner {
+      width: 18px;
+      height: 18px;
+      border: 2.5px solid rgba(255, 255, 255, 0.25);
+      border-top-color: #ffffff;
+      border-radius: 50%;
+      animation: btnSpin 0.75s linear infinite;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+    @keyframes btnSpin {
+      to { transform: rotate(360deg); }
+    }
     
     /* Payment Modal */
     .modal-overlay {
@@ -760,11 +784,12 @@
           items: cart.map(i => ({ id: i.id, name: i.name, qty: i.qty, price: i.price, img: i.img, size: i.size || '' })),
           total: totalAmount,
           status: 'Processing',
+          shipment_status: 'PENDING_APPROVAL',
           razorpay_payment_id: razorpayPaymentId,
           razorpay_order_id: razorpayOrderId,
           shipment_id: srInfo.shipment_id || null,
           awb_code: srInfo.awb_code || null,
-          courier_name: srInfo.courier_name || 'Pending Courier Selection',
+          courier_name: srInfo.courier_name || 'Pending Approval',
           tracking_url: srInfo.tracking_url || (srInfo.awb_code ? `https://shiprocket.co/tracking/${srInfo.awb_code}` : null)
         };
 
@@ -941,7 +966,45 @@
       ? window.BACKEND_URL.replace(/\/$/, '') 
       : (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
           ? 'http://localhost:3000' 
-          : 'https://backend-s6kq.onrender.com');
+          : '');
+
+    // Pre-warm backend immediately on page load to eliminate 30-50s Render cold-start delay
+    // This wakes up the Render container while the user is filling in their delivery address!
+    let cachedRazorpayKey = null;
+    (async function prewarmBackend() {
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/razorpay-key`, { cache: 'no-store' });
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.key_id) {
+            cachedRazorpayKey = data.key_id;
+            console.log('[BACKEND] Server warm & Razorpay key pre-cached.');
+          }
+        }
+      } catch (err) {
+        console.warn('[BACKEND] Pre-warm ping notice:', err.message);
+      }
+    })();
+
+    // Helper: Manage pay button loading animation and text state
+    function setPayButtonLoading(isLoading, customText) {
+      const payBtn = checkoutForm.querySelector('.btn-pay');
+      if (!payBtn) return;
+      if (isLoading) {
+        payBtn.disabled = true;
+        payBtn.classList.add('is-loading');
+        payBtn.innerHTML = `
+          <span>
+            <span class="btn-spinner"></span>
+            <span>${customText || 'Preparing Payment...'}</span>
+          </span>
+        `;
+      } else {
+        payBtn.disabled = false;
+        payBtn.classList.remove('is-loading');
+        payBtn.innerHTML = `<span>Complete Purchase • <span id="payAmountBtn">₹${Number(totalAmount || 0).toLocaleString('en-IN')}</span></span>`;
+      }
+    }
 
     // Main checkout form submit handler
     checkoutForm.addEventListener('submit', async (e) => {
@@ -952,19 +1015,22 @@
         return;
       }
 
-      // Disable button to prevent double-clicks
-      const payBtn = checkoutForm.querySelector('.btn-pay');
-      const originalBtnHTML = payBtn.innerHTML;
-      payBtn.disabled = true;
-      payBtn.innerHTML = '<span>Creating Order...</span>';
+      setPayButtonLoading(true, 'Connecting Payment Gateway...');
 
       try {
-        // Step 1: Fetch Razorpay key from server
-        const keyRes = await fetch(`${BACKEND_URL}/api/razorpay-key`);
-        if (!keyRes.ok) throw new Error('Failed to fetch Razorpay key');
-        const { key_id } = await keyRes.json();
+        // Step 1: Use pre-cached Razorpay key or fetch
+        let key_id = cachedRazorpayKey;
+        if (!key_id) {
+          setPayButtonLoading(true, 'Connecting to Razorpay...');
+          const keyRes = await fetch(`${BACKEND_URL}/api/razorpay-key`);
+          if (!keyRes.ok) throw new Error('Failed to fetch Razorpay key');
+          const keyData = await keyRes.json();
+          key_id = keyData.key_id;
+          cachedRazorpayKey = key_id;
+        }
 
         // Step 2: Create order on backend
+        setPayButtonLoading(true, 'Preparing Secure Order...');
         const amountInPaise = Math.round(totalAmount * 100);
         const orderRes = await fetch(`${BACKEND_URL}/api/create-order`, {
           method: 'POST',
@@ -984,20 +1050,20 @@
         const orderData = await orderRes.json();
 
         const userEmailInput = document.getElementById('email') ? document.getElementById('email').value.trim() : '';
-        const userEmail = userEmailInput || ((currentUser && currentUser.email) ? currentUser.email : 'care@suryacottans.com');
+        const userEmail = userEmailInput || ((currentUser && currentUser.email) ? currentUser.email : 'care@suryacotton.com');
 
         // Step 3: Open Razorpay checkout modal
         const options = {
           key: key_id,
           amount: orderData.amount,
           currency: orderData.currency,
-          name: 'SuryaCottans',
+          name: 'SuryaCotton',
           description: `Order for ${totalQty} item(s)`,
           order_id: orderData.order_id,
           prefill: {
             name: document.getElementById('name').value || '',
             email: userEmail,
-            contact: document.getElementById('phone').value || ''
+            contact: (document.getElementById('phone') ? document.getElementById('phone').value : '').replace(/[^\d+]/g, '')
           },
           theme: {
             color: '#e8000d'
@@ -1074,19 +1140,16 @@
           modal: {
             ondismiss: function () {
               // User closed the Razorpay modal
-              payBtn.disabled = false;
-              payBtn.innerHTML = originalBtnHTML;
+              setPayButtonLoading(false);
             }
           }
         };
-
-        // Listen for payment failure
-        options['handler.payment.failed'] = undefined; // not needed; use modal.ondismiss
 
         const rzp = new Razorpay(options);
 
         rzp.on('payment.failed', function (response) {
           console.error('Payment failed:', response.error);
+          setPayButtonLoading(false);
           showRzpStatus(
             'error',
             'Payment Failed',
@@ -1096,15 +1159,12 @@
         });
 
         rzp.open();
-
-        // Re-enable button after modal opens (user can close & retry)
-        payBtn.disabled = false;
-        payBtn.innerHTML = originalBtnHTML;
+        // Reset button state once modal is active
+        setPayButtonLoading(false);
 
       } catch (err) {
         console.error('Checkout error:', err);
-        payBtn.disabled = false;
-        payBtn.innerHTML = originalBtnHTML;
+        setPayButtonLoading(false);
         showRzpStatus(
           'error',
           'Order Creation Failed',

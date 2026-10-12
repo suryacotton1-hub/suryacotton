@@ -1,5 +1,5 @@
 /* =========================================================
-   SURYA COTTANS — EXPRESS API SERVER
+   SURYA COTTON — EXPRESS API SERVER
    Razorpay Order Creation & Payment Verification
    ========================================================= */
 
@@ -33,7 +33,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // ─── Admin URL Protection & Secret Route ────────────────────
-app.get(['/admin', '/admin.html'], (req, res) => {
+app.get(['/admin', '/admin.html', '/surya-admin-798', '/surya-admin-798.html'], (req, res) => {
   res.redirect('/');
 });
 
@@ -59,6 +59,12 @@ app.use(express.static(path.resolve(__dirname), { extensions: ['html'] }));
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
   key_secret: process.env.RAZORPAY_KEY_SECRET,
+});
+
+// ─── GET /api/health & /api/ping ──────────────────────────
+// Lightweight uptime & warm-up endpoint for Render keeping alive
+app.get(['/api/health', '/api/ping'], (req, res) => {
+  res.status(200).json({ status: 'ok', time: Date.now(), uptime: process.uptime() });
 });
 
 // ─── GET /api/razorpay-key ────────────────────────────────
@@ -179,7 +185,7 @@ app.post('/api/verify-payment', async (req, res) => {
     const rawOrder = orderDetails || {};
     const orderId = rawOrder.id ? String(rawOrder.id) : `SC-${Date.now().toString().slice(-6)}`;
     const custName = String(rawOrder.customerName || rawOrder.customer_name || rawOrder.name || 'Valued Customer').trim();
-    const custEmail = String(rawOrder.customerEmail || rawOrder.customer_email || rawOrder.email || 'care@suryacottans.com').trim();
+    const custEmail = String(rawOrder.customerEmail || rawOrder.customer_email || rawOrder.email || 'care@suryacotton.com').trim();
     const custPhone = String(rawOrder.customerPhone || rawOrder.customer_phone || rawOrder.phone || '9876543210').replace(/\D/g, '').slice(-10) || '9876543210';
     const custAddress = String(rawOrder.customerAddress || rawOrder.shipping_address || rawOrder.address || '').trim();
     const custCity = String(rawOrder.customerCity || rawOrder.city || '').trim();
@@ -203,65 +209,30 @@ app.post('/api/verify-payment', async (req, res) => {
       payment_status: 'PAID',
       razorpay_order_id,
       razorpay_payment_id,
-      shipment_status: 'ORDER_CREATED',
+      shipment_status: 'PENDING_APPROVAL',
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
 
     try {
       await supabase.from('orders').upsert([dbOrder]);
-      console.log(`[DB] 💾 Saved Order ${orderId} to Supabase DB (Status: PAID)`);
+      console.log(`[DB] 💾 Saved Order ${orderId} to Supabase DB (Status: PAID, Shipment: PENDING_APPROVAL)`);
     } catch (saveErr) {
       console.warn('[DB] Supabase order save notice:', saveErr.message);
     }
 
-    // 4. Trigger Shiprocket Order Creation & AWB Generation Server-side
-    let srResult = { success: false, error: 'Shiprocket creation not attempted' };
-    try {
-      const orderForShiprocket = {
-        id: orderId,
-        date: rawOrder.date || new Date().toISOString(),
-        customerName: custName,
-        customerEmail: custEmail,
-        customerPhone: custPhone,
-        customerAddress: custAddress,
-        customerCity: custCity,
-        customerState: custState,
-        customerPin: custPin,
-        shipping_address: custAddress,
-        city: custCity,
-        state: custState,
-        pincode: custPin,
-        items: rawOrder.items || rawOrder.products || [],
-        total: rawOrder.total || rawOrder.total_amount,
-        paymentMethod: 'Prepaid'
-      };
-
-      srResult = await shiprocket.createOrder(orderForShiprocket);
-      console.log('[SHIPROCKET] Server Fulfillment Result:', srResult);
-
-      // 5. Update Supabase DB with verified Shiprocket Result
-      const updateData = {
-        shiprocket_order_id: srResult.shiprocket_order_id || null,
-        shiprocket_shipment_id: srResult.shipment_id || null,
-        awb_code: srResult.awb_code || null,
-        courier_name: srResult.courier_name || null,
-        courier_company_id: srResult.courier_company_id || null,
-        shipment_status: srResult.shipment_status || (srResult.awb_code ? 'READY_TO_SHIP' : 'AWB_PENDING'),
-        tracking_url: srResult.tracking_url || null,
-        error_log: srResult.error || null,
-        updated_at: new Date().toISOString()
-      };
-
-      try {
-        await supabase.from('orders').update(updateData).eq('id', orderId);
-        console.log(`[DB] 💾 Updated Order ${orderId} in Supabase with Shiprocket details (AWB: ${updateData.awb_code || 'PENDING'}).`);
-      } catch (updateErr) {
-        console.warn('[DB] Supabase order update notice:', updateErr.message);
-      }
-    } catch (srErr) {
-      console.error('[SHIPROCKET] Server-side pipeline error:', srErr.message);
-    }
+    // 4. Pickup is strictly held until Admin clicks "Approve & Schedule Pickup" in the Admin Panel.
+    // We do NOT auto-push to Shiprocket or auto-schedule pickup during checkout.
+    console.log(`[CHECKOUT] 🛑 Auto-pickup BLOCKED. Order ${orderId} safely saved as PENDING_APPROVAL.`);
+    const srResult = {
+      success: true,
+      shiprocket_order_id: null,
+      shipment_id: null,
+      awb_code: null,
+      courier_name: 'Pending Admin Approval',
+      tracking_url: null,
+      shipment_status: 'PENDING_APPROVAL'
+    };
 
     // 6. Trigger Order Confirmation Email (EmailJS)
     let emailResult = { success: false, reason: 'skipped' };
@@ -411,6 +382,27 @@ app.get('/api/orders', async (req, res) => {
   } catch (err) {
     console.warn('GET /api/orders error (falling back):', err.message);
     return res.status(200).json({ success: false, orders: [], error: err.message });
+  }
+});
+
+// ─── POST /api/admin/clear-orders ────────────────────────
+// Deletes all fake / test orders from Supabase database
+app.post('/api/admin/clear-orders', async (req, res) => {
+  try {
+    const { error } = await supabase
+      .from('orders')
+      .delete()
+      .neq('id', '___NON_EXISTENT_ID___');
+
+    if (error) {
+      console.error('[ADMIN] Supabase clear orders error:', error);
+      return res.status(500).json({ success: false, error: error.message });
+    }
+    console.log('[ADMIN] 🗑️ All orders deleted from Supabase DB.');
+    return res.status(200).json({ success: true, message: 'All orders cleared from database.' });
+  } catch (err) {
+    console.error('[ADMIN] Clear orders exception:', err);
+    return res.status(500).json({ success: false, error: err.message });
   }
 });
 
@@ -564,55 +556,10 @@ app.post('/api/admin/schedule-pickup', async (req, res) => {
     }
 
     // ── Pre-flight Validation ──
-    const shipmentId = dbOrder.shiprocket_shipment_id;
+    let shipmentId = dbOrder.shiprocket_shipment_id;
     let realAwb = dbOrder.awb_code;
+    const currentStatus = (dbOrder.shipment_status || 'PENDING_APPROVAL').toUpperCase();
 
-    if (!shipmentId) {
-      return res.status(400).json({
-        success: false,
-        error: `Order ${dbOrder.id} has no Shiprocket Shipment ID. Please retry AWB creation first.`,
-        db_order_id: dbOrder.id
-      });
-    }
-
-    // Auto-generate AWB if not yet generated
-    if (!realAwb && shipmentId) {
-      console.log(`[ADMIN] AWB missing for Order ${dbOrder.id}. Generating AWB prior to pickup confirmation...`);
-      try {
-        const targetPin = dbOrder.pincode || dbOrder.customerPin || '600001';
-        const serviceRes = await shiprocket.checkServiceability('638001', targetPin);
-        const courierId = serviceRes.success ? serviceRes.courier_company_id : null;
-        const awbRes = await shiprocket.generateAWB(shipmentId, courierId);
-
-        if (awbRes.success && awbRes.awb_code) {
-          realAwb = awbRes.awb_code;
-          dbOrder.awb_code = realAwb;
-          dbOrder.courier_name = awbRes.courier_name || serviceRes.courier_name || dbOrder.courier_name;
-          await supabase.from('orders').update({
-            awb_code: realAwb,
-            courier_name: dbOrder.courier_name,
-            shipment_status: 'READY_TO_SHIP',
-            tracking_url: awbRes.tracking_url,
-            updated_at: new Date().toISOString()
-          }).eq('id', dbOrder.id);
-          console.log(`[ADMIN] ✅ AWB generated on demand: ${realAwb} for Order ${dbOrder.id}`);
-        }
-      } catch (awbErr) {
-        console.warn('[ADMIN] Auto-AWB generation notice during schedule-pickup:', awbErr.message);
-      }
-    }
-
-    if (!realAwb) {
-      return res.status(400).json({
-        success: false,
-        error: `Order ${dbOrder.id} has no AWB code assigned. Please click 'Generate AWB' first.`,
-        db_order_id: dbOrder.id
-      });
-    }
-
-    // Verify shipment status is eligible for pickup
-    const eligibleStatuses = ['READY_TO_SHIP', 'AWB_GENERATED', 'NEW', 'ORDER_CREATED', 'AWB_PENDING', ''];
-    const currentStatus = (dbOrder.shipment_status || '').toUpperCase();
     if (currentStatus === 'PICKUP_SCHEDULED' || currentStatus === 'IN_TRANSIT' ||
         currentStatus === 'OUT_FOR_DELIVERY' || currentStatus === 'DELIVERED' ||
         currentStatus === 'CANCELLED') {
@@ -624,26 +571,101 @@ app.post('/api/admin/schedule-pickup', async (req, res) => {
       });
     }
 
-    console.log(`[ADMIN] ✅ Order Resolved — DB ID: ${dbOrder.id}, Shiprocket Shipment: ${shipmentId}, AWB: ${realAwb}, Status: ${currentStatus}`);
+    console.log(`[ADMIN] ✅ Order Resolved — DB ID: ${dbOrder.id}, Shiprocket Shipment: ${shipmentId || 'None (Pending)'}, AWB: ${realAwb || 'None'}, Status: ${currentStatus}`);
 
     // ── Phase 1: Verify — return matched order details for frontend confirmation ──
     if (phase !== 'confirm') {
       return res.status(200).json({
         success: true,
         phase: 'verify',
-        message: 'Order verified. Confirm to schedule pickup.',
+        message: 'Order verified. Confirm to approve and schedule courier pickup with Shiprocket.',
         db_order_id: dbOrder.id,
         shiprocket_order_id: dbOrder.shiprocket_order_id || null,
-        shiprocket_shipment_id: shipmentId,
-        awb_code: realAwb,
-        courier_name: dbOrder.courier_name || null,
+        shiprocket_shipment_id: shipmentId || 'Will be created upon approval',
+        awb_code: realAwb || 'Will be generated upon approval',
+        courier_name: dbOrder.courier_name || 'Will be assigned upon approval',
         shipment_status: currentStatus,
         customer_name: dbOrder.customer_name || 'N/A'
       });
     }
 
-    // ── Phase 2: Confirm — actually call Shiprocket Pickup API ──
-    console.log(`[ADMIN] 📦 Calling Shiprocket Pickup API for Shipment ${shipmentId} (Order ${dbOrder.id}, AWB ${realAwb})`);
+    // ── Phase 2: Confirm — execute Admin Approval, Shiprocket Registration, AWB, and Pickup ──
+    console.log(`[ADMIN] 📦 Order ${dbOrder.id} APPROVED by Admin. Proceeding with Shiprocket fulfillment...`);
+
+    // 1. If not yet registered in Shiprocket, push order now on admin approval
+    if (!shipmentId) {
+      console.log(`[ADMIN] Registering Order ${dbOrder.id} in Shiprocket...`);
+      const orderForShiprocket = {
+        id: dbOrder.id,
+        date: dbOrder.created_at || new Date().toISOString(),
+        customerName: dbOrder.customer_name,
+        customerEmail: dbOrder.customer_email,
+        customerPhone: dbOrder.customer_phone,
+        customerAddress: dbOrder.shipping_address,
+        customerCity: dbOrder.city,
+        customerState: dbOrder.state,
+        customerPin: dbOrder.pincode,
+        shipping_address: dbOrder.shipping_address,
+        city: dbOrder.city,
+        state: dbOrder.state,
+        pincode: dbOrder.pincode,
+        items: dbOrder.products || [],
+        total: dbOrder.total_amount,
+        paymentMethod: 'Prepaid'
+      };
+
+      const srCreateRes = await shiprocket.createOrder(orderForShiprocket);
+      if (!srCreateRes.success) {
+        return res.status(400).json({
+          success: false,
+          error: `Failed to register order in Shiprocket: ${srCreateRes.error}`,
+          db_order_id: dbOrder.id
+        });
+      }
+
+      shipmentId = srCreateRes.shipment_id;
+      dbOrder.shiprocket_order_id = srCreateRes.shiprocket_order_id;
+      dbOrder.shiprocket_shipment_id = shipmentId;
+      try {
+        await supabase.from('orders').update({
+          shiprocket_order_id: srCreateRes.shiprocket_order_id,
+          shiprocket_shipment_id: shipmentId,
+          updated_at: new Date().toISOString()
+        }).eq('id', dbOrder.id);
+      } catch(e) {}
+    }
+
+    // 2. Generate AWB if not yet generated
+    if (!realAwb && shipmentId) {
+      console.log(`[ADMIN] AWB missing for Order ${dbOrder.id}. Generating AWB...`);
+      try {
+        const targetPin = dbOrder.pincode || dbOrder.customerPin || '600001';
+        const serviceRes = await shiprocket.checkServiceability('638001', targetPin);
+        const courierId = serviceRes.success ? serviceRes.courier_company_id : null;
+        const awbRes = await shiprocket.generateAWB(shipmentId, courierId);
+
+        if (awbRes.success && awbRes.awb_code) {
+          realAwb = awbRes.awb_code;
+          dbOrder.awb_code = realAwb;
+          dbOrder.courier_name = awbRes.courier_name || serviceRes.courier_name || dbOrder.courier_name;
+          try {
+            await supabase.from('orders').update({
+              awb_code: realAwb,
+              courier_name: dbOrder.courier_name,
+              shipment_status: 'READY_TO_SHIP',
+              tracking_url: awbRes.tracking_url,
+              updated_at: new Date().toISOString()
+            }).eq('id', dbOrder.id);
+          } catch(e) {}
+          console.log(`[ADMIN] ✅ AWB generated on demand: ${realAwb} for Order ${dbOrder.id}`);
+        }
+      } catch (awbErr) {
+        console.warn('[ADMIN] Auto-AWB generation notice during schedule-pickup:', awbErr.message);
+      }
+    }
+
+    // 3. Request courier pickup
+    console.log(`[ADMIN] 📦 Calling Shiprocket Pickup API for Shipment ${shipmentId} (Order ${dbOrder.id}, AWB ${realAwb || 'N/A'})`);
     const pickupRes = await shiprocket.requestPickup(shipmentId);
 
     if (pickupRes.success) {
@@ -956,7 +978,7 @@ app.get('/api/admin/sync-shiprocket-status', async (req, res) => {
 
 // ─── Start Server ─────────────────────────────────────────
 app.listen(PORT, () => {
-  console.log(`\n🛍️  SuryaCottans server running at http://localhost:${PORT}`);
+  console.log(`\n🛍️  SuryaCotton server running at http://localhost:${PORT}`);
   console.log(`   Razorpay Key: ${process.env.RAZORPAY_KEY_ID ? '✅ Loaded' : '❌ MISSING'}`);
   console.log(`   Razorpay Secret: ${process.env.RAZORPAY_KEY_SECRET ? '✅ Loaded' : '❌ MISSING'}`);
   console.log(`   Supabase Client: ${supabaseUrl ? '✅ Loaded' : '❌ MISSING'}`);

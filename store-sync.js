@@ -1,5 +1,5 @@
 /* =========================================
-   SURYA COTTANS — LIVE STOREFRONT SYNC
+   SURYA COTTON — LIVE STOREFRONT SYNC
    Fetches products from Firebase Firestore and syncs across all pages
    ========================================= */
 
@@ -78,6 +78,13 @@ async function syncProductsFromFirestore(force = false) {
             rating: p.rating || 4.8,
             reviews: p.reviews !== undefined ? p.reviews : 0
           };
+        });
+
+        // Strictly sort chronologically: Latest (Newest) uploaded product first!
+        cleanProducts.sort((a, b) => {
+          const timeA = a.createdAt ? (a.createdAt.toDate ? a.createdAt.toDate().getTime() : new Date(a.createdAt).getTime()) : 0;
+          const timeB = b.createdAt ? (b.createdAt.toDate ? b.createdAt.toDate().getTime() : new Date(b.createdAt).getTime()) : 0;
+          return timeB - timeA;
         });
       }
 

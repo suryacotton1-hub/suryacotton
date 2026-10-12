@@ -1,5 +1,5 @@
 /* =============================================
-   SURYA COTTANS — JS COMBINED
+   SURYA COTTON — JS COMBINED
    Brand Intro + Cursor + Navbar + Hero Reveal + Products + Cart + Testimonials
    ============================================= */
 
@@ -12,7 +12,14 @@
   const heroLeft = document.getElementById('heroLeft');
   const heroRight= document.getElementById('heroRight');
 
-  if (!intro) { revealHero(); return; }
+  if (!intro) {
+    document.body.classList.remove('intro-active');
+    revealHero();
+    return;
+  }
+
+  // Ensure body is flagged while intro runs
+  document.body.classList.add('intro-active');
 
   // Phase 1 — show name big → shrinks
   setTimeout(() => {
@@ -30,9 +37,10 @@
     intro.classList.add('exit');
   }, 2200);
 
-  // Phase 4 — remove overlay, reveal hero panels
+  // Phase 4 — remove overlay, reveal hero panels & show bottom nav
   setTimeout(() => {
     intro.classList.add('hidden');
+    document.body.classList.remove('intro-active');
     revealHero();
   }, 2900);
 
@@ -307,9 +315,13 @@ function renderProducts(cat) {
     }
   }
   
-  // Filter products then shuffle for random display
+  // Filter products and strictly sort chronologically: Latest (Newest) uploaded products first!
   const base = cat === 'all' ? products : products.filter(p => p.cat === cat);
-  const filteredProducts = shuffleArray(base);
+  const filteredProducts = [...base].sort((a, b) => {
+    const timeA = a.createdAt ? (a.createdAt.toDate ? a.createdAt.toDate().getTime() : new Date(a.createdAt).getTime()) : 0;
+    const timeB = b.createdAt ? (b.createdAt.toDate ? b.createdAt.toDate().getTime() : new Date(b.createdAt).getTime()) : 0;
+    return timeB - timeA;
+  });
   
   // Render cards
   const catLabel = { shirt: 'Shirt', pant: 'Pant', tshirt: 'T-Shirt', shorts: 'Shorts', caps: 'Caps', keychains: 'Keychains' };
@@ -531,9 +543,17 @@ function updateCartUI() {
     count.textContent = total;
     count.classList.toggle('show', total > 0);
   }
+  const mobCount = document.getElementById('mobCartCount');
+  if (mobCount) {
+    mobCount.textContent = total;
+    mobCount.classList.toggle('show', total > 0);
+  }
   const totalEl = document.getElementById('cartTotal');
   if (totalEl) {
     totalEl.textContent = '₹' + cart.reduce((s, i) => s + i.price * i.qty, 0).toLocaleString();
+  }
+  if (typeof window.syncMobileCartBadge === 'function') {
+    window.syncMobileCartBadge();
   }
 }
 
@@ -597,6 +617,7 @@ if (checkoutBtn) {
       return;
     }
     
+    try { fetch('/api/razorpay-key', { cache: 'no-store' }).catch(() => {}); } catch(e) {}
     window.location.href = 'checkout.html';
   });
 }

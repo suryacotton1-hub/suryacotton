@@ -1,5 +1,5 @@
 /* =========================================================
-   SURYA COTTANS — SERVER-SIDE EMAIL SERVICE (EmailJS API)
+   SURYA COTTON — SERVER-SIDE EMAIL SERVICE (EmailJS API)
    Sends Order Confirmation Emails when Payment is Verified
    ========================================================= */
 
@@ -9,8 +9,8 @@
 function formatOrderItems(items = []) {
   if (!Array.isArray(items) || items.length === 0) {
     return {
-      itemsSummary: '1x SuryaCottans Premium Apparel',
-      itemsHtml: '<tr><td colspan="4" style="padding:10px;text-align:center;">SuryaCottans Premium Collection</td></tr>'
+      itemsSummary: '1x SuryaCotton Premium Apparel',
+      itemsHtml: '<tr><td colspan="4" style="padding:10px;text-align:center;">SuryaCotton Premium Collection</td></tr>'
     };
   }
 
@@ -31,7 +31,7 @@ function formatOrderItems(items = []) {
       <tr style="border-bottom: 1px solid #e2e8f0;">
         <td style="padding: 12px 8px; font-weight: 600; color: #0f172a; vertical-align: middle;">
           ${imgTag}
-          <span style="vertical-align:middle;">${item.name || 'SuryaCottans Product'}</span>
+          <span style="vertical-align:middle;">${item.name || 'SuryaCotton Product'}</span>
         </td>
         <td style="padding: 12px 8px; text-align: center; vertical-align: middle;">${sizeStr}</td>
         <td style="padding: 12px 8px; text-align: center; font-weight: 600; color: #334155; vertical-align: middle;">${qty}</td>
@@ -78,7 +78,7 @@ function buildTemplateParams(order = {}) {
     minute: '2-digit'
   });
 
-  const trackingUrl = order.tracking_url || (order.awb_code ? `https://shiprocket.co/tracking/${order.awb_code}` : `https://suryacottans.com/track.html?order=${orderId}`);
+  const trackingUrl = order.tracking_url || (order.awb_code ? `https://shiprocket.co/tracking/${order.awb_code}` : `https://suryacotton.com/track.html?order=${orderId}`);
 
   return {
     // Standard EmailJS variables
@@ -97,13 +97,14 @@ function buildTemplateParams(order = {}) {
     items_summary: itemsSummary,
     items_html: itemsHtml,
     tracking_url: trackingUrl,
-    name: 'SuryaCottans',
-    from_name: 'SuryaCottans',
+    name: 'SuryaCotton',
+    from_name: 'SuryaCotton',
     email: 'suryacotton1@gmail.com',
     reply_to: 'suryacotton1@gmail.com',
-    store_name: 'SuryaCottans',
+    store_name: 'SuryaCotton',
     support_email: 'suryacotton1@gmail.com',
-    store_url: 'https://suryacottans.com'
+    store_url: 'https://suryacotton.com',
+    store_address: 'No,6, L.P.N School Complex, Alagar Kovil Main Road, Moondrumavadi, Pudhur, Madurai-625009, Tamil Nadu, India'
   };
 }
 
@@ -112,9 +113,9 @@ function buildTemplateParams(order = {}) {
  */
 async function sendOrderConfirmationEmail(order = {}) {
   const serviceId = process.env.EMAILJS_SERVICE_ID || 'service_daknf95';
-  const templateId = process.env.EMAILJS_TEMPLATE_ID;
-  const publicKey = process.env.EMAILJS_PUBLIC_KEY;
-  const privateKey = process.env.EMAILJS_PRIVATE_KEY;
+  const templateId = process.env.EMAILJS_TEMPLATE_ID || 'template_j0udqht';
+  const publicKey = process.env.EMAILJS_PUBLIC_KEY || 'XyD2BSBIHw8JUf2gK';
+  const privateKey = process.env.EMAILJS_PRIVATE_KEY || '';
 
   const targetEmail = (order.customerEmail || order.customer_email || order.email || '').trim();
 
@@ -179,7 +180,7 @@ async function sendOrderConfirmationEmail(order = {}) {
 async function sendTestEmail(recipientEmail) {
   const sampleOrder = {
     id: 'SC-TEST-' + Math.floor(1000 + Math.random() * 9000),
-    customerName: 'SuryaCottans VIP Customer',
+    customerName: 'SuryaCotton VIP Customer',
     customerEmail: recipientEmail,
     customerPhone: '9876543210',
     customerAddress: '42, Textile City Road, Gandhi Nagar',

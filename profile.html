@@ -6,22 +6,55 @@
   <title>Your Account – SuryaCotton</title>
   <meta name="description" content="Manage your premium SuryaCotton account, order history, and profile settings." />
   <script>
-    window.BACKEND_URL = "https://backend-s6kq.onrender.com";
+    window.BACKEND_URL = (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) ? 'http://localhost:3000' : '';
   </script>
-    <!-- Favicon & Brand Icons -->
-  <link rel="icon" type="image/x-icon" href="favicon.ico" />
-  <link rel="icon" type="image/png" sizes="192x192" href="favicon-192x192.png" />
-  <link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png" />
-  <link rel="icon" type="image/png" sizes="48x48" href="favicon-48x48.png" />
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png" />
-  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
+      <!-- Favicon & Brand Icons (Google Search & Multi-device compliant) -->
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="shortcut icon" href="/favicon.ico" />
+  <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png" />
+  <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png" />
+  <link rel="icon" type="image/png" sizes="144x144" href="/favicon-144x144.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192x192.png" />
+  <link rel="icon" type="image/png" sizes="512x512" href="/favicon-512x512.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <link rel="manifest" href="/site.webmanifest" />
   <meta name="theme-color" content="#0f172a" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700;900&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="profile.css" />
+  <link rel="stylesheet" href="style.css?v=3.1" />
+  <link rel="stylesheet" href="profile.css?v=3.1" />
   <style>
+    /* Critical Navbar & Brand constraints to eliminate layout shifts */
+    .navbar { position: fixed; top: 0; left: 0; right: 0; display: flex; align-items: center; justify-content: space-between; z-index: 1050; }
+    .nav-logo-img { height: 42px; width: auto; object-fit: contain; max-width: 140px; }
+    .sm-logo { height: 38px; width: auto; object-fit: contain; max-width: 120px; }
+    .nav-links { list-style: none; display: flex; }
+    html, body { overflow-x: hidden !important; max-width: 100vw !important; }
+    .side-menu { position: fixed !important; top: 0 !important; right: 0 !important; bottom: 0 !important; left: auto !important; width: min(340px, 90vw) !important; transform: translateX(105%) !important; visibility: hidden !important; pointer-events: none !important; z-index: 100003 !important; }
+    .side-menu.open { transform: translateX(0) !important; visibility: visible !important; pointer-events: auto !important; }
+    .side-menu-overlay { position: fixed !important; inset: 0 !important; z-index: 100002 !important; visibility: hidden !important; opacity: 0 !important; }
+    .side-menu-overlay.open { visibility: visible !important; opacity: 1 !important; }
+    .cart-drawer { position: fixed !important; top: 0 !important; right: 0 !important; bottom: 0 !important; left: auto !important; width: min(420px, 100vw) !important; max-width: 100% !important; background: #fff !important; z-index: 100005 !important; display: flex !important; flex-direction: column !important; transform: translateX(105%) !important; visibility: hidden !important; pointer-events: none !important; transition: transform 0.42s cubic-bezier(0.25, 0.46, 0.45, 0.94), visibility 0.42s ease !important; box-shadow: -10px 0 50px rgba(0,0,0,0.15) !important; }
+    .cart-drawer.open { transform: translateX(0) !important; visibility: visible !important; pointer-events: auto !important; }
+    .cart-overlay { position: fixed !important; inset: 0 !important; background: rgba(0,0,0,0.6) !important; z-index: 100004 !important; opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; }
+    .cart-overlay.open { opacity: 1 !important; visibility: visible !important; pointer-events: auto !important; }
+    .cart-footer { padding: 1.25rem 1.5rem calc(1.5rem + env(safe-area-inset-bottom, 0px)) !important; position: relative !important; z-index: 10 !important; }
+    .cart-footer #checkoutBtn, .cart-footer .btn-primary { min-height: 48px !important; font-size: 0.95rem !important; font-weight: 700 !important; position: relative !important; z-index: 11 !important; }
+    body.cart-open .mobile-bottom-nav, body.side-menu-open .mobile-bottom-nav { transform: translateY(125%) !important; opacity: 0 !important; pointer-events: none !important; visibility: hidden !important; }
+    
+    @media (max-width: 768px) {
+      .navbar { display: flex !important; align-items: center !important; justify-content: space-between !important; padding: 0.6rem 1rem !important; height: 56px !important; }
+      .nav-logo { position: static !important; transform: none !important; display: flex !important; align-items: center !important; gap: 8px !important; margin: 0 !important; }
+      .nav-logo-img { height: 30px !important; width: auto !important; max-width: 100px !important; }
+      .nav-logo-text { display: inline-block !important; font-size: 1.25rem !important; margin: 0 !important; }
+      .nav-links { display: none !important; }
+      .nav-actions { display: flex !important; align-items: center !important; margin-left: auto !important; }
+      #searchBtn, .profile-btn, .navbar .cart-btn { display: none !important; }
+      .hamburger { display: flex !important; }
+      .account-container { margin-top: 4.8rem !important; margin-bottom: 5.5rem !important; width: 94% !important; }
+    }
+    
     /* ---- Save Success Modal ---- */
     .save-popup-overlay {
       position: fixed; inset: 0;
@@ -100,7 +133,7 @@
 
   <!-- ============ NAV ============ -->
   <nav class="navbar scrolled" id="navbar">
-    <a href="index.html" class="nav-logo"><img src="Logo.png" alt="SuryaCottans" class="nav-logo-img"><span class="nav-logo-text">SuryaCotton</span></a>
+    <a href="index.html" class="nav-logo"><img src="Logo.png" alt="SuryaCotton" class="nav-logo-img"><span class="nav-logo-text">SuryaCotton</span></a>
     <ul class="nav-links" id="navLinks">
       <li><a href="index.html" class="nav-link">Home</a></li>
       <li><a href="index.html#collection" class="nav-link">Collection</a></li>
@@ -132,7 +165,7 @@
     <!-- Header -->
     <div class="sm-header">
       <div class="sm-brand">
-        <img src="Logo.png" alt="SuryaCottans" class="sm-logo" />
+        <img src="Logo.png" alt="SuryaCotton" class="sm-logo" />
         <div class="sm-brand-text">
           <span class="sm-brand-name">SuryaCotton</span>
           <span class="sm-brand-sub">Premium Menswear</span>
@@ -244,7 +277,7 @@
 
     <!-- Footer note -->
     <div class="sm-footer-note">
-      <span>© 2025 SuryaCottans</span>
+      <span>© 2025 SuryaCotton</span>
       <span>Made with ❤️ in Tamil Nadu</span>
     </div>
 
@@ -581,8 +614,9 @@
     <div class="container">
       <div class="footer-top">
         <div class="footer-brand">
-          <div class="footer-logo">SURYA<span>COTTANS</span></div>
+          <div class="footer-logo">SURYA<span>COTTON</span></div>
           <p>Premium menswear for the modern Indian man. Quality you can feel. Style you can own.</p>
+          <p class="footer-address" style="margin-top:0.75rem; font-size:0.82rem; color:rgba(255,255,255,0.6); line-height:1.5;">📍 No,6, L.P.N School Complex, Alagar Kovil Main Road, Moondrumavadi, Pudhur, Madurai-625009, Tamil Nadu, India</p>
         </div>
         <div class="footer-links-col">
           <h4>Quick Links</h4>
@@ -608,7 +642,7 @@
         </div>
       </div>
       <div class="footer-bottom">
-        <p>© 2025 SuryaCottans. All rights reserved.</p>
+        <p>© 2025 SuryaCotton. All rights reserved.</p>
         <div class="footer-policy-links">
           <a href="privacy.html">Privacy Policy</a>
           <a href="terms.html">Terms of Service</a>
@@ -638,6 +672,6 @@
   <!-- ============ SCRIPTS ============ -->
   <script src="profile.js" type="module"></script>
   <script type="module" src="store-sync.js"></script>
-  <script src="menu.js"></script>
+  <script src="menu.js?v=3.1"></script>
 </body>
 </html>

@@ -1,5 +1,10 @@
 User-agent: *
 Allow: /
+Allow: /favicon.ico
+Allow: /favicon*.png
+Allow: /apple-touch-icon.png
+Allow: /site.webmanifest
+Allow: /Logo.png
 Disallow: /admin.html
 Disallow: /surya-admin-798.html
 Disallow: /test-email.html
@@ -8,12 +13,23 @@ User-agent: Googlebot
 Allow: /
 Allow: /favicon.ico
 Allow: /favicon*.png
+Allow: /apple-touch-icon.png
+Allow: /site.webmanifest
 Allow: /Logo.png
 
 User-agent: Googlebot-Image
 Allow: /
 Allow: /favicon.ico
 Allow: /favicon*.png
+Allow: /apple-touch-icon.png
+Allow: /Logo.png
+
+User-agent: Googlebot-Favicons
+Allow: /
+Allow: /favicon.ico
+Allow: /favicon*.png
+Allow: /apple-touch-icon.png
 Allow: /Logo.png
 
 Sitemap: https://suryacotton.com/sitemap.xml
+

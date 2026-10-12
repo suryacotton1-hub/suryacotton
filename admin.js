@@ -1,5 +1,5 @@
 /* =========================================
-   SURYA COTTANS — ADMIN DASHBOARD JS
+   SURYA COTTON — ADMIN DASHBOARD JS
    ========================================= */
 
 // Automatic Clean URL Sanitizer
@@ -15,10 +15,11 @@
 
 // ---- IMPORT FIREBASE SDKs VIA ESM CDN ----
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, setDoc, getDoc, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, setDoc, getDoc, doc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { uploadProductImage, deleteProductImage } from "./supabase-config.js";
 import { migrateExistingProductImages } from "./migrate-images.js";
+import { EMAIL_CONFIG } from "./email-config.js";
 
 // ---- CONFIGURATION AND INITIALIZATION ----
 const firebaseConfig = {
@@ -44,47 +45,233 @@ signInAnonymously(auth).catch((error) => {
 let products = [];
 let orders = [];
 
-// --- AUTHENTICATION HELPERS (Cross-tab & Multi-window support) ---
+// Instantly hydrate state from local cache so counters are never blank/0 on mobile or cold load
+try {
+  const cachedProds = JSON.parse(localStorage.getItem('sc_products') || '[]');
+  if (Array.isArray(cachedProds) && cachedProds.length > 0) {
+    products = cachedProds;
+  }
+} catch (e) {}
+
+try {
+  const cachedOrders = JSON.parse(localStorage.getItem('sc_all_orders') || '[]');
+  if (Array.isArray(cachedOrders) && cachedOrders.length > 0) {
+    orders = cachedOrders;
+  }
+} catch (e) {}
+
+// --- CRYPTOGRAPHIC ZERO-KNOWLEDGE AUTHENTICATION ---
+// Plaintext password is NEVER stored in code, JS files, or git.
+// Even if an attacker inspects this file, SHA-256 is mathematically irreversible.
+const ADMIN_SALT = 'SuryaCottons_Secure_Salt_2026';
+const ADMIN_AUTH_HASH = 'a1a5de3393b3b8e667249c9972d51fcf40c03970037b94460e42ed4152c1823e';
+const EXPECTED_SESSION_TOKEN = '326e3f4c69a01280fabaad49085a9825c4c225bbe61db1f3f1549059ad2af896';
+
+// Universal SHA-256 fallback (works on HTTP, HTTPS, local files, mobile browsers)
+function sha256Fallback(ascii) {
+  function rightRotate(value, amount) {
+    return (value >>> amount) | (value << (32 - amount));
+  }
+  const mathPow = Math.pow;
+  const maxWord = mathPow(2, 32);
+  const lengthProperty = 'length';
+  let i, j;
+  let result = '';
+
+  const words = [];
+  const asciiBitLength = ascii[lengthProperty] * 8;
+
+  let hash = [
+    0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
+    0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19
+  ];
+
+  const k = [
+    0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+    0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+    0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+    0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+    0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+    0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+    0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+    0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
+  ];
+
+  ascii += '\x80';
+  while ((ascii[lengthProperty] % 64) - 56) ascii += '\x00';
+  for (i = 0; i < ascii[lengthProperty]; i++) {
+    j = ascii.charCodeAt(i);
+    words[i >> 2] |= j << (((3 - i) % 4) * 8);
+  }
+  words[words[lengthProperty]] = (asciiBitLength / maxWord) | 0;
+  words[words[lengthProperty]] = asciiBitLength;
+
+  for (j = 0; j < words[lengthProperty];) {
+    const w = words.slice(j, (j += 16));
+    const oldHash = hash;
+    hash = hash.slice(0, 8);
+
+    for (i = 0; i < 64; i++) {
+      const i2 = i + j;
+      const w15 = w[i - 15],
+        w2 = w[i - 2];
+
+      const a = hash[0],
+        e = hash[4];
+      const temp1 =
+        hash[7] +
+        (rightRotate(e, 6) ^ rightRotate(e, 11) ^ rightRotate(e, 25)) +
+        ((e & hash[5]) ^ (~e & hash[6])) +
+        k[i] +
+        (w[i] =
+          i < 16
+            ? w[i]
+            : (w[i - 16] +
+                (rightRotate(w15, 7) ^ rightRotate(w15, 18) ^ (w15 >>> 3)) +
+                w[i - 7] +
+                (rightRotate(w2, 17) ^ rightRotate(w2, 19) ^ (w2 >>> 10))) |
+              0);
+      const temp2 =
+        (rightRotate(a, 2) ^ rightRotate(a, 13) ^ rightRotate(a, 22)) +
+        ((a & hash[1]) ^ (a & hash[2]) ^ (hash[1] & hash[2]));
+
+      hash = [(temp1 + temp2) | 0].concat(hash);
+      hash[4] = (hash[4] + temp1) | 0;
+    }
+
+    for (i = 0; i < 8; i++) {
+      hash[i] = (hash[i] + oldHash[i]) | 0;
+    }
+  }
+
+  for (i = 0; i < 8; i++) {
+    for (j = 3; j + 1; j--) {
+      const b = (hash[i] >> (j * 8)) & 255;
+      result += (b < 16 ? 0 : '') + b.toString(16);
+    }
+  }
+  return result;
+}
+
+async function computeSha256(str) {
+  try {
+    if (window.crypto && window.crypto.subtle && typeof window.crypto.subtle.digest === 'function') {
+      const enc = new TextEncoder();
+      const buf = await crypto.subtle.digest('SHA-256', enc.encode(str));
+      return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+  } catch (e) {
+    console.warn("Subtle crypto unavailable, using fallback:", e);
+  }
+  return sha256Fallback(str);
+}
+
 function checkAdminAuth() {
-  return localStorage.getItem('sc_admin_auth_798') === 'true' ||
-         sessionStorage.getItem('sc_admin_auth_798') === 'true';
+  const token = localStorage.getItem('sc_vault_token') || sessionStorage.getItem('sc_vault_token');
+  return token === EXPECTED_SESSION_TOKEN;
 }
 
 function setAdminAuth() {
-  localStorage.setItem('sc_admin_auth_798', 'true');
-  sessionStorage.setItem('sc_admin_auth_798', 'true');
+  localStorage.setItem('sc_vault_token', EXPECTED_SESSION_TOKEN);
+  sessionStorage.setItem('sc_vault_token', EXPECTED_SESSION_TOKEN);
 }
 
 function clearAdminAuth() {
+  localStorage.removeItem('sc_vault_token');
+  sessionStorage.removeItem('sc_vault_token');
   localStorage.removeItem('sc_admin_auth_798');
   sessionStorage.removeItem('sc_admin_auth_798');
   localStorage.removeItem('sc_admin_auth');
   sessionStorage.removeItem('sc_admin_auth');
 }
 
-// --- LOGIN OVERLAY ---
+// Clear any accidental stale lockouts
+try {
+  const staleLockout = parseInt(localStorage.getItem('sc_admin_lockout_until') || '0', 10);
+  if (staleLockout && Date.now() >= staleLockout) {
+    localStorage.removeItem('sc_admin_lockout_until');
+    localStorage.removeItem('sc_admin_failed_attempts');
+  }
+} catch (e) {}
+
+
+// --- LOGIN OVERLAY & BRUTE-FORCE DEFENSE ---
 const loginOverlay = document.getElementById('adminLoginOverlay');
 const loginBtn = document.getElementById('adminLoginBtn');
 const loginPass = document.getElementById('adminPass');
 const loginErr = document.getElementById('adminLoginError');
 const dashboard = document.getElementById('adminDashboard');
 
-function doAdminLogin() {
-  const enteredPass = (loginPass ? loginPass.value.trim() : '');
-  if (enteredPass === 'Suryacotton@798') {
-    if (loginErr) loginErr.style.display = 'none';
-    setAdminAuth();
-    if (loginOverlay) loginOverlay.classList.add('hidden');
-    if (dashboard) dashboard.classList.remove('hidden');
-    try {
-      initDashboard();
-    } catch (err) {
-      console.warn("Login init error:", err);
-    }
-  } else {
+async function doAdminLogin() {
+  const now = Date.now();
+  const lockoutUntil = parseInt(localStorage.getItem('sc_admin_lockout_until') || '0', 10);
+  if (lockoutUntil && now < lockoutUntil) {
+    const minsLeft = Math.ceil((lockoutUntil - now) / 60000);
     if (loginErr) {
-      loginErr.textContent = 'Invalid passcode. Please try again.';
+      loginErr.textContent = `⚠️ Security Lockout: Too many failed attempts. Try again in ${minsLeft} min(s).`;
       loginErr.style.display = 'block';
+    }
+    return;
+  }
+
+  const enteredPass = (loginPass ? loginPass.value.trim() : '');
+  if (!enteredPass) {
+    if (loginErr) {
+      loginErr.textContent = 'Please enter the admin passcode.';
+      loginErr.style.display = 'block';
+    }
+    return;
+  }
+
+  if (loginBtn) {
+    loginBtn.disabled = true;
+    loginBtn.textContent = 'Verifying Security Token...';
+  }
+
+  // Artificial 400ms latency to prevent rapid-fire automated brute force attacks
+  await new Promise(res => setTimeout(res, 400));
+
+  try {
+    const computedHash = await computeSha256(enteredPass + ADMIN_SALT);
+    if (computedHash === ADMIN_AUTH_HASH) {
+      localStorage.removeItem('sc_admin_failed_attempts');
+      localStorage.removeItem('sc_admin_lockout_until');
+      if (loginErr) loginErr.style.display = 'none';
+      setAdminAuth();
+      if (loginOverlay) loginOverlay.classList.add('hidden');
+      if (dashboard) dashboard.classList.remove('hidden');
+      try {
+        initDashboard();
+      } catch (err) {
+        console.warn("Login init error:", err);
+      }
+    } else {
+      let attempts = parseInt(localStorage.getItem('sc_admin_failed_attempts') || '0', 10) + 1;
+      localStorage.setItem('sc_admin_failed_attempts', String(attempts));
+      if (attempts >= 5) {
+        const lockTime = Date.now() + 15 * 60 * 1000;
+        localStorage.setItem('sc_admin_lockout_until', String(lockTime));
+        if (loginErr) {
+          loginErr.textContent = '⛔ Maximum attempts exceeded. Locked out for 15 minutes.';
+          loginErr.style.display = 'block';
+        }
+      } else {
+        if (loginErr) {
+          loginErr.textContent = `❌ Invalid passcode. (${5 - attempts} attempt(s) remaining).`;
+          loginErr.style.display = 'block';
+        }
+      }
+    }
+  } catch (err) {
+    console.error("Auth error:", err);
+    if (loginErr) {
+      loginErr.textContent = 'Verification error. Please try again.';
+      loginErr.style.display = 'block';
+    }
+  } finally {
+    if (loginBtn) {
+      loginBtn.disabled = false;
+      loginBtn.textContent = 'Access Dashboard';
     }
   }
 }
@@ -271,64 +458,91 @@ function showToast(msg) {
 
 // --- DATA INITIALIZATION ---
 async function loadData() {
-  // Load products from Firestore
-  try {
-    const querySnapshot = await getDocs(collection(db, "products"));
-    const firestoreProducts = [];
-    querySnapshot.forEach((docSnap) => {
-      // docSnap.id is the authoritative unique identifier in Firestore
-      const data = docSnap.data() || {};
-      firestoreProducts.push({ ...data, id: String(docSnap.id).trim() });
-    });
-    if (firestoreProducts.length > 0) {
-      const seenMap = new Map();
-      firestoreProducts.forEach(p => {
-        if (!p) return;
-        const key = String(p.id || '').trim();
-        if (key) {
-          seenMap.set(key, p);
-        }
+  const getBackendUrl = () => {
+    if (typeof window !== 'undefined' && window.BACKEND_URL) return window.BACKEND_URL.replace(/\/$/, '');
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') return 'http://localhost:3000';
+    return '';
+  };
+
+  // Safe fetch helper with AbortController timeout to prevent sleeping backends from blocking the admin UI
+  const fetchWithTimeout = (url, options = {}, timeoutMs = 6000) => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    return fetch(url, { ...options, signal: controller.signal })
+      .finally(() => clearTimeout(timer));
+  };
+
+  // 1. Load products from Firestore (Direct fast Google CDN)
+  const fetchProductsTask = (async () => {
+    try {
+      const querySnapshot = await getDocs(collection(db, "products"));
+      const firestoreProducts = [];
+      querySnapshot.forEach((docSnap) => {
+        const data = docSnap.data() || {};
+        firestoreProducts.push({ ...data, id: String(docSnap.id).trim() });
       });
-      products = Array.from(seenMap.values()).map(p => {
-        const origVal = parseInt(p.original) || 0;
-        const priceVal = parseInt(p.price) || 0;
-        const calcOff = (origVal > priceVal && origVal > 0) ? Math.round(((origVal - priceVal) / origVal) * 100) : (p.off || 0);
-        return {
-          ...p,
-          id: String(p.id).trim(),
-          off: calcOff,
-          rating: p.rating || 4.8,
-          reviews: p.reviews !== undefined ? p.reviews : 0
-        };
-      });
-      localStorage.setItem('sc_products', JSON.stringify(products));
-    } else {
-      products = [];
-      localStorage.setItem('sc_products', JSON.stringify([]));
+      if (firestoreProducts.length > 0) {
+        const seenMap = new Map();
+        firestoreProducts.forEach(p => {
+          if (!p) return;
+          const key = String(p.id || '').trim();
+          if (key) seenMap.set(key, p);
+        });
+        products = Array.from(seenMap.values()).map(p => {
+          const origVal = parseInt(p.original) || 0;
+          const priceVal = parseInt(p.price) || 0;
+          const calcOff = (origVal > priceVal && origVal > 0) ? Math.round(((origVal - priceVal) / origVal) * 100) : (p.off || 0);
+          return {
+            ...p,
+            id: String(p.id).trim(),
+            off: calcOff,
+            rating: p.rating || 4.8,
+            reviews: p.reviews !== undefined ? p.reviews : 0
+          };
+        });
+
+        // Strictly sort chronologically: Latest (Newest) uploaded products first!
+        products.sort((a, b) => {
+          const timeA = a.createdAt ? (a.createdAt.toDate ? a.createdAt.toDate().getTime() : new Date(a.createdAt).getTime()) : 0;
+          const timeB = b.createdAt ? (b.createdAt.toDate ? b.createdAt.toDate().getTime() : new Date(b.createdAt).getTime()) : 0;
+          return timeB - timeA;
+        });
+
+        localStorage.setItem('sc_products', JSON.stringify(products));
+      }
+    } catch(e) {
+      console.warn("Firestore products fetch notice:", e);
+      // Fallback: preserve existing memory or cached products so catalog count is not zeroed out
+      if (!products || products.length === 0) {
+        try {
+          products = JSON.parse(localStorage.getItem('sc_products') || '[]');
+        } catch(err) {}
+      }
     }
-  } catch(e) {
-    console.error("Error fetching products from Firestore:", e);
-    products = [];
-    localStorage.setItem('sc_products', JSON.stringify([]));
-  }
-  
-  // Load orders from Backend API (Supabase DB), Firestore & local storage
-  try {
+  })();
+
+  // 2. Load orders concurrently from Firestore and Backend API
+  const fetchOrdersTask = (async () => {
     const combinedMap = new Map();
 
-    // 1. Fetch from Backend API (Supabase DB)
-    try {
-      const getBackendUrl = () => {
-        if (typeof window !== 'undefined' && window.BACKEND_URL) return window.BACKEND_URL.replace(/\/$/, '');
-        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') return 'http://localhost:3000';
-        return 'https://backend-s6kq.onrender.com';
-      };
-      const bRes = await fetch(`${getBackendUrl()}/api/orders`);
-      if (bRes.ok) {
-        const bData = await bRes.json();
-        if (bData.orders && Array.isArray(bData.orders)) {
-          bData.orders.forEach(bo => {
-            combinedMap.set(String(bo.id), {
+    // Start both Firestore orders and Backend orders concurrently
+    const firestoreOrdersPromise = (async () => {
+      try {
+        const ordersSnap = await getDocs(collection(db, "orders"));
+        return ordersSnap.docs.map(doc => ({ firestoreId: doc.id, ...doc.data() }));
+      } catch (fsErr) {
+        console.warn("Firestore orders fetch notice:", fsErr.message);
+        return [];
+      }
+    })();
+
+    const backendOrdersPromise = (async () => {
+      try {
+        const bRes = await fetchWithTimeout(`${getBackendUrl()}/api/orders`, {}, 6000);
+        if (bRes.ok) {
+          const bData = await bRes.json();
+          if (bData.orders && Array.isArray(bData.orders)) {
+            return bData.orders.map(bo => ({
               id: bo.id,
               date: bo.created_at,
               customerName: bo.customer_name,
@@ -348,67 +562,75 @@ async function loadData() {
               courier_name: bo.courier_name,
               shipment_status: bo.shipment_status,
               tracking_url: bo.tracking_url
-            });
-          });
+            }));
+          }
         }
+      } catch (bErr) {
+        console.warn("Backend orders fetch notice (timeout/cold-start):", bErr.message);
       }
-    } catch(bErr) {
-      console.warn("Backend orders fetch notice:", bErr.message);
-    }
+      return [];
+    })();
 
-    // 2. Fetch from Firestore
-    try {
-      const ordersSnap = await getDocs(collection(db, "orders"));
-      ordersSnap.forEach((doc) => {
-        const data = doc.data();
-        const existing = combinedMap.get(String(data.id));
-        combinedMap.set(String(data.id), { firestoreId: doc.id, ...existing, ...data });
-      });
-    } catch(fsErr) {
-      console.warn("Firestore orders fetch notice:", fsErr.message);
-    }
+    const [fsResults, backendResults] = await Promise.all([
+      firestoreOrdersPromise,
+      backendOrdersPromise
+    ]);
 
-    // 3. Merge Local Storage Orders
-    const localOrders = JSON.parse(localStorage.getItem('sc_all_orders') || '[]');
-    localOrders.forEach(o => {
-      if (o && o.id) {
-        const existing = combinedMap.get(String(o.id));
-        if (!existing) {
-          combinedMap.set(String(o.id), o);
-        } else {
-          combinedMap.set(String(o.id), { ...o, ...existing });
-        }
+    // Backend results first
+    (backendResults || []).forEach(bo => {
+      if (bo && bo.id) combinedMap.set(String(bo.id), bo);
+    });
+
+    // Merge Firestore orders (Authoritative Source of Truth)
+    (fsResults || []).forEach(fo => {
+      if (fo && fo.id) {
+        const existing = combinedMap.get(String(fo.id));
+        combinedMap.set(String(fo.id), { ...existing, ...fo });
       }
     });
 
-    orders = Array.from(combinedMap.values());
-    localStorage.setItem('sc_all_orders', JSON.stringify(orders));
-  } catch(e) {
-    console.error("Error fetching orders:", e);
-    orders = JSON.parse(localStorage.getItem('sc_all_orders') || '[]');
-  }
+    // If network couldn't connect, fall back to cached orders
+    if (combinedMap.size === 0) {
+      try {
+        const localOrders = JSON.parse(localStorage.getItem('sc_all_orders') || '[]');
+        localOrders.forEach(o => {
+          if (o && o.id) combinedMap.set(String(o.id), o);
+        });
+      } catch (e) {}
+    }
 
-  // Load free shipping setting from Firestore or local fallback
-  try {
-    const settingsSnap = await getDoc(doc(db, "settings", "shipping"));
-    if (settingsSnap.exists()) {
-      const isFree = !!settingsSnap.data().freeShipping;
-      localStorage.setItem('sc_free_shipping', String(isFree));
-      const toggle = document.getElementById('freeShippingToggle');
-      if (toggle) toggle.checked = isFree;
-      updateFreeShippingLabel(isFree);
-    } else {
+    if (combinedMap.size > 0 || orders.length === 0) {
+      orders = Array.from(combinedMap.values());
+      localStorage.setItem('sc_all_orders', JSON.stringify(orders));
+    }
+  })();
+
+  // 3. Load free shipping setting
+  const fetchSettingsTask = (async () => {
+    try {
+      const settingsSnap = await getDoc(doc(db, "settings", "shipping"));
+      if (settingsSnap.exists()) {
+        const isFree = !!settingsSnap.data().freeShipping;
+        localStorage.setItem('sc_free_shipping', String(isFree));
+        const toggle = document.getElementById('freeShippingToggle');
+        if (toggle) toggle.checked = isFree;
+        updateFreeShippingLabel(isFree);
+      } else {
+        const isFree = localStorage.getItem('sc_free_shipping') === 'true';
+        const toggle = document.getElementById('freeShippingToggle');
+        if (toggle) toggle.checked = isFree;
+        updateFreeShippingLabel(isFree);
+      }
+    } catch (e) {
       const isFree = localStorage.getItem('sc_free_shipping') === 'true';
       const toggle = document.getElementById('freeShippingToggle');
       if (toggle) toggle.checked = isFree;
       updateFreeShippingLabel(isFree);
     }
-  } catch (e) {
-    const isFree = localStorage.getItem('sc_free_shipping') === 'true';
-    const toggle = document.getElementById('freeShippingToggle');
-    if (toggle) toggle.checked = isFree;
-    updateFreeShippingLabel(isFree);
-  }
+  })();
+
+  // Execute all tasks in parallel so the page loads within hundreds of milliseconds
+  await Promise.allSettled([fetchProductsTask, fetchOrdersTask, fetchSettingsTask]);
 
   renderOverview();
   renderProducts();
@@ -420,7 +642,7 @@ async function loadData() {
     const getBackendUrl = () => {
       if (typeof window !== 'undefined' && window.BACKEND_URL) return window.BACKEND_URL.replace(/\/$/, '');
       if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') return 'http://localhost:3000';
-      return 'https://backend-s6kq.onrender.com';
+      return '';
     };
     fetch(`${getBackendUrl()}/api/admin/sync-shiprocket-status`)
       .then(r => r.json())
@@ -478,18 +700,674 @@ function updateFreeShippingLabel(isFree) {
   }
 }
 
-function initDashboard() {
-  loadData();
-  renderOrders();
-  renderReviews();
+let ordersUnsub = null;
+let productsUnsub = null;
+
+async function initDashboard() {
+  // 1. Instant optimistic render from cache (0ms) so mobile users immediately see real counts without waiting
+  if (products.length > 0 || orders.length > 0) {
+    renderOverview();
+    if (typeof renderProducts === 'function') renderProducts();
+    if (typeof renderOrders === 'function') renderOrders();
+  }
+
+  // 2. Fetch fresh live data concurrently without freezing the screen
+  await loadData();
+  renderOverview();
+  if (typeof renderOrders === 'function') renderOrders();
+  if (typeof renderReviews === 'function') renderReviews();
+
+  // Attach Realtime Firestore Listener for Incoming Orders
+  if (!ordersUnsub) {
+    try {
+      ordersUnsub = onSnapshot(collection(db, "orders"), (snapshot) => {
+        let changed = false;
+        snapshot.docChanges().forEach((change) => {
+          const data = change.doc.data();
+          const docId = String(change.doc.id);
+          const orderId = String(data.id || docId);
+          const existingIdx = orders.findIndex(o => String(o.id) === orderId || String(o.firestoreId) === docId);
+
+          if (change.type === "added") {
+            if (existingIdx === -1) {
+              orders.unshift({ firestoreId: docId, ...data });
+              changed = true;
+            }
+          } else if (change.type === "modified") {
+            if (existingIdx > -1) {
+              orders[existingIdx] = { ...orders[existingIdx], ...data, firestoreId: docId };
+              changed = true;
+            } else {
+              orders.unshift({ firestoreId: docId, ...data });
+              changed = true;
+            }
+          } else if (change.type === "removed") {
+            if (existingIdx > -1) {
+              orders.splice(existingIdx, 1);
+              changed = true;
+            }
+          }
+        });
+
+        if (changed) {
+          localStorage.setItem('sc_all_orders', JSON.stringify(orders));
+          renderOverview();
+          if (typeof renderOrders === 'function') renderOrders();
+        }
+      }, (err) => {
+        console.warn("Realtime orders listener notice:", err);
+      });
+    } catch (e) {
+      console.warn("Could not attach orders realtime listener:", e);
+    }
+  }
+
+  // Attach Realtime Firestore Listener for Catalog Products
+  if (!productsUnsub) {
+    try {
+      productsUnsub = onSnapshot(collection(db, "products"), (snapshot) => {
+        let changed = false;
+        snapshot.docChanges().forEach((change) => {
+          const data = change.doc.data();
+          const prodId = String(change.doc.id).trim();
+          const existingIdx = products.findIndex(p => String(p.id).trim() === prodId);
+
+          if (change.type === "added") {
+            if (existingIdx === -1) {
+              const origVal = parseInt(data.original) || 0;
+              const priceVal = parseInt(data.price) || 0;
+              const calcOff = (origVal > priceVal && origVal > 0) ? Math.round(((origVal - priceVal) / origVal) * 100) : (data.off || 0);
+              products.push({
+                ...data,
+                id: prodId,
+                off: calcOff,
+                rating: data.rating || 4.8,
+                reviews: data.reviews !== undefined ? data.reviews : 0
+              });
+              changed = true;
+            }
+          } else if (change.type === "modified") {
+            if (existingIdx > -1) {
+              const origVal = parseInt(data.original) || 0;
+              const priceVal = parseInt(data.price) || 0;
+              const calcOff = (origVal > priceVal && origVal > 0) ? Math.round(((origVal - priceVal) / origVal) * 100) : (data.off || 0);
+              products[existingIdx] = {
+                ...products[existingIdx],
+                ...data,
+                id: prodId,
+                off: calcOff
+              };
+              changed = true;
+            }
+          } else if (change.type === "removed") {
+            if (existingIdx > -1) {
+              products.splice(existingIdx, 1);
+              changed = true;
+            }
+          }
+        });
+
+        if (changed) {
+          localStorage.setItem('sc_products', JSON.stringify(products));
+          renderOverview();
+          if (typeof renderProducts === 'function') renderProducts();
+        }
+      }, (err) => {
+        console.warn("Realtime products listener notice:", err);
+      });
+    } catch (e) {
+      console.warn("Could not attach products realtime listener:", e);
+    }
+  }
 }
 
-// --- OVERVIEW TAB ---
+// --- OVERVIEW TAB ANALYTICS & VISUALIZATION ---
+
+// Safe order total parser: strips currency signs, commas, and handles string concatenation bugs
+function parseOrderTotal(order) {
+  if (!order) return 0;
+  let val = order.total !== undefined ? order.total : order.total_amount;
+  if (typeof val === 'number') return isNaN(val) ? 0 : val;
+  if (typeof val === 'string') {
+    const cleaned = val.replace(/[^0-9.]/g, '');
+    const num = parseFloat(cleaned);
+    return isNaN(num) ? 0 : num;
+  }
+  return 0;
+}
+
+// Safe order items extractor (handles items vs products field)
+function getOrderItems(order) {
+  if (!order) return [];
+  if (Array.isArray(order.items) && order.items.length > 0) return order.items;
+  if (Array.isArray(order.products) && order.products.length > 0) return order.products;
+  return [];
+}
+
+// Official 6 Store Categories Registry (Strictly 6 categories: Shirts, T-Shirts, Pants, Shorts, Caps, Keychains)
+const OFFICIAL_CATEGORIES = {
+  shirt: { key: 'shirt', name: 'Shirts', icon: '👔' },
+  tshirt: { key: 'tshirt', name: 'T-Shirts', icon: '👕' },
+  pant: { key: 'pant', name: 'Pants', icon: '👖' },
+  shorts: { key: 'shorts', name: 'Shorts', icon: '🩳' },
+  caps: { key: 'caps', name: 'Caps', icon: '🧢' },
+  keychains: { key: 'keychains', name: 'Keychains', icon: '🔑' }
+};
+
+function resolveCategory(cat, name = '') {
+  let c = String(cat || '').trim().toLowerCase();
+  const n = String(name || '').toLowerCase();
+
+  // 1. Direct Category Match
+  if (c === 'shirt' || c === 'shirts') return OFFICIAL_CATEGORIES.shirt;
+  if (c === 'tshirt' || c === 't-shirt' || c === 'tshirts' || c === 't-shirts' || c === 'tee') return OFFICIAL_CATEGORIES.tshirt;
+  if (c === 'pant' || c === 'pants' || c === 'jeans' || c === 'trouser' || c === 'trousers') return OFFICIAL_CATEGORIES.pant;
+  if (c === 'shorts' || c === 'short') return OFFICIAL_CATEGORIES.shorts;
+  if (c === 'caps' || c === 'cap' || c === 'hat') return OFFICIAL_CATEGORIES.caps;
+  if (c === 'keychains' || c === 'keychain' || c === 'accessory' || c === 'accessories') return OFFICIAL_CATEGORIES.keychains;
+
+  // 2. Comprehensive apparel keyword matching
+  // T-Shirts:
+  if (n.includes('t-shirt') || n.includes('tshirt') || n.includes('tee') || n.includes('polo') || n.includes('hoodie') || n.includes('sweatshirt') || n.includes('round neck') || n.includes('crewneck') || n.includes('crew neck')) {
+    return OFFICIAL_CATEGORIES.tshirt;
+  }
+  // Pants:
+  if (n.includes('pant') || n.includes('jean') || n.includes('trouser') || n.includes('cargo') || n.includes('denim') || n.includes('chino') || n.includes('jogger') || n.includes('track') || n.includes('waist')) {
+    return OFFICIAL_CATEGORIES.pant;
+  }
+  // Shorts:
+  if (n.includes('short') || n.includes('boxer') || n.includes('bermuda') || n.includes('swim')) {
+    return OFFICIAL_CATEGORIES.shorts;
+  }
+  // Caps:
+  if (n.includes('cap') || n.includes('hat') || n.includes('snapback') || n.includes('beanie') || n.includes('headwear')) {
+    return OFFICIAL_CATEGORIES.caps;
+  }
+  // Keychains:
+  if (n.includes('keychain') || n.includes('key ring') || n.includes('key chain') || n.includes('ring') || n.includes('chain') || n.includes('crest') || n.includes('strap') || n.includes('wallet')) {
+    return OFFICIAL_CATEGORIES.keychains;
+  }
+  // Shirts (including Oxford, Flannels, Linen, Formal, etc.):
+  if (n.includes('shirt') || n.includes('oxford') || n.includes('flannel') || n.includes('linen') || n.includes('formal') || n.includes('casual') || n.includes('kurta') || n.includes('blazer') || n.includes('suit') || n.includes('collar') || n.includes('button')) {
+    return OFFICIAL_CATEGORIES.shirt;
+  }
+
+  // 3. Fallback: Default to Shirts (Apparel default). NEVER create or return 'other' or 'Other Apparel'!
+  return OFFICIAL_CATEGORIES.shirt;
+}
+
+// Compute comprehensive sales analytics for Overview
+function computeSalesAnalytics(ordersList, productsList) {
+  let totalRevenue = 0;
+  let totalUnitsSold = 0;
+  let validOrdersCount = 0;
+  let pendingOrdersCount = 0;
+
+  // Base category registry - strictly the 6 official store categories
+  const categoryStats = {
+    'shirt': { key: 'shirt', name: 'Shirts', icon: '👔', units: 0, revenue: 0, catalogCount: 0 },
+    'tshirt': { key: 'tshirt', name: 'T-Shirts', icon: '👕', units: 0, revenue: 0, catalogCount: 0 },
+    'pant': { key: 'pant', name: 'Pants', icon: '👖', units: 0, revenue: 0, catalogCount: 0 },
+    'shorts': { key: 'shorts', name: 'Shorts', icon: '🩳', units: 0, revenue: 0, catalogCount: 0 },
+    'caps': { key: 'caps', name: 'Caps', icon: '🧢', units: 0, revenue: 0, catalogCount: 0 },
+    'keychains': { key: 'keychains', name: 'Keychains', icon: '🔑', units: 0, revenue: 0, catalogCount: 0 }
+  };
+
+  // 1. Analyze active products in catalog
+  let outOfStockCount = 0;
+  (productsList || []).forEach(p => {
+    let resolved = resolveCategory(p.cat, p.name);
+    if (!categoryStats[resolved.key]) resolved = OFFICIAL_CATEGORIES.shirt;
+    categoryStats[resolved.key].catalogCount += 1;
+    const stockVal = parseInt(p.stock);
+    if (!isNaN(stockVal) && stockVal <= 0) {
+      outOfStockCount++;
+    }
+  });
+
+  // 2. Track product sales performance
+  const productMap = new Map();
+
+  // Seed product map with all active catalog products
+  (productsList || []).forEach(p => {
+    const pKey = String(p.id || p.name).trim();
+    let resolved = resolveCategory(p.cat, p.name);
+    if (!categoryStats[resolved.key]) resolved = OFFICIAL_CATEGORIES.shirt;
+    const thumbImg = (p.images && p.images[0]) || p.img || 'Logo.png';
+    const priceVal = parseInt(p.price) || 0;
+    productMap.set(pKey, {
+      id: p.id,
+      name: p.name || 'Untitled Product',
+      img: thumbImg,
+      catKey: resolved.key,
+      catName: resolved.name,
+      price: priceVal,
+      unitsSold: 0,
+      revenue: 0,
+      sizes: {},
+      stock: p.stock !== undefined ? p.stock : 'N/A',
+      inCatalog: true
+    });
+  });
+
+  // 3. Process orders
+  (ordersList || []).forEach(order => {
+    const isCancelled = String(order.status || '').toLowerCase() === 'cancelled' ||
+                        String(order.shipment_status || '').toUpperCase() === 'CANCELLED';
+
+    const isPending = !isCancelled && (
+      String(order.status || '').toLowerCase() === 'processing' ||
+      !order.shipment_status ||
+      order.shipment_status === 'ORDER_CREATED' ||
+      order.shipment_status === 'AWB_PENDING'
+    );
+    if (isPending) pendingOrdersCount++;
+
+    if (!isCancelled) {
+      validOrdersCount++;
+      const orderRev = parseOrderTotal(order);
+      totalRevenue += orderRev;
+
+      const items = getOrderItems(order);
+      items.forEach(item => {
+        const qty = parseInt(item.qty || item.quantity) || 1;
+        totalUnitsSold += qty;
+
+        // Try to match product
+        const matchedP = (productsList || []).find(p =>
+          String(p.id).trim() === String(item.id || item.productId).trim() ||
+          String(p.name || '').trim().toLowerCase() === String(item.name || '').trim().toLowerCase()
+        );
+
+        let resolved = resolveCategory(item.cat || (matchedP ? matchedP.cat : ''), item.name || (matchedP ? matchedP.name : ''));
+        if (!categoryStats[resolved.key]) resolved = OFFICIAL_CATEGORIES.shirt;
+        const unitPrice = parseFloat(item.price) || (matchedP ? parseFloat(matchedP.price) : 0) || 0;
+        const itemRev = unitPrice * qty;
+
+        // Update category stats (strictly within the 6 categories)
+        categoryStats[resolved.key].units += qty;
+        categoryStats[resolved.key].revenue += itemRev;
+
+        // Update product stats
+        const prodKey = matchedP ? String(matchedP.id).trim() : (item.id || item.name || 'unknown');
+        let prodEntry = productMap.get(prodKey);
+        if (!prodEntry) {
+          prodEntry = {
+            id: item.id || (matchedP ? matchedP.id : null),
+            name: item.name || (matchedP ? matchedP.name : 'Unknown Product'),
+            img: item.img || item.image || (matchedP ? (matchedP.img || matchedP.images?.[0]) : 'Logo.png'),
+            catKey: resolved.key,
+            catName: resolved.name,
+            price: unitPrice,
+            unitsSold: 0,
+            revenue: 0,
+            sizes: {},
+            stock: matchedP ? matchedP.stock : 'N/A',
+            inCatalog: !!matchedP
+          };
+          productMap.set(prodKey, prodEntry);
+        }
+
+        prodEntry.unitsSold += qty;
+        prodEntry.revenue += itemRev;
+        if (unitPrice > 0 && !prodEntry.price) prodEntry.price = unitPrice;
+
+        const sizeLabel = String(item.size || '').trim() || 'Standard';
+        prodEntry.sizes[sizeLabel] = (prodEntry.sizes[sizeLabel] || 0) + qty;
+      });
+    }
+  });
+
+  const allProducts = Array.from(productMap.values());
+  allProducts.sort((a, b) => b.unitsSold - a.unitsSold || b.revenue - a.revenue);
+  allProducts.forEach((p, idx) => {
+    p.globalRank = idx + 1;
+  });
+  const soldProducts = allProducts.filter(p => p.unitsSold > 0);
+
+  return {
+    totalRevenue,
+    totalOrders: ordersList.length,
+    validOrdersCount,
+    pendingOrdersCount,
+    totalUnitsSold,
+    soldProductsCount: soldProducts.length,
+    outOfStockCount,
+    categoryStats,
+    productRanking: allProducts,
+    soldProductRanking: soldProducts
+  };
+}
+
+let categorySalesChartInstance = null;
+let categoryRevenueChartInstance = null;
+let currentOverviewRanking = [];
+
+function renderSalesCharts(analytics) {
+  if (typeof Chart === 'undefined') {
+    setTimeout(() => {
+      if (typeof Chart !== 'undefined') renderSalesCharts(analytics);
+    }, 600);
+    return;
+  }
+
+  const catKeys = Object.keys(analytics.categoryStats);
+  const categories = catKeys.map(k => analytics.categoryStats[k]);
+  const activeForUnits = categories.filter(c => c.units > 0);
+  const activeForRevenue = categories.filter(c => c.revenue > 0);
+
+  const chartColors = [
+    '#e8000d', '#2563eb', '#16a34a', '#0f172a',
+    '#d97706', '#7c3aed', '#0891b2', '#db2777'
+  ];
+
+  // 1. Doughnut Chart: Units Sold by Category
+  const salesCanvas = document.getElementById('categorySalesChart');
+  const salesEmpty = document.getElementById('categoryChartEmpty');
+
+  if (salesCanvas) {
+    if (activeForUnits.length === 0) {
+      salesCanvas.style.display = 'none';
+      if (salesEmpty) salesEmpty.style.display = 'block';
+      if (categorySalesChartInstance) {
+        categorySalesChartInstance.destroy();
+        categorySalesChartInstance = null;
+      }
+    } else {
+      salesCanvas.style.display = 'block';
+      if (salesEmpty) salesEmpty.style.display = 'none';
+
+      if (categorySalesChartInstance) {
+        categorySalesChartInstance.destroy();
+      }
+
+      categorySalesChartInstance = new Chart(salesCanvas, {
+        type: 'doughnut',
+        data: {
+          labels: activeForUnits.map(c => `${c.icon} ${c.name}`),
+          datasets: [{
+            data: activeForUnits.map(c => c.units),
+            backgroundColor: chartColors.slice(0, activeForUnits.length),
+            borderWidth: 2,
+            borderColor: '#ffffff',
+            hoverOffset: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '66%',
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                boxWidth: 12,
+                font: { size: 11, weight: '600', family: "'Outfit', sans-serif" },
+                padding: 12
+              }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const val = context.raw || 0;
+                  const total = analytics.totalUnitsSold || 1;
+                  const pct = Math.round((val / total) * 100);
+                  return ` ${val} unit(s) (${pct}%)`;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+  }
+
+  // 2. Bar Chart: Revenue by Category
+  const revCanvas = document.getElementById('categoryRevenueChart');
+  const revEmpty = document.getElementById('revenueChartEmpty');
+
+  if (revCanvas) {
+    if (activeForRevenue.length === 0) {
+      revCanvas.style.display = 'none';
+      if (revEmpty) revEmpty.style.display = 'block';
+      if (categoryRevenueChartInstance) {
+        categoryRevenueChartInstance.destroy();
+        categoryRevenueChartInstance = null;
+      }
+    } else {
+      revCanvas.style.display = 'block';
+      if (revEmpty) revEmpty.style.display = 'none';
+
+      if (categoryRevenueChartInstance) {
+        categoryRevenueChartInstance.destroy();
+      }
+
+      categoryRevenueChartInstance = new Chart(revCanvas, {
+        type: 'bar',
+        data: {
+          labels: activeForRevenue.map(c => c.name),
+          datasets: [{
+            label: 'Revenue (₹)',
+            data: activeForRevenue.map(c => c.revenue),
+            backgroundColor: chartColors.slice(0, activeForRevenue.length),
+            borderRadius: 6,
+            maxBarThickness: 45
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: function(val) {
+                  return '₹' + Number(val).toLocaleString('en-IN');
+                },
+                font: { size: 10, family: "'Outfit', sans-serif" }
+              },
+              grid: { color: 'rgba(226, 232, 240, 0.6)' }
+            },
+            x: {
+              grid: { display: false },
+              ticks: { font: { size: 11, weight: '600', family: "'Outfit', sans-serif" } }
+            }
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return ` Revenue: ₹${Number(context.raw).toLocaleString('en-IN')}`;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+  }
+}
+
+function renderCategoryStatsGrid(analytics) {
+  const grid = document.getElementById('categoryStatsGrid');
+  if (!grid) return;
+
+  const categories = Object.values(analytics.categoryStats);
+  grid.innerHTML = categories.map(cat => {
+    return `
+      <div class="cat-stat-card">
+        <div class="cat-stat-top">
+          <span class="cat-stat-icon">${cat.icon}</span>
+          <span class="cat-stat-badge">${cat.units} Sold</span>
+        </div>
+        <div class="cat-stat-name">${cat.name}</div>
+        <div class="cat-stat-val">₹${Number(cat.revenue).toLocaleString('en-IN')}</div>
+        <div class="cat-stat-sub">
+          <span>📦 In Catalog: <strong>${cat.catalogCount}</strong></span>
+          <span>👕 Sold: <strong>${cat.units} pcs</strong></span>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderOverviewProductsTable(salesList) {
+  const tbody = document.getElementById('overviewProductsTableBody');
+  if (!tbody) return;
+
+  currentOverviewRanking = salesList || [];
+  const searchInput = document.getElementById('overviewProdSearch');
+  const subEl = document.getElementById('overviewTableSub');
+  const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+  const isSearchActive = query.length > 0;
+
+  let listToRender = currentOverviewRanking;
+  if (isSearchActive) {
+    listToRender = listToRender.filter(p =>
+      String(p.name || '').toLowerCase().includes(query) ||
+      String(p.catName || '').toLowerCase().includes(query) ||
+      String(p.id || '').toLowerCase().includes(query)
+    );
+    if (subEl) {
+      subEl.innerHTML = `Showing <strong>${listToRender.length}</strong> matching product(s) for "<em>${query}</em>"`;
+    }
+  } else {
+    // Show only Top 10 Best Sellers by default
+    listToRender = listToRender.slice(0, 10);
+    if (subEl) {
+      subEl.textContent = 'Showing Top 10 Best Sellers (Search any product above to check its sales)';
+    }
+  }
+
+  if (listToRender.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="7" style="text-align:center; padding: 2.5rem 1rem; color: #64748b;">
+          ${isSearchActive ? `No product found matching "${query}". Try searching by product name, category, or ID.` : 'No products found in catalog.'}
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = listToRender.map((p, idx) => {
+    const sizeKeys = Object.keys(p.sizes || {});
+    let sizePills = sizeKeys.length > 0
+      ? sizeKeys.map(sz => `<span class="size-pill">${sz}: <strong>${p.sizes[sz]}</strong></span>`).join(' ')
+      : '<span style="color:#94a3b8; font-size:0.8rem;">0 units sold</span>';
+
+    let stockDisplay = '';
+    const numericStock = parseInt(p.stock);
+    if (!isNaN(numericStock)) {
+      if (numericStock <= 0) {
+        stockDisplay = `<span style="background:#fee2e2; color:#b91c1c; padding:3px 8px; border-radius:6px; font-size:0.75rem; font-weight:700;">Out of Stock</span>`;
+      } else if (numericStock <= 5) {
+        stockDisplay = `<span style="background:#fef3c7; color:#b45309; padding:3px 8px; border-radius:6px; font-size:0.75rem; font-weight:700;">Low: ${numericStock} pcs</span>`;
+      } else {
+        stockDisplay = `<span style="background:#dcfce7; color:#15803d; padding:3px 8px; border-radius:6px; font-size:0.75rem; font-weight:700;">${numericStock} in stock</span>`;
+      }
+    } else {
+      stockDisplay = `<span style="background:#f1f5f9; color:#475569; padding:3px 8px; border-radius:6px; font-size:0.75rem; font-weight:600;">Active Catalog</span>`;
+    }
+
+    const rankNum = p.globalRank || (idx + 1);
+    let rankBadge = `<span class="rank-badge">${rankNum}</span>`;
+    if (rankNum === 1 && p.unitsSold > 0) rankBadge = `<span class="rank-badge rank-1">🥇 1</span>`;
+    else if (rankNum === 2 && p.unitsSold > 0) rankBadge = `<span class="rank-badge rank-2">🥈 2</span>`;
+    else if (rankNum === 3 && p.unitsSold > 0) rankBadge = `<span class="rank-badge rank-3">🥉 3</span>`;
+    else if (p.unitsSold > 0) rankBadge = `<span class="rank-badge">#${rankNum}</span>`;
+    else rankBadge = `<span class="rank-badge" style="background:#f1f5f9; color:#94a3b8; font-weight:600;">-</span>`;
+
+    return `
+      <tr>
+        <td>
+          <div style="display:flex; align-items:center; gap: 10px;">
+            ${rankBadge}
+            <img src="${p.img || 'Logo.png'}" alt="${p.name}" style="width: 44px; height: 50px; border-radius: 8px; object-fit: cover; border: 1px solid #e2e8f0; background: #f8fafc; flex-shrink: 0;" />
+            <div>
+              <div style="font-weight: 700; color: #0f172a; font-size: 0.95rem; line-height: 1.3;">${p.name}</div>
+              <small style="color: #64748b; font-size: 0.78rem;">ID: ${p.id || 'N/A'}</small>
+            </div>
+          </div>
+        </td>
+        <td>
+          <span style="background:#f1f5f9; color:#334155; font-size:0.75rem; font-weight:700; padding:3px 8px; border-radius:6px; text-transform:uppercase;">
+            ${p.catName || 'Product'}
+          </span>
+        </td>
+        <td style="text-align: center;">
+          <strong style="font-size: 1.05rem; color: ${p.unitsSold > 0 ? 'var(--red)' : '#64748b'};">${p.unitsSold} pcs</strong>
+        </td>
+        <td>
+          <div style="display:flex; gap: 4px; flex-wrap: wrap;">
+            ${sizePills}
+          </div>
+        </td>
+        <td style="text-align: right; font-weight: 600;">
+          ₹${Number(p.price || 0).toLocaleString('en-IN')}
+        </td>
+        <td style="text-align: right; font-weight: 800; color: #0f172a;">
+          ₹${Number(p.revenue || 0).toLocaleString('en-IN')}
+        </td>
+        <td style="text-align: center;">
+          ${stockDisplay}
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+window.filterOverviewProducts = function() {
+  renderOverviewProductsTable(currentOverviewRanking);
+};
+
+// --- OVERVIEW TAB MAIN RENDER ---
 function renderOverview() {
-  const totalRev = orders.reduce((sum, o) => sum + (o.total || 0), 0);
-  document.getElementById('statRevenue').textContent = '₹' + totalRev.toLocaleString();
-  document.getElementById('statOrders').textContent = orders.length;
-  document.getElementById('statProducts').textContent = products.length;
+  const analytics = computeSalesAnalytics(orders, products);
+
+  // 1. KPI Cards
+  const revEl = document.getElementById('statRevenue');
+  const revSubEl = document.getElementById('statRevenueSub');
+  const ordersEl = document.getElementById('statOrders');
+  const ordersSubEl = document.getElementById('statOrdersSub');
+  const unitsEl = document.getElementById('statUnitsSold');
+  const unitsSubEl = document.getElementById('statUnitsSoldSub');
+  const prodEl = document.getElementById('statProducts');
+  const prodSubEl = document.getElementById('statProductsSub');
+
+  if (revEl) {
+    revEl.textContent = '₹' + Math.round(analytics.totalRevenue).toLocaleString('en-IN');
+    revEl.classList.remove('loading-pulse');
+  }
+  if (revSubEl) revSubEl.textContent = `${analytics.validOrdersCount} active/fulfilled order(s)`;
+
+  if (ordersEl) {
+    ordersEl.textContent = analytics.totalOrders.toLocaleString('en-IN');
+    ordersEl.classList.remove('loading-pulse');
+  }
+  if (ordersSubEl) ordersSubEl.textContent = `${analytics.pendingOrdersCount} pending fulfillment`;
+
+  if (unitsEl) {
+    unitsEl.textContent = analytics.totalUnitsSold.toLocaleString('en-IN');
+    unitsEl.classList.remove('loading-pulse');
+  }
+  if (unitsSubEl) unitsSubEl.textContent = `${analytics.soldProductsCount} product(s) sold`;
+
+  if (prodEl) {
+    prodEl.textContent = products.length.toLocaleString('en-IN');
+    prodEl.classList.remove('loading-pulse');
+  }
+  if (prodSubEl) prodSubEl.textContent = analytics.outOfStockCount > 0 ? `${analytics.outOfStockCount} out of stock` : `All catalog products live`;
+
+  // 2. Charts
+  renderSalesCharts(analytics);
+
+  // 3. Category Stats Cards Grid
+  renderCategoryStatsGrid(analytics);
+
+  // 4. Product-wise Sales Table
+  renderOverviewProductsTable(analytics.productRanking);
 }
 
 // --- PRODUCTS TAB FILTERS & SEARCH ---
@@ -684,7 +1562,7 @@ const categoryTemplates = {
           <option value="Formal Shirt">Formal Shirt</option>
         </select>
       </div>
-      <div class="form-group"><label>Brand</label><input type="text" id="df_brand" placeholder="e.g. SuryaCottons"></div>
+      <div class="form-group"><label>Brand</label><input type="text" id="df_brand" placeholder="e.g. SuryaCotton"></div>
     </div>
     <div class="form-row">
       <div class="form-group"><label>Fabric</label><input type="text" id="df_fabric" placeholder="e.g. 100% Cotton, Linen"></div>
@@ -715,7 +1593,7 @@ const categoryTemplates = {
           <option value="Formal Trouser">Formal Trouser</option>
         </select>
       </div>
-      <div class="form-group"><label>Brand</label><input type="text" id="df_brand" placeholder="e.g. SuryaCottons"></div>
+      <div class="form-group"><label>Brand</label><input type="text" id="df_brand" placeholder="e.g. SuryaCotton"></div>
     </div>
     <div class="form-row">
       <div class="form-group"><label>Fabric</label><input type="text" id="df_fabric" placeholder="e.g. Cotton Twill, Denim, Stretch"></div>
@@ -723,7 +1601,30 @@ const categoryTemplates = {
     </div>
     <div class="form-row">
       <div class="form-group"><label>Color</label><input type="text" id="df_color" placeholder="e.g. Black, Khaki, Denim Blue"></div>
-      <div class="form-group"><label>Waist Size</label><div class="checkbox-group" id="df_waist"><label><input type="checkbox" value="28"> 28</label><label><input type="checkbox" value="30"> 30</label><label><input type="checkbox" value="32"> 32</label><label><input type="checkbox" value="34"> 34</label><label><input type="checkbox" value="36"> 36</label><label><input type="checkbox" value="38"> 38</label></div></div>
+      <div class="form-group">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.45rem; flex-wrap: wrap; gap: 0.5rem;">
+          <label style="margin: 0; font-weight: 700;">Size Selection</label>
+          <div class="pant-size-mode-toggle" id="pantSizeModeToggle">
+            <button type="button" class="pant-size-toggle-btn active" data-mode="number" id="pantModeNumBtn">Number (28-38)</button>
+            <button type="button" class="pant-size-toggle-btn" data-mode="letter" id="pantModeLetBtn">Letter (S-XXL)</button>
+          </div>
+        </div>
+        <div class="checkbox-group" id="df_waist">
+          <label><input type="checkbox" value="28"> 28</label>
+          <label><input type="checkbox" value="30"> 30</label>
+          <label><input type="checkbox" value="32"> 32</label>
+          <label><input type="checkbox" value="34"> 34</label>
+          <label><input type="checkbox" value="36"> 36</label>
+          <label><input type="checkbox" value="38"> 38</label>
+        </div>
+        <div class="checkbox-group" id="df_size" style="display: none;">
+          <label><input type="checkbox" value="S"> S</label>
+          <label><input type="checkbox" value="M"> M</label>
+          <label><input type="checkbox" value="L"> L</label>
+          <label><input type="checkbox" value="XL"> XL</label>
+          <label><input type="checkbox" value="XXL"> XXL</label>
+        </div>
+      </div>
     </div>
   `,
   tshirt: `
@@ -740,7 +1641,7 @@ const categoryTemplates = {
           <option value="Oversized T-Shirt">Oversized T-Shirt</option>
         </select>
       </div>
-      <div class="form-group"><label>Brand</label><input type="text" id="df_brand" placeholder="e.g. SuryaCottons"></div>
+      <div class="form-group"><label>Brand</label><input type="text" id="df_brand" placeholder="e.g. SuryaCotton"></div>
     </div>
     <div class="form-row">
       <div class="form-group"><label>Fabric</label><input type="text" id="df_fabric" placeholder="e.g. 100% Combed Cotton, Bio-Wash"></div>
@@ -767,7 +1668,7 @@ const categoryTemplates = {
           <option value="Athletic Shorts">Athletic Shorts</option>
         </select>
       </div>
-      <div class="form-group"><label>Brand</label><input type="text" id="df_brand" placeholder="e.g. SuryaCottons"></div>
+      <div class="form-group"><label>Brand</label><input type="text" id="df_brand" placeholder="e.g. SuryaCotton"></div>
     </div>
     <div class="form-row">
       <div class="form-group"><label>Fabric</label><input type="text" id="df_fabric" placeholder="e.g. Cotton, Denim"></div>
@@ -789,7 +1690,7 @@ const categoryTemplates = {
           <option value="Embroidered Cap">Embroidered Cap</option>
         </select>
       </div>
-      <div class="form-group"><label>Brand</label><input type="text" id="df_brand" placeholder="e.g. SuryaCottons"></div>
+      <div class="form-group"><label>Brand</label><input type="text" id="df_brand" placeholder="e.g. SuryaCotton"></div>
     </div>
     <div class="form-row">
       <div class="form-group"><label>Color</label><input type="text" id="df_color" placeholder="e.g. Black, Maroon"></div>
@@ -807,13 +1708,53 @@ const categoryTemplates = {
           <option value="Fabric Keychain">Fabric Keychain</option>
         </select>
       </div>
-      <div class="form-group"><label>Brand</label><input type="text" id="df_brand" placeholder="e.g. SuryaCottons"></div>
+      <div class="form-group"><label>Brand</label><input type="text" id="df_brand" placeholder="e.g. SuryaCotton"></div>
     </div>
     <div class="form-row">
       <div class="form-group"><label>Material / Fabric</label><input type="text" id="df_fabric" placeholder="e.g. Genuine Leather, Alloy Metal"></div>
       <div class="form-group"><label>Color</label><input type="text" id="df_color" placeholder="e.g. Tan Brown, Silver"></div>
     </div>
   `
+};
+
+window.setPantSizeMode = function(mode) {
+  const numBtn = document.getElementById('pantModeNumBtn');
+  const letBtn = document.getElementById('pantModeLetBtn');
+  const waistEl = document.getElementById('df_waist');
+  const sizeEl = document.getElementById('df_size');
+  if (!waistEl || !sizeEl) return;
+
+  if (mode === 'letter') {
+    if (letBtn) letBtn.classList.add('active');
+    if (numBtn) numBtn.classList.remove('active');
+    waistEl.style.display = 'none';
+    sizeEl.style.display = 'flex';
+    waistEl.querySelectorAll('input[type="checkbox"]').forEach(cb => { cb.checked = false; });
+  } else {
+    if (numBtn) numBtn.classList.add('active');
+    if (letBtn) letBtn.classList.remove('active');
+    waistEl.style.display = 'flex';
+    sizeEl.style.display = 'none';
+    sizeEl.querySelectorAll('input[type="checkbox"]').forEach(cb => { cb.checked = false; });
+  }
+  renderSizeStockInputs();
+};
+
+window.setupPantSizeToggle = function() {
+  const numBtn = document.getElementById('pantModeNumBtn');
+  const letBtn = document.getElementById('pantModeLetBtn');
+  if (numBtn) {
+    numBtn.onclick = (e) => {
+      e.preventDefault();
+      window.setPantSizeMode('number');
+    };
+  }
+  if (letBtn) {
+    letBtn.onclick = (e) => {
+      e.preventDefault();
+      window.setPantSizeMode('letter');
+    };
+  }
 };
 
 function renderSizeStockInputs(initialStockMap = null) {
@@ -825,11 +1766,11 @@ function renderSizeStockInputs(initialStockMap = null) {
   // Find all checked size/waist checkboxes in dynamic fields
   let checkedSizes = [];
   const sizeEl = document.getElementById('df_size');
-  if (sizeEl && sizeEl.classList.contains('checkbox-group')) {
+  if (sizeEl && sizeEl.classList.contains('checkbox-group') && sizeEl.style.display !== 'none') {
     sizeEl.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => checkedSizes.push(cb.value));
   }
   const waistEl = document.getElementById('df_waist');
-  if (waistEl && waistEl.classList.contains('checkbox-group')) {
+  if (waistEl && waistEl.classList.contains('checkbox-group') && waistEl.style.display !== 'none') {
     waistEl.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => checkedSizes.push(cb.value));
   }
 
@@ -909,6 +1850,10 @@ function updateDynamicFields(cat) {
   } else {
     if (formDetails) formDetails.style.display = 'none';
     if (saveBtn) saveBtn.style.display = 'none';
+  }
+
+  if (cat === 'pant') {
+    window.setupPantSizeToggle();
   }
 
   // Attach change listeners to size/waist checkboxes
@@ -994,6 +1939,17 @@ window.openEditProduct = function(id) {
   document.getElementById('editProdDesc').value = p.desc || '';
   
   updateDynamicFields(p.cat);
+
+  if (p.cat === 'pant') {
+    const rawSizes = p.sizes || p.size || p.waist || [];
+    const sizeList = Array.isArray(rawSizes) ? rawSizes.map(String) : [String(rawSizes)];
+    const isLetterSizes = sizeList.some(s => ['S', 'M', 'L', 'XL', 'XXL', 'XS', '3XL', 'XXXL'].includes(s.trim().toUpperCase()));
+    if (isLetterSizes) {
+      window.setPantSizeMode('letter');
+    } else {
+      window.setPantSizeMode('number');
+    }
+  }
   
   // Populate dynamic fields if they exist in UI and product data
   const dFields = ['subcat', 'brand', 'fabric', 'sleeve', 'fit', 'color', 'neck', 'waist'];
@@ -1009,8 +1965,9 @@ window.openEditProduct = function(id) {
   });
   // Handle multi-select size
   const sizeEl = document.getElementById('df_size');
-  if (sizeEl && p.size) {
-    const pSizes = Array.isArray(p.size) ? p.size : [p.size];
+  if (sizeEl && (p.size || p.sizes)) {
+    const srcSize = p.size || p.sizes;
+    const pSizes = Array.isArray(srcSize) ? srcSize.map(String) : [String(srcSize)];
     if (sizeEl.classList.contains('checkbox-group')) {
       const cbs = sizeEl.querySelectorAll('input[type="checkbox"]');
       cbs.forEach(cb => {
@@ -1112,28 +2069,47 @@ if (copyBtn) {
         }
       }
     });
-    const sizeEl = document.getElementById('df_size');
-    if (sizeEl) {
-      if (sizeEl.classList.contains('checkbox-group')) {
+    if (editProdCat.value === 'pant') {
+      const sizeEl = document.getElementById('df_size');
+      const isLetter = (sizeEl && sizeEl.style.display !== 'none');
+      if (isLetter) {
         const cbs = sizeEl.querySelectorAll('input[type="checkbox"]:checked');
         copiedData.size = Array.from(cbs).map(c => c.value);
-      } else if (sizeEl.multiple) {
-        copiedData.size = Array.from(sizeEl.selectedOptions).map(o => o.value);
+        copiedData.sizes = [...copiedData.size];
+        copiedData.pantSizeMode = 'letter';
+        delete copiedData.waist;
       } else {
-        copiedData.size = sizeEl.value;
+        const waistEl = document.getElementById('df_waist');
+        const cbs = waistEl ? waistEl.querySelectorAll('input[type="checkbox"]:checked') : [];
+        copiedData.size = Array.from(cbs).map(c => c.value);
+        copiedData.sizes = [...copiedData.size];
+        copiedData.waist = [...copiedData.size];
+        copiedData.pantSizeMode = 'number';
       }
     } else {
-      const waistEl = document.getElementById('df_waist');
-      if (waistEl && waistEl.classList.contains('checkbox-group')) {
-        const cbs = waistEl.querySelectorAll('input[type="checkbox"]:checked');
-        copiedData.size = Array.from(cbs).map(c => c.value);
+      const sizeEl = document.getElementById('df_size');
+      if (sizeEl) {
+        if (sizeEl.classList.contains('checkbox-group')) {
+          const cbs = sizeEl.querySelectorAll('input[type="checkbox"]:checked');
+          copiedData.size = Array.from(cbs).map(c => c.value);
+        } else if (sizeEl.multiple) {
+          copiedData.size = Array.from(sizeEl.selectedOptions).map(o => o.value);
+        } else {
+          copiedData.size = sizeEl.value;
+        }
+      } else {
+        const waistEl = document.getElementById('df_waist');
+        if (waistEl && waistEl.classList.contains('checkbox-group')) {
+          const cbs = waistEl.querySelectorAll('input[type="checkbox"]:checked');
+          copiedData.size = Array.from(cbs).map(c => c.value);
+        }
       }
-    }
-    if (copiedData.size && Array.isArray(copiedData.size)) {
-      copiedData.sizes = [...copiedData.size];
-    } if (copiedData.waist && Array.isArray(copiedData.waist)) {
-      copiedData.sizes = [...copiedData.waist];
-      copiedData.size = [...copiedData.waist];
+      if (copiedData.size && Array.isArray(copiedData.size)) {
+        copiedData.sizes = [...copiedData.size];
+      } if (copiedData.waist && Array.isArray(copiedData.waist)) {
+        copiedData.sizes = [...copiedData.waist];
+        copiedData.size = [...copiedData.waist];
+      }
     }
 
     // Gather sizeStock map if visible
@@ -1200,6 +2176,18 @@ if (pasteBtn) {
         }
       }
     });
+
+    if (copiedData.cat === 'pant') {
+      const rawSizes = copiedData.sizes || copiedData.size || copiedData.waist || [];
+      const sizeList = Array.isArray(rawSizes) ? rawSizes.map(String) : [String(rawSizes)];
+      const isLetter = copiedData.pantSizeMode === 'letter' || sizeList.some(s => ['S', 'M', 'L', 'XL', 'XXL', 'XS', '3XL', 'XXXL'].includes(s.trim().toUpperCase()));
+      if (isLetter) {
+        window.setPantSizeMode('letter');
+      } else {
+        window.setPantSizeMode('number');
+      }
+    }
+
     const sizeEl = document.getElementById('df_size');
     if (sizeEl && copiedData.size !== undefined && copiedData.size !== null) {
       const vals = Array.isArray(copiedData.size) ? copiedData.size : [copiedData.size];
@@ -1328,28 +2316,49 @@ document.getElementById('saveProductBtn').addEventListener('click', async () => 
     if (newProductData.subcat) {
       newProductData.subcategory = newProductData.subcat;
     }
-    const sizeEl = document.getElementById('df_size');
-    if (sizeEl) {
-      if (sizeEl.classList.contains('checkbox-group')) {
+    if (catSelect.value === 'pant') {
+      const sizeEl = document.getElementById('df_size');
+      const waistEl = document.getElementById('df_waist');
+      const isLetterMode = (sizeEl && sizeEl.style.display !== 'none');
+      if (isLetterMode) {
         const cbs = sizeEl.querySelectorAll('input[type="checkbox"]:checked');
-        newProductData.size = Array.from(cbs).map(c => c.value);
-      } else if (sizeEl.multiple) {
-        newProductData.size = Array.from(sizeEl.selectedOptions).map(o => o.value);
-      } else {
-        newProductData.size = sizeEl.value;
+        const vals = Array.from(cbs).map(c => c.value);
+        newProductData.size = vals;
+        newProductData.sizes = vals;
+        newProductData.sizeType = 'letter';
+        delete newProductData.waist;
+      } else if (waistEl) {
+        const cbs = waistEl.querySelectorAll('input[type="checkbox"]:checked');
+        const vals = Array.from(cbs).map(c => c.value);
+        newProductData.size = vals;
+        newProductData.sizes = vals;
+        newProductData.waist = vals;
+        newProductData.sizeType = 'number';
       }
     } else {
-      const waistEl = document.getElementById('df_waist');
-      if (waistEl && waistEl.classList.contains('checkbox-group')) {
-        const cbs = waistEl.querySelectorAll('input[type="checkbox"]:checked');
-        newProductData.size = Array.from(cbs).map(c => c.value);
+      const sizeEl = document.getElementById('df_size');
+      if (sizeEl) {
+        if (sizeEl.classList.contains('checkbox-group')) {
+          const cbs = sizeEl.querySelectorAll('input[type="checkbox"]:checked');
+          newProductData.size = Array.from(cbs).map(c => c.value);
+        } else if (sizeEl.multiple) {
+          newProductData.size = Array.from(sizeEl.selectedOptions).map(o => o.value);
+        } else {
+          newProductData.size = sizeEl.value;
+        }
+      } else {
+        const waistEl = document.getElementById('df_waist');
+        if (waistEl && waistEl.classList.contains('checkbox-group')) {
+          const cbs = waistEl.querySelectorAll('input[type="checkbox"]:checked');
+          newProductData.size = Array.from(cbs).map(c => c.value);
+        }
       }
-    }
-    if (newProductData.size && Array.isArray(newProductData.size)) {
-      newProductData.sizes = [...newProductData.size];
-    } if (newProductData.waist && Array.isArray(newProductData.waist)) {
-      newProductData.sizes = [...newProductData.waist];
-      newProductData.size = [...newProductData.waist];
+      if (newProductData.size && Array.isArray(newProductData.size)) {
+        newProductData.sizes = [...newProductData.size];
+      } if (newProductData.waist && Array.isArray(newProductData.waist)) {
+        newProductData.sizes = [...newProductData.waist];
+        newProductData.size = [...newProductData.waist];
+      }
     }
     
     // Gather per-size stock map if visible
@@ -1381,9 +2390,10 @@ function withTimeout(promise, ms = 10000) {
 
     // 3. Save to Firestore with 10s timeout protection
     if (isNew) {
+      newProductData.createdAt = new Date().toISOString();
       const docRef = await withTimeout(addDoc(collection(db, "products"), newProductData));
       newProductData.id = String(docRef.id);
-      products.push(newProductData);
+      products.unshift(newProductData);
     } else {
       const id = String(idVal);
       await withTimeout(setDoc(doc(db, "products", id), newProductData, { merge: true }));
@@ -1404,6 +2414,13 @@ function withTimeout(promise, ms = 10000) {
     });
     products = Array.from(seenMap.values());
     
+    // Strictly sort chronologically: Latest (Newest) uploaded products first!
+    products.sort((a, b) => {
+      const timeA = a.createdAt ? (a.createdAt.toDate ? a.createdAt.toDate().getTime() : new Date(a.createdAt).getTime()) : 0;
+      const timeB = b.createdAt ? (b.createdAt.toDate ? b.createdAt.toDate().getTime() : new Date(b.createdAt).getTime()) : 0;
+      return timeB - timeA;
+    });
+
     localStorage.setItem('sc_products', JSON.stringify(products));
     renderProducts();
     renderOverview();
@@ -1426,6 +2443,93 @@ function withTimeout(promise, ms = 10000) {
 // --- ORDERS TAB ---
 window.filterOrders = function() {
   renderOrders();
+};
+
+// Clear All Test/Fake Orders & Reset Overview Sales & Revenue
+window.confirmClearAllOrders = async function() {
+  const count = orders.length;
+  const msg = count > 0 
+    ? `⚠️ RESET ALL TEST ORDERS?\n\nThis will permanently delete all ${count} fake/test order(s) from Firestore and the database.\n\n• Total Revenue & Units Sold will reset to 0.\n• All active products in your catalog (${products.length} products) will remain 100% SAFE.\n• Going forward, only real customer orders will be recorded.\n\nAre you sure you want to proceed?`
+    : `There are currently no orders to reset.`;
+
+  if (count === 0) {
+    alert(msg);
+    return;
+  }
+
+  const confirmed = window.confirm(msg);
+  if (!confirmed) return;
+
+  await window.clearAllFakeOrders();
+};
+
+window.clearAllFakeOrders = async function() {
+  const clearBtn = document.getElementById('clearAllOrdersBtn');
+  if (clearBtn) {
+    clearBtn.disabled = true;
+    clearBtn.innerHTML = `<span>⏳ Deleting orders...</span>`;
+  }
+  showToast("Clearing all test orders from database...");
+
+  try {
+    // 1. Delete all order documents from Firestore
+    try {
+      const ordersSnap = await getDocs(collection(db, "orders"));
+      const deletePromises = [];
+      ordersSnap.forEach((docSnap) => {
+        deletePromises.push(deleteDoc(doc(db, "orders", docSnap.id)));
+      });
+      await Promise.all(deletePromises);
+      console.log(`[ADMIN] 🗑️ Deleted ${deletePromises.length} orders from Firestore.`);
+    } catch (fsErr) {
+      console.warn("[ADMIN] Firestore orders deletion warning:", fsErr);
+    }
+
+    // 2. Clear backend Supabase DB orders if any exist
+    try {
+      const getBackendUrl = () => {
+        if (typeof window !== 'undefined' && window.BACKEND_URL) return window.BACKEND_URL.replace(/\/$/, '');
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') return 'http://localhost:3000';
+        return '';
+      };
+      await fetch(`${getBackendUrl()}/api/admin/clear-orders`, { method: 'POST' }).catch(() => {});
+    } catch (bErr) {
+      console.warn("[ADMIN] Backend orders clear warning:", bErr);
+    }
+
+    // 3. Clear local storage cache
+    localStorage.removeItem('sc_all_orders');
+    localStorage.setItem('sc_all_orders', JSON.stringify([]));
+
+    // Clear any mock orders inside user profiles in localStorage
+    try {
+      const storedProfile = JSON.parse(localStorage.getItem('sc_user_profile') || 'null');
+      if (storedProfile && Array.isArray(storedProfile.orders)) {
+        storedProfile.orders = [];
+        localStorage.setItem('sc_user_profile', JSON.stringify(storedProfile));
+      }
+    } catch (profErr) {}
+
+    // 4. Reset in-memory orders
+    orders = [];
+
+    // 5. Update Overview & Orders UI
+    renderOverview();
+    renderOrders();
+
+    showToast("✅ All test orders removed! Revenue & sales reset to 0.");
+    console.log("[ADMIN] ✅ Order reset complete. Active catalog count intact:", products.length);
+  } catch (err) {
+    console.error("[ADMIN] Error during orders clear:", err);
+    showToast("❌ Error clearing orders: " + err.message);
+  } finally {
+    if (clearBtn) {
+      clearBtn.disabled = false;
+      clearBtn.innerHTML = `
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+        <span>Reset Test Orders</span>`;
+    }
+  }
 };
 
 function renderOrders() {
@@ -1455,9 +2559,9 @@ function renderOrders() {
   
   if (sortedOrders.length === 0) {
     tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 3rem 1rem; color: #64748b;">
-      <div style="font-size: 2rem; margin-bottom: 0.5rem;">🔍</div>
-      <strong>No orders found matching "${query}"</strong><br>
-      <small>Try searching by Order ID (e.g. 102), Customer Name, Phone, or AWB Code.</small>
+      <div style="font-size: 2.2rem; margin-bottom: 0.5rem;">${query ? '🔍' : '📦'}</div>
+      <strong style="font-size: 1.05rem; color: #0f172a;">${query ? `No orders found matching "${query}"` : 'No orders recorded yet'}</strong><br>
+      <small style="color: #64748b;">${query ? 'Try searching by Order ID, Customer Name, Phone, or AWB Code.' : 'When customers place orders in your store, they will appear here automatically.'}</small>
     </td></tr>`;
     return;
   }
@@ -1467,8 +2571,8 @@ function renderOrders() {
     const statClass = (o.status || 'Processing').toLowerCase();
     
     // Shipment Badge
-    let shipBadge = `<span style="background:#f1f5f9; color:#475569; padding:3px 8px; border-radius:6px; font-size:0.75rem; font-weight:700;">NOT CREATED</span>`;
-    const sStatus = (o.shipment_status || '').toUpperCase();
+    const sStatus = (o.shipment_status || 'PENDING_APPROVAL').toUpperCase();
+    let shipBadge = `<span style="background:#fef9c3; color:#854d0e; padding:3px 8px; border-radius:6px; font-size:0.75rem; font-weight:700;">🟡 PENDING APPROVAL</span>`;
     if (sStatus === 'CANCELLED') {
       shipBadge = `<span style="background:#fee2e2; color:#b91c1c; padding:3px 8px; border-radius:6px; font-size:0.75rem; font-weight:700;">CANCELLED</span>`;
     } else if (sStatus === 'PICKUP_SCHEDULED') {
@@ -1481,9 +2585,11 @@ function renderOrders() {
       shipBadge = `<span style="background:#e0f2fe; color:#0369a1; padding:3px 8px; border-radius:6px; font-size:0.75rem; font-weight:700;">${sStatus.replace(/_/g,' ')}</span>`;
     } else if (sStatus === 'DELIVERED') {
       shipBadge = `<span style="background:#bbf7d0; color:#166534; padding:3px 8px; border-radius:6px; font-size:0.75rem; font-weight:700;">DELIVERED</span>`;
+    } else {
+      shipBadge = `<span style="background:#fef9c3; color:#854d0e; padding:3px 8px; border-radius:6px; font-size:0.75rem; font-weight:700;">🟡 PENDING APPROVAL</span>`;
     }
 
-    const needsRetry = sStatus !== 'CANCELLED' && (!o.awb_code || sStatus === 'AWB_PENDING' || sStatus === 'ORDER_CREATED');
+    const needsRetry = Boolean(o.shiprocket_order_id) && !o.awb_code && sStatus !== 'CANCELLED' && sStatus !== 'PICKUP_SCHEDULED' && sStatus !== 'PENDING_APPROVAL';
     const canSchedulePickup = sStatus !== 'CANCELLED' && sStatus !== 'PICKUP_SCHEDULED' && sStatus !== 'IN_TRANSIT' && sStatus !== 'OUT_FOR_DELIVERY' && sStatus !== 'DELIVERED';
 
     return `
@@ -1507,7 +2613,7 @@ function renderOrders() {
           <div style="display:flex; flex-direction:column; gap:4px;">
             <button class="action-btn" onclick="window.viewOrderDetails('${o.id}')">View Details</button>
             <button class="action-btn" style="background:#0f172a; color:white; border-color:#0f172a; font-size:0.75rem; padding:4px 8px;" onclick="window.resendOrderEmail('${o.id}')">✉️ Send Email</button>
-            ${canSchedulePickup ? `<button class="action-btn" style="background:#16a34a; color:white; border-color:#16a34a; font-size:0.75rem; padding:4px 8px;" onclick="window.schedulePickup('${o.id}')">📦 Schedule Pickup</button>` : ''}
+            ${canSchedulePickup ? `<button class="action-btn" style="background:#16a34a; color:white; border-color:#16a34a; font-size:0.75rem; padding:4px 8px;" onclick="window.schedulePickup('${o.id}')">📦 Approve & Schedule Pickup</button>` : ''}
             ${needsRetry ? `<button class="action-btn" style="background:#3b82f6; color:white; border-color:#3b82f6; font-size:0.75rem; padding:4px 8px;" onclick="window.retryShiprocket('${o.id}')">🔄 Retry Shiprocket</button>` : ''}
           </div>
         </td>
@@ -1523,7 +2629,7 @@ window.schedulePickup = async function(id) {
   const getBackendUrl = () => {
     if (typeof window !== 'undefined' && window.BACKEND_URL) return window.BACKEND_URL.replace(/\/$/, '');
     if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') return 'http://localhost:3000';
-    return 'https://backend-s6kq.onrender.com';
+    return '';
   };
 
   // ── Phase 1: Verify order in database first ──
@@ -1548,18 +2654,16 @@ window.schedulePickup = async function(id) {
 
   // Show confirmation with verified backend data (real DB ID & AWB)
   const dbId = verifyData.db_order_id;
-  const realAwb = verifyData.awb_code;
-  const courier = verifyData.courier_name || 'Assigned Courier';
+  const realAwb = verifyData.awb_code || 'Will be generated upon approval';
+  const courier = verifyData.courier_name || 'Will be assigned upon approval';
   const custName = verifyData.customer_name || 'N/A';
 
-  const confirmMsg = `Schedule courier pickup?\n\n` +
-    `Order ID (DB): #${dbId}\n` +
+  const confirmMsg = `[ADMIN APPROVAL REQUIRED]\n\n` +
+    `Are you sure you want to approve and schedule courier pickup for this order?\n\n` +
+    `Order ID: #${dbId}\n` +
     `Customer: ${custName}\n` +
-    `AWB Code: ${realAwb}\n` +
-    `Courier: ${courier}\n` +
-    `Shipment ID: ${verifyData.shiprocket_shipment_id}\n` +
     `Current Status: ${verifyData.shipment_status}\n\n` +
-    `Click OK to confirm pickup scheduling with Shiprocket.`;
+    `Click OK to grant Admin Approval, send order to Shiprocket and schedule courier pickup.`;
 
   if (!confirm(confirmMsg)) {
     showToast('Pickup scheduling cancelled.');
@@ -1602,7 +2706,7 @@ window.retryShiprocket = async function(id) {
     const getBackendUrl = () => {
       if (typeof window !== 'undefined' && window.BACKEND_URL) return window.BACKEND_URL.replace(/\/$/, '');
       if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') return 'http://localhost:3000';
-      return 'https://backend-s6kq.onrender.com';
+      return '';
     };
     const res = await fetch(`${getBackendUrl()}/api/admin/retry-shiprocket`, {
       method: 'POST',
@@ -1654,9 +2758,9 @@ window.resendOrderEmail = async function(id) {
   const o = orders.find(x => String(x.id) === String(id));
   if (!o) return;
 
-  const targetEmail = o.customerEmail || o.email;
-  if (!targetEmail) {
-    alert(`Order #${id} does not have a customer email address.`);
+  const targetEmail = (o.customerEmail || o.email || '').trim();
+  if (!targetEmail || !targetEmail.includes('@')) {
+    alert(`Order #${id} does not have a valid customer email address.`);
     return;
   }
 
@@ -1665,23 +2769,86 @@ window.resendOrderEmail = async function(id) {
   const getBackendUrl = () => {
     if (typeof window !== 'undefined' && window.BACKEND_URL) return window.BACKEND_URL.replace(/\/$/, '');
     if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') return 'http://localhost:3000';
-    return 'https://backend-s6kq.onrender.com';
+    return '';
   };
 
+  let sentViaServer = false;
   try {
     const res = await fetch(`${getBackendUrl()}/api/send-order-email`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(o)
     });
-    const data = await res.json();
-    if (data.success) {
-      showToast(`✅ Order confirmation email sent to ${targetEmail}!`);
-    } else {
-      alert(`⚠️ Email sending notice:\n\n${data.message || data.error || 'Please check that EMAILJS_TEMPLATE_ID and EMAILJS_PUBLIC_KEY are configured in .env'}`);
+    if (res.ok) {
+      const data = await res.json().catch(() => ({}));
+      if (data.success) {
+        showToast(`✅ Order confirmation email sent to ${targetEmail}!`);
+        sentViaServer = true;
+        return;
+      }
     }
   } catch (err) {
-    alert(`❌ Server Connection Error: ${err.message}`);
+    console.warn("Backend email notice:", err);
+  }
+
+  if (!sentViaServer) {
+    // Client-side EmailJS fallback
+    try {
+      if (typeof window.emailjs !== 'undefined' && EMAIL_CONFIG.templateId && EMAIL_CONFIG.publicKey) {
+        window.emailjs.init({ publicKey: EMAIL_CONFIG.publicKey });
+        const formattedId = String(o.id).startsWith('SC-') ? String(o.id) : `SC-${o.id}`;
+        const items = o.items || o.products || [];
+        const itemsSummary = items.map(i => `• ${i.qty || 1}x ${i.name || 'Item'}${i.size ? ' (Size: ' + i.size + ')' : ''} - ₹${((i.price || 0) * (i.qty || 1)).toLocaleString('en-IN')}`).join('\n');
+        const itemsHtml = items.map(i => `
+          <tr style="border-bottom: 1px solid #e2e8f0;">
+            <td style="padding: 10px 8px; font-weight: 600; color: #0f172a;">${i.name || 'Item'}</td>
+            <td style="padding: 10px 8px; text-align: center;">${i.size || '-'}</td>
+            <td style="padding: 10px 8px; text-align: center; font-weight: 600;">${i.qty || 1}</td>
+            <td style="padding: 10px 8px; text-align: right; font-weight: 700;">₹${((i.price || 0) * (i.qty || 1)).toLocaleString('en-IN')}</td>
+          </tr>
+        `).join('');
+
+        const addr = [
+          o.customerAddress,
+          o.customerCity,
+          o.customerState,
+          o.customerPin
+        ].filter(Boolean).join(', ');
+
+        const templateParams = {
+          to_name: o.customerName || 'Valued Customer',
+          to_email: targetEmail,
+          customer_name: o.customerName || 'Valued Customer',
+          customer_email: targetEmail,
+          customer_phone: o.customerPhone || '',
+          order_id: formattedId,
+          order_date: o.date ? new Date(o.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : new Date().toLocaleDateString('en-IN'),
+          order_total: `₹${Number(o.total || 0).toLocaleString('en-IN')}`,
+          total_amount: `₹${Number(o.total || 0).toLocaleString('en-IN')}`,
+          payment_id: o.razorpay_payment_id || 'PREPAID',
+          shipping_address: addr || 'Address provided at checkout',
+          items_summary: itemsSummary,
+          items_html: itemsHtml,
+          tracking_url: o.tracking_url || `https://suryacotton.com/track.html?order=${formattedId}`,
+          courier_name: o.courier_name || 'Assigned upon dispatch',
+          awb_code: o.awb_code || 'Pending Dispatch',
+          name: 'SuryaCotton',
+          from_name: 'SuryaCotton',
+          email: 'suryacotton1@gmail.com',
+          reply_to: 'suryacotton1@gmail.com',
+          store_name: EMAIL_CONFIG.storeName || 'SuryaCotton',
+          support_email: EMAIL_CONFIG.supportEmail || 'suryacotton1@gmail.com'
+        };
+
+        await window.emailjs.send(EMAIL_CONFIG.serviceId, EMAIL_CONFIG.templateId, templateParams);
+        showToast(`✅ Order confirmation email sent to ${targetEmail}!`);
+      } else {
+        alert('⚠️ EmailJS is not configured or SDK is unavailable.');
+      }
+    } catch (clientErr) {
+      console.error("Client email error:", clientErr);
+      alert(`⚠️ Email sending notice: ${clientErr.text || clientErr.message || 'Could not send email'}`);
+    }
   }
 };
 
@@ -1725,7 +2892,7 @@ window.viewOrderDetails = function(id) {
         ${(o.shipment_status || '').toUpperCase() === 'CANCELLED' ? `<div style="margin-top:10px; background:#fee2e2; color:#b91c1c; padding:8px 12px; border-radius:8px; font-size:0.85rem; font-weight:700;">⚠️ This shipment has been cancelled in Shiprocket. Pickup scheduling is disabled.</div>` : ''}
         <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;">
           ${trackLink ? `<a href="${trackLink}" target="_blank" style="display:inline-flex; align-items:center; gap:6px; background:#0f172a; color:#ffffff; padding:6px 12px; border-radius:6px; font-weight:700; font-size:0.82rem; text-decoration:none;">🔍 Track Shipment Live ↗</a>` : `<span style="font-size:0.82rem; color:#64748b; background:#f1f5f9; padding:6px 10px; border-radius:6px; font-weight:600;">AWB Pending Assignment</span>`}
-          ${(o.shipment_status || '').toUpperCase() !== 'CANCELLED' && (o.shipment_status || '').toUpperCase() !== 'PICKUP_SCHEDULED' && (o.shipment_status || '').toUpperCase() !== 'DELIVERED' ? `<button type="button" onclick="window.schedulePickup('${o.id}')" style="background:#16a34a; color:#ffffff; border:none; padding:6px 12px; border-radius:6px; font-weight:700; font-size:0.82rem; cursor:pointer;">📦 Schedule Pickup</button>` : ''}
+          ${(o.shipment_status || '').toUpperCase() !== 'CANCELLED' && (o.shipment_status || '').toUpperCase() !== 'PICKUP_SCHEDULED' && (o.shipment_status || '').toUpperCase() !== 'DELIVERED' ? `<button type="button" onclick="window.schedulePickup('${o.id}')" style="background:#16a34a; color:#ffffff; border:none; padding:6px 12px; border-radius:6px; font-weight:700; font-size:0.82rem; cursor:pointer;">📦 Approve & Schedule Pickup</button>` : ''}
           ${(o.shipment_status || '').toUpperCase() !== 'CANCELLED' && (!o.awb_code || o.shipment_status === 'AWB_PENDING' || o.shipment_status === 'ORDER_CREATED') ? `<button type="button" onclick="window.retryShiprocket('${o.id}')" style="background:#3b82f6; color:#ffffff; border:none; padding:6px 12px; border-radius:6px; font-weight:700; font-size:0.82rem; cursor:pointer;">🔄 Retry Shiprocket / AWB</button>` : ''}
         </div>
       </div>

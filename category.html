@@ -3,23 +3,80 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title id="pageTitle">Collection – SuryaCottans</title>
-  <meta name="description" content="Browse our premium collection at SuryaCottans" />
-  <!-- Favicon & Brand Icons -->
-  <link rel="icon" type="image/x-icon" href="favicon.ico" />
-  <link rel="icon" type="image/png" sizes="192x192" href="favicon-192x192.png" />
-  <link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png" />
-  <link rel="icon" type="image/png" sizes="48x48" href="favicon-48x48.png" />
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png" />
-  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
+  <title id="pageTitle">Collection – SuryaCotton</title>
+  <meta name="description" content="Browse our premium collection at SuryaCotton" />
+    <!-- Favicon & Brand Icons (Google Search & Multi-device compliant) -->
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="shortcut icon" href="/favicon.ico" />
+  <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png" />
+  <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png" />
+  <link rel="icon" type="image/png" sizes="144x144" href="/favicon-144x144.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192x192.png" />
+  <link rel="icon" type="image/png" sizes="512x512" href="/favicon-512x512.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <link rel="manifest" href="/site.webmanifest" />
   <meta name="theme-color" content="#0f172a" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700;900&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css?v=3.1" />
   <style>
+    /* Critical Navbar & Brand constraints */
+    .navbar { position: fixed; top: 0; left: 0; right: 0; display: flex; align-items: center; justify-content: space-between; z-index: 1050; }
+    .nav-logo-img { height: 42px; width: auto; object-fit: contain; max-width: 140px; }
+    .sm-logo { height: 38px; width: auto; object-fit: contain; max-width: 120px; }
+    .nav-links { list-style: none; display: flex; }
+    html, body { overflow-x: hidden !important; max-width: 100vw !important; }
+    .side-menu { position: fixed !important; top: 0 !important; right: 0 !important; bottom: 0 !important; left: auto !important; width: min(340px, 90vw) !important; transform: translateX(105%) !important; visibility: hidden !important; pointer-events: none !important; z-index: 100003 !important; }
+    .side-menu.open { transform: translateX(0) !important; visibility: visible !important; pointer-events: auto !important; }
+    .side-menu-overlay { position: fixed !important; inset: 0 !important; z-index: 100002 !important; visibility: hidden !important; opacity: 0 !important; }
+    .side-menu-overlay.open { visibility: visible !important; opacity: 1 !important; }
+    .cart-drawer { position: fixed !important; top: 0 !important; right: 0 !important; bottom: 0 !important; left: auto !important; width: min(420px, 100vw) !important; max-width: 100% !important; background: #fff !important; z-index: 100005 !important; display: flex !important; flex-direction: column !important; transform: translateX(105%) !important; visibility: hidden !important; pointer-events: none !important; transition: transform 0.42s cubic-bezier(0.25, 0.46, 0.45, 0.94), visibility 0.42s ease !important; box-shadow: -10px 0 50px rgba(0,0,0,0.15) !important; }
+    .cart-drawer.open { transform: translateX(0) !important; visibility: visible !important; pointer-events: auto !important; }
+    .cart-overlay { position: fixed !important; inset: 0 !important; background: rgba(0,0,0,0.6) !important; z-index: 100004 !important; opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; }
+    .cart-overlay.open { opacity: 1 !important; visibility: visible !important; pointer-events: auto !important; }
+    .cart-footer { padding: 1.25rem 1.5rem calc(1.5rem + env(safe-area-inset-bottom, 0px)) !important; position: relative !important; z-index: 10 !important; }
+    .cart-footer #checkoutBtn, .cart-footer .btn-primary { min-height: 48px !important; font-size: 0.95rem !important; font-weight: 700 !important; position: relative !important; z-index: 11 !important; }
+    body.cart-open .mobile-bottom-nav, body.side-menu-open .mobile-bottom-nav { transform: translateY(125%) !important; opacity: 0 !important; pointer-events: none !important; visibility: hidden !important; }
     body { background: #f8f7f5; }
+
+    @media (max-width: 768px) {
+      .navbar { display: flex !important; align-items: center !important; justify-content: space-between !important; padding: 0.6rem 1rem !important; height: 56px !important; }
+      .nav-logo { position: static !important; transform: none !important; display: flex !important; align-items: center !important; gap: 8px !important; margin: 0 !important; }
+      .nav-logo-img { height: 30px !important; width: auto !important; max-width: 100px !important; }
+      .nav-logo-text { display: inline-block !important; font-size: 1.25rem !important; margin: 0 !important; }
+      .nav-links { display: none !important; }
+      .nav-actions { display: flex !important; align-items: center !important; margin-left: auto !important; }
+      #searchBtn, .profile-btn, .navbar .cart-btn { display: none !important; }
+      .hamburger { display: flex !important; }
+
+      .cat-hero {
+        height: auto !important;
+        min-height: 190px !important;
+        padding-top: 60px !important;
+      }
+      .cat-hero-content {
+        padding-bottom: 1.25rem !important;
+      }
+      .cat-hero-title {
+        font-size: clamp(1.8rem, 6.5vw, 2.5rem) !important;
+        line-height: 1.15 !important;
+        letter-spacing: 1px !important;
+        word-break: break-word !important;
+      }
+      .cat-hero-tag {
+        font-size: 0.68rem !important;
+        letter-spacing: 2px !important;
+        margin-bottom: 0.2rem !important;
+      }
+      .cat-ticker-strip::before,
+      .cat-ticker-strip::after {
+        width: 25px !important;
+      }
+      .cat-products {
+        padding: 1.5rem 0 5rem !important;
+      }
+    }
 
     /* ---- CATEGORY HERO BANNER ---- */
     .cat-hero {
@@ -217,7 +274,7 @@
 
   <!-- NAV -->
   <nav class="navbar scrolled" id="navbar">
-    <a href="index.html" class="nav-logo"><img src="Logo.png" alt="SuryaCottans" class="nav-logo-img"><span class="nav-logo-text">SuryaCotton</span></a>
+    <a href="index.html" class="nav-logo"><img src="Logo.png" alt="SuryaCotton" class="nav-logo-img"><span class="nav-logo-text">SuryaCotton</span></a>
     <ul class="nav-links" id="navLinks">
       <li><a href="index.html" class="nav-link">Home</a></li>
       <li><a href="index.html#collection" class="nav-link">Collection</a></li>
@@ -247,7 +304,7 @@
     <!-- Header -->
     <div class="sm-header">
       <div class="sm-brand">
-        <img src="Logo.png" alt="SuryaCottans" class="sm-logo" />
+        <img src="Logo.png" alt="SuryaCotton" class="sm-logo" />
         <div class="sm-brand-text">
           <span class="sm-brand-name">SuryaCotton</span>
           <span class="sm-brand-sub">Premium Menswear</span>
@@ -368,7 +425,7 @@
 
     <!-- Footer note -->
     <div class="sm-footer-note">
-      <span>© 2025 SuryaCottans</span>
+      <span>© 2025 SuryaCotton</span>
       <span>Made with ❤️ in Tamil Nadu</span>
     </div>
 
@@ -457,6 +514,14 @@
         sizes: isPant && (!p.sizes || p.sizes.length === 0 || p.sizes.includes('S')) ? ['28', '30', '32', '34', '36', '38'] : (p.sizes || ['S', 'M', 'L', 'XL', 'XXL'])
       };
     });
+
+    // Strictly sort chronologically: Latest (Newest) uploaded products first!
+    ALL_PRODUCTS.sort((a, b) => {
+      const timeA = a.createdAt ? (a.createdAt.toDate ? a.createdAt.toDate().getTime() : new Date(a.createdAt).getTime()) : 0;
+      const timeB = b.createdAt ? (b.createdAt.toDate ? b.createdAt.toDate().getTime() : new Date(b.createdAt).getTime()) : 0;
+      return timeB - timeA;
+    });
+
     localStorage.setItem('sc_products', JSON.stringify(ALL_PRODUCTS));
     if (typeof window !== 'undefined') {
       window.ALL_PRODUCTS = ALL_PRODUCTS;
@@ -475,89 +540,160 @@
     /* ---- URL PARAM ---- */
     const params  = new URLSearchParams(location.search);
     const catKey  = params.get('cat') || 'all';
+    const searchQuery = (params.get('search') || '').toLowerCase().trim();
     const meta    = CAT_META[catKey] || CAT_META.all;
     let activeSub = 'All';
 
     /* ---- SET HERO ---- */
-    document.getElementById('pageTitle').textContent   = meta.label + ' – SuryaCottans';
-    document.getElementById('catTitle').textContent    = meta.label;
-    document.getElementById('catBreadName').textContent= meta.label;
+    if (searchQuery) {
+      document.getElementById('pageTitle').textContent    = `Search: "${searchQuery}" – SuryaCotton`;
+      document.getElementById('catTitle').textContent     = `Search: "${searchQuery}"`;
+      document.getElementById('catBreadName').textContent = 'Search';
+    } else {
+      document.getElementById('pageTitle').textContent    = meta.label + ' – SuryaCotton';
+      document.getElementById('catTitle').textContent     = meta.label;
+      document.getElementById('catBreadName').textContent = meta.label;
+    }
     document.getElementById('catHeroImg').src          = meta.heroImg;
     document.getElementById('catHeroImg').alt          = meta.label;
+
+    /* ---- HELPER: NORMALIZE CATEGORY ---- */
+    function getNormalizedCat(p) {
+      if (!p) return '';
+      const c = String(p.cat || p.category || '').toLowerCase().trim();
+      if (c === 'pant' || c === 'pants' || c === 'jeans' || c === 'trouser' || c === 'trousers') return 'pant';
+      if (c === 'shirt' || c === 'shirts') return 'shirt';
+      if (c === 'tshirt' || c === 't-shirt' || c === 'tshirts' || c === 't-shirts') return 'tshirt';
+      if (c === 'shorts' || c === 'short') return 'shorts';
+      if (c === 'caps' || c === 'cap') return 'caps';
+      if (c === 'keychains' || c === 'keychain') return 'keychains';
+      return c;
+    }
+
+    const SUBCAT_PARENT_MAP = {
+      // Shirts
+      'plain shirt': 'shirt',
+      'linen shirt': 'shirt',
+      'printed shirt': 'shirt',
+      'branded shirt': 'shirt',
+      'checked shirt': 'shirt',
+      'stripped shirt': 'shirt',
+      'striped shirt': 'shirt',
+      'denim shirt': 'shirt',
+      // Pants
+      'jean pant': 'pant',
+      'cotton pant': 'pant',
+      'baggy pant': 'pant',
+      'mom fit pant': 'pant',
+      'track pant': 'pant',
+      'cargo pant': 'pant',
+      // T-Shirts
+      'hoodies t-shirt': 'tshirt',
+      'hoodie': 'tshirt',
+      'collar t-shirt': 'tshirt',
+      'drop shoulder t-shirt': 'tshirt',
+      'full sleeve t-shirt': 'tshirt',
+      // Shorts
+      'cargo shorts': 'shorts',
+      'denim shorts': 'shorts',
+      'cotton shorts': 'shorts',
+      'athletic shorts': 'shorts',
+      // Caps
+      'baseball cap': 'caps',
+      'snapback cap': 'caps',
+      'embroidered cap': 'caps',
+      // Keychains
+      'leather keychain': 'keychains',
+      'metallic crest keychain': 'keychains'
+    };
 
     /* ---- SMART SUBCATEGORY MATCHER ---- */
     function matchProductSubcat(p, target) {
       if (!p || !target || target === 'All') return true;
       const tgt = target.toLowerCase().trim();
+      const pCat = getNormalizedCat(p);
       const sub = String(p.subcat || p.subcategory || '').toLowerCase().trim();
       const name = String(p.name || '').toLowerCase().trim();
-      const cat = String(p.cat || p.category || '').toLowerCase().trim();
       const fabric = String(p.fabric || '').toLowerCase().trim();
       const fit = String(p.fit || '').toLowerCase().trim();
       const neck = String(p.neck || '').toLowerCase().trim();
       const sleeve = String(p.sleeve || '').toLowerCase().trim();
       const desc = String(p.desc || '').toLowerCase().trim();
 
-      // 1. Direct subcategory field match
+      // Parent category strictly enforced if mapped
+      const expectedParent = SUBCAT_PARENT_MAP[tgt];
+      if (expectedParent && pCat && pCat !== expectedParent) {
+        return false;
+      }
+
+      // 1. Direct subcategory field match (must also match parent category if applicable)
       if (sub && (sub === tgt || sub.includes(tgt) || tgt.includes(sub))) return true;
 
-      // 2. Direct name match
+      // 2. Direct name match (must also match parent category if applicable)
       if (name.includes(tgt)) return true;
 
       // 3. Smart semantic category matches:
       // Shirts
       if (tgt === 'plain shirt') {
-        return sub.includes('plain') || name.includes('plain') || name.includes('solid') || desc.includes('plain') || desc.includes('solid') ||
-               (!name.includes('print') && !name.includes('check') && !name.includes('strip') && !name.includes('linen') && !name.includes('denim'));
+        return (pCat === 'shirt') && (
+          sub.includes('plain') || name.includes('plain') || name.includes('solid') || desc.includes('plain') || desc.includes('solid') ||
+          (!name.includes('print') && !name.includes('check') && !name.includes('strip') && !name.includes('linen') && !name.includes('denim') && !name.includes('flannel'))
+        );
       }
       if (tgt === 'linen shirt') {
-        return sub.includes('linen') || name.includes('linen') || fabric.includes('linen') || desc.includes('linen');
+        return (pCat === 'shirt') && (sub.includes('linen') || name.includes('linen') || fabric.includes('linen') || desc.includes('linen'));
       }
       if (tgt === 'printed shirt') {
-        return sub.includes('print') || name.includes('print') || desc.includes('print');
+        return (pCat === 'shirt') && (sub.includes('print') || name.includes('print') || desc.includes('print'));
       }
       if (tgt === 'checked shirt') {
-        return sub.includes('check') || name.includes('check') || desc.includes('check');
+        return (pCat === 'shirt') && (sub.includes('check') || name.includes('check') || desc.includes('check'));
       }
       if (tgt === 'stripped shirt' || tgt === 'striped shirt') {
-        return sub.includes('strip') || name.includes('strip') || desc.includes('strip');
+        return (pCat === 'shirt') && (sub.includes('strip') || name.includes('strip') || desc.includes('strip'));
       }
       if (tgt === 'denim shirt') {
-        return sub.includes('denim') || name.includes('denim') || fabric.includes('denim') || desc.includes('denim');
+        return (pCat === 'shirt') && (sub.includes('denim') || name.includes('denim') || fabric.includes('denim') || desc.includes('denim'));
       }
       if (tgt === 'branded shirt') {
-        return sub.includes('brand') || name.includes('brand') || (p.brand && String(p.brand).trim().length > 0);
+        return (pCat === 'shirt') && (sub.includes('brand') || name.includes('brand') || (p.brand && String(p.brand).trim().length > 0));
       }
 
       // Pants
       if (tgt === 'jean pant' || tgt === 'jeans') {
-        return sub.includes('jean') || sub.includes('denim') || name.includes('jean') || name.includes('denim') || fabric.includes('denim');
+        return (pCat === 'pant') && (sub.includes('jean') || sub.includes('denim') || name.includes('jean') || name.includes('denim') || fabric.includes('denim'));
       }
       if (tgt === 'cotton pant' || tgt === 'chinos') {
-        return sub.includes('cotton') || sub.includes('chino') || name.includes('cotton') || name.includes('chino') || fabric.includes('cotton');
+        return (pCat === 'pant') && (
+          (sub.includes('cotton') || sub.includes('chino') || name.includes('cotton') || name.includes('chino') || fabric.includes('cotton')) &&
+          !sub.includes('jean') && !name.includes('jean') && !fabric.includes('denim')
+        );
       }
       if (tgt === 'baggy pant') {
-        return sub.includes('baggy') || name.includes('baggy') || fit.includes('baggy');
+        return (pCat === 'pant') && (sub.includes('baggy') || name.includes('baggy') || fit.includes('baggy'));
       }
       if (tgt === 'mom fit pant') {
-        return sub.includes('mom') || name.includes('mom') || fit.includes('mom');
+        return (pCat === 'pant') && (sub.includes('mom') || name.includes('mom') || fit.includes('mom'));
       }
       if (tgt === 'track pant') {
-        return sub.includes('track') || sub.includes('jogger') || name.includes('track') || name.includes('jogger') || fit.includes('jogger');
+        return (pCat === 'pant') && (sub.includes('track') || sub.includes('jogger') || name.includes('track') || name.includes('jogger') || fit.includes('jogger'));
+      }
+      if (tgt === 'cargo pant') {
+        return (pCat === 'pant') && (sub.includes('cargo') || name.includes('cargo') || fit.includes('cargo'));
       }
 
       // T-Shirts
       if (tgt === 'collar t-shirt' || tgt === 'collar') {
-        return sub.includes('collar') || sub.includes('polo') || name.includes('collar') || name.includes('polo') || neck.includes('collar');
+        return (pCat === 'tshirt') && (sub.includes('collar') || sub.includes('polo') || name.includes('collar') || name.includes('polo') || neck.includes('collar'));
       }
       if (tgt === 'drop shoulder t-shirt' || tgt === 'drop shoulder') {
-        return sub.includes('drop') || name.includes('drop') || fit.includes('drop') || fit.includes('oversized') || name.includes('oversized');
+        return (pCat === 'tshirt') && (sub.includes('drop') || name.includes('drop') || fit.includes('drop') || fit.includes('oversized') || name.includes('oversized'));
       }
       if (tgt === 'full sleeve t-shirt') {
-        return sub.includes('full sleeve') || name.includes('full sleeve') || sleeve.includes('full');
+        return (pCat === 'tshirt') && (sub.includes('full sleeve') || name.includes('full sleeve') || sleeve.includes('full'));
       }
       if (tgt === 'hoodies t-shirt' || tgt === 'hoodie') {
-        return sub.includes('hood') || name.includes('hood') || neck.includes('hood');
+        return (pCat === 'tshirt') && (sub.includes('hood') || name.includes('hood') || neck.includes('hood'));
       }
 
       // Fallback for keyword tokens
@@ -571,15 +707,16 @@
 
     /* ---- MARQUEE TICKER ---- */
     const tickerTrack = document.getElementById('catTickerTrack');
-    // Get subcats excluding 'All', map to product img
-    const tickerItems = meta.subcats.filter(s => s !== 'All').map(s => {
-      let prod = ALL_PRODUCTS.find(p => (catKey === 'all' || p.cat === catKey) && matchProductSubcat(p, s));
-      if (!prod) {
-        prod = ALL_PRODUCTS.find(p => matchProductSubcat(p, s));
-      }
-      const imgUrl = (prod && ((prod.images && prod.images[0]) || prod.img)) ? ((prod.images && prod.images[0]) || prod.img) : (meta.heroImg || 'Logo.png');
-      return { label: s, img: imgUrl };
-    });
+    const tickerStrip = document.getElementById('catTickerStrip');
+    let isScrolling = true;
+    let tickerAnimStarted = false;
+
+    if (tickerStrip) {
+      tickerStrip.addEventListener('touchstart', () => isScrolling = false, {passive:true});
+      tickerStrip.addEventListener('touchend', () => isScrolling = true, {passive:true});
+      tickerStrip.addEventListener('mouseenter', () => isScrolling = false);
+      tickerStrip.addEventListener('mouseleave', () => isScrolling = true);
+    }
 
     function buildTickerHTML(items) {
       return items.map((item, i) => `
@@ -591,34 +728,43 @@
       `).join('');
     }
 
-    const tickerHTML = buildTickerHTML(tickerItems);
-    if(tickerItems.length > 0) {
-      tickerTrack.innerHTML = tickerHTML + '<span class="ticker-divider">✦</span>' + tickerHTML;
-    }
-
-    const tickerStrip = document.getElementById('catTickerStrip');
-    let isScrolling = true;
-    tickerStrip.addEventListener('touchstart', () => isScrolling = false, {passive:true});
-    tickerStrip.addEventListener('touchend', () => isScrolling = true, {passive:true});
-    tickerStrip.addEventListener('mouseenter', () => isScrolling = false);
-    tickerStrip.addEventListener('mouseleave', () => isScrolling = true);
-    
-    let scrollPos = 0;
-    function autoScrollTicker() {
-      if (isScrolling && tickerStrip.scrollWidth > tickerStrip.clientWidth) {
-        scrollPos += 0.8;
-        tickerStrip.scrollLeft = scrollPos;
-        if (tickerStrip.scrollLeft >= tickerStrip.scrollWidth / 2) {
-          scrollPos = 0;
-          tickerStrip.scrollLeft = 0;
+    function renderTickerMarquee() {
+      if (!tickerTrack) return;
+      const tickerItems = meta.subcats.filter(s => s !== 'All').map(s => {
+        let prod = ALL_PRODUCTS.find(p => (catKey === 'all' || getNormalizedCat(p) === catKey) && matchProductSubcat(p, s));
+        if (!prod && catKey === 'all') {
+          prod = ALL_PRODUCTS.find(p => matchProductSubcat(p, s));
         }
-      } else {
-        scrollPos = tickerStrip.scrollLeft;
+        const imgUrl = (prod && ((prod.images && prod.images[0]) || prod.img)) ? ((prod.images && prod.images[0]) || prod.img) : null;
+        return { label: s, img: imgUrl, hasProd: !!prod };
+      }).filter(item => item.hasProd);
+
+      if (tickerItems.length === 0) {
+        tickerTrack.innerHTML = '';
+        return;
       }
-      requestAnimationFrame(autoScrollTicker);
-    }
-    if (tickerItems.length > 0) {
-      requestAnimationFrame(autoScrollTicker);
+
+      const tickerHTML = buildTickerHTML(tickerItems);
+      tickerTrack.innerHTML = tickerHTML + '<span class="ticker-divider">✦</span>' + tickerHTML;
+
+      if (!tickerAnimStarted) {
+        tickerAnimStarted = true;
+        let scrollPos = 0;
+        function autoScrollTicker() {
+          if (isScrolling && tickerStrip && tickerStrip.scrollWidth > tickerStrip.clientWidth) {
+            scrollPos += 0.8;
+            tickerStrip.scrollLeft = scrollPos;
+            if (tickerStrip.scrollLeft >= tickerStrip.scrollWidth / 2) {
+              scrollPos = 0;
+              tickerStrip.scrollLeft = 0;
+            }
+          } else if (tickerStrip) {
+            scrollPos = tickerStrip.scrollLeft;
+          }
+          requestAnimationFrame(autoScrollTicker);
+        }
+        requestAnimationFrame(autoScrollTicker);
+      }
     }
 
     function filterSubcat(s) {
@@ -653,29 +799,40 @@
           ALL_PRODUCTS = window.ALL_PRODUCTS;
         }
       }
+
+      // Update marquee ticker with latest products and proper images
+      renderTickerMarquee();
+
       const catItems = catKey === 'all' ? ALL_PRODUCTS : ALL_PRODUCTS.filter(p => {
         if (!p) return false;
-        const c = String(p.cat || p.category || '').toLowerCase();
+        const c = getNormalizedCat(p);
         const k = String(catKey || '').toLowerCase();
-        if (c === k) return true;
-        if (k === 'tshirt' && (c === 't-shirt' || c === 'tshirts' || c === 't-shirts')) return true;
-        if (k === 'shirt' && c === 'shirts') return true;
-        if (k === 'pant' && (c === 'pants' || c === 'jeans' || c === 'trouser' || c === 'trousers')) return true;
-        if (k === 'shorts' && (c === 'short' || c === 'shorts')) return true;
-        if (k === 'caps' && (c === 'cap' || c === 'caps')) return true;
-        if (k === 'keychains' && (c === 'keychain' || c === 'keychains')) return true;
-        return false;
+        return c === k;
       });
 
       // Match products smartly by activeSub
-      const items = activeSub === 'All' ? catItems : catItems.filter(p => matchProductSubcat(p, activeSub));
+      let items = activeSub === 'All' ? catItems : catItems.filter(p => matchProductSubcat(p, activeSub));
+
+      if (searchQuery) {
+        items = items.filter(p => {
+          const n = String(p.name || '').toLowerCase();
+          const d = String(p.desc || '').toLowerCase();
+          const s = String(p.subcat || p.subcategory || '').toLowerCase();
+          const c = String(p.cat || p.category || '').toLowerCase();
+          const f = String(p.fabric || '').toLowerCase();
+          const fit = String(p.fit || '').toLowerCase();
+          return n.includes(searchQuery) || d.includes(searchQuery) || s.includes(searchQuery) || c.includes(searchQuery) || f.includes(searchQuery) || fit.includes(searchQuery);
+        });
+      }
 
       const grid     = document.getElementById('catGrid');
       const countEl  = document.getElementById('catCount');
       const resEl    = document.getElementById('catResultsCount');
 
       countEl.textContent = items.length + ' Products';
-      if (activeSub === 'All') {
+      if (searchQuery) {
+        resEl.innerHTML = `Showing ${items.length} product${items.length !== 1 ? 's' : ''} for <strong>"${searchQuery}"</strong> <a href="category.html?cat=${catKey}" style="margin-left: 10px; background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; border-radius: 6px; padding: 2px 8px; font-size: 0.75rem; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">✕ Clear Search</a>`;
+      } else if (activeSub === 'All') {
         resEl.textContent = 'Showing ' + items.length + ' product' + (items.length !== 1 ? 's' : '');
       } else {
         resEl.innerHTML = `Showing ${items.length} product${items.length !== 1 ? 's' : ''} in <strong>"${activeSub}"</strong> <button type="button" onclick="filterSubcat('All')" style="margin-left: 10px; background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; border-radius: 6px; padding: 2px 8px; font-size: 0.75rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">✕ Clear Filter</button>`;
@@ -684,12 +841,19 @@
       if (!items.length) {
         grid.innerHTML = `<div class="cat-empty" style="grid-column:1/-1">
           <div class="cat-empty-icon">🔍</div>
-          <h3>No Products Found in "${activeSub}"</h3>
+          <h3>No Products Found ${searchQuery ? `for "${searchQuery}"` : `in "${activeSub}"`}</h3>
           <p>We are adding more styles in this collection soon!</p>
-          <button type="button" class="btn-primary" onclick="filterSubcat('All')" style="margin-top: 1rem; padding: 0.6rem 1.2rem; font-size: 0.85rem; border-radius: 8px;">View All Products</button>
+          <a href="category.html?cat=all" class="btn-primary" style="display:inline-block; margin-top: 1rem; padding: 0.6rem 1.4rem; font-size: 0.85rem; border-radius: 8px; text-decoration:none;">View All Products</a>
         </div>`;
         return;
       }
+
+      // Strictly sort chronologically: Latest (Newest) uploaded products first!
+      items.sort((a, b) => {
+        const timeA = a.createdAt ? (a.createdAt.toDate ? a.createdAt.toDate().getTime() : new Date(a.createdAt).getTime()) : 0;
+        const timeB = b.createdAt ? (b.createdAt.toDate ? b.createdAt.toDate().getTime() : new Date(b.createdAt).getTime()) : 0;
+        return timeB - timeA;
+      });
 
       const catLabel = { shirt:'Shirt', pant:'Pant', tshirt:'T-Shirt', shorts:'Shorts', caps:'Caps', keychains:'Keychains' };
       grid.innerHTML = items.map((p, i) => {
@@ -815,6 +979,6 @@
     if(hbg) hbg.addEventListener('click',()=>{ hbg.classList.toggle('open'); nl.classList.toggle('open'); });
   </script>
   <script type="module" src="store-sync.js"></script>
-  <script src="menu.js"></script>
+  <script src="menu.js?v=3.1"></script>
 </body>
 </html>

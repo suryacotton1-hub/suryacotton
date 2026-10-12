@@ -810,7 +810,7 @@ async function syncUserOrderStatuses(userOrders) {
     ? window.BACKEND_URL.replace(/\/$/, '')
     : (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
         ? 'http://localhost:3000'
-        : 'https://backend-s6kq.onrender.com');
+        : '');
 
   // Only sync orders that have Shiprocket data and are not in terminal states
   const ordersToSync = userOrders
@@ -894,7 +894,7 @@ window.trackShipmentLive = async function(trackId) {
       ? window.BACKEND_URL.replace(/\/$/, '')
       : (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
           ? 'http://localhost:3000' 
-          : 'https://backend-s6kq.onrender.com');
+          : '');
     let trackEndpoint = `${BACKEND_URL}/api/shiprocket/track?id=${encodeURIComponent(trackId)}`;
     if (!BACKEND_URL && window.location.hostname.includes('netlify')) {
       trackEndpoint = `/.netlify/functions/shiprocket-track?id=${encodeURIComponent(trackId)}`;
@@ -937,7 +937,7 @@ window.trackShipmentLive = async function(trackId) {
           <div style="background: #f8fafc; padding: 1.2rem; border-radius: 12px; margin-bottom: 1.5rem; display: flex; justify-content: space-around; flex-wrap: wrap; gap: 1rem; text-align: center;">
             <div>
               <span style="font-size: 0.75rem; color: #64748b; display: block; text-transform: uppercase; font-weight: 700;">Origin</span>
-              <strong style="font-size: 0.95rem; color: #0a0a0a;">${data.origin || 'SuryaCottans Hub'}</strong>
+              <strong style="font-size: 0.95rem; color: #0a0a0a;">${data.origin || 'SuryaCotton Hub'}</strong>
             </div>
             <div>
               <span style="font-size: 0.75rem; color: #64748b; display: block; text-transform: uppercase; font-weight: 700;">Estimated Delivery</span>

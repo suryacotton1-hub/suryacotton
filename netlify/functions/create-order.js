@@ -32,8 +32,8 @@ exports.handler = async (event) => {
     }
 
     const razorpay = new Razorpay({
-      key_id: process.env.RAZORPAY_KEY_ID,
-      key_secret: process.env.RAZORPAY_KEY_SECRET,
+      key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_TMheDs5vqXN9S7',
+      key_secret: process.env.RAZORPAY_KEY_SECRET || 'W8IiprT1R8oKl33OVTgh1eY8',
     });
 
     const order = await razorpay.orders.create({

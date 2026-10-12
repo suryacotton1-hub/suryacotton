@@ -1,5 +1,5 @@
 /* =========================================================
-   SURYA COTTANS — EMAILJS CLIENT CONFIGURATION
+   SURYA COTTON — EMAILJS CLIENT CONFIGURATION
    ========================================================= */
 
 // EmailJS credentials for order confirmation emails
@@ -8,15 +8,16 @@ export const EMAIL_CONFIG = {
   serviceId: "service_daknf95",
 
   // Template ID from EmailJS (Email Templates -> Template ID, e.g. "template_xxxxxxx")
-  templateId: "",
+  templateId: "template_j0udqht",
 
   // Public Key from EmailJS (Account -> API Keys -> Public Key)
-  publicKey: "",
+  publicKey: "XyD2BSBIHw8JUf2gK",
 
   // Store & support contact details
-  storeName: "SuryaCottans",
+  storeName: "SuryaCotton",
   supportEmail: "suryacotton1@gmail.com",
-  storeUrl: "https://suryacottans.com"
+  storeUrl: "https://suryacotton.com",
+  storeAddress: "No,6, L.P.N School Complex, Alagar Kovil Main Road, Moondrumavadi, Pudhur, Madurai-625009, Tamil Nadu, India"
 };
 
 /**

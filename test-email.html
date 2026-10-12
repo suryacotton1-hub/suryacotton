@@ -3,14 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EmailJS Order Confirmation Setup & Tester | SuryaCottans</title>
-    <!-- Favicon & Brand Icons -->
-  <link rel="icon" type="image/x-icon" href="favicon.ico" />
-  <link rel="icon" type="image/png" sizes="192x192" href="favicon-192x192.png" />
-  <link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png" />
-  <link rel="icon" type="image/png" sizes="48x48" href="favicon-48x48.png" />
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png" />
-  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
+  <title>EmailJS Order Confirmation Setup & Tester | SuryaCotton</title>
+      <!-- Favicon & Brand Icons (Google Search & Multi-device compliant) -->
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="shortcut icon" href="/favicon.ico" />
+  <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png" />
+  <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png" />
+  <link rel="icon" type="image/png" sizes="144x144" href="/favicon-144x144.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192x192.png" />
+  <link rel="icon" type="image/png" sizes="512x512" href="/favicon-512x512.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <link rel="manifest" href="/site.webmanifest" />
   <meta name="theme-color" content="#0f172a" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -79,7 +82,7 @@
   <div class="container">
     <div class="header">
       <span class="badge">EMAIL INTEGRATION</span>
-      <h1>SuryaCottans Order Email Tester</h1>
+      <h1>SuryaCotton Order Email Tester</h1>
       <p>Configure EmailJS credentials and test customer order confirmation emails.</p>
     </div>
 
@@ -147,9 +150,9 @@
         <li>
           In <strong>Template Settings</strong>:
           <ul style="margin: 0.5rem 0 0.5rem 1.25rem; font-size: 0.88rem; color: #475569;">
-            <li><strong>Subject:</strong> <code>Order Confirmed: #{{order_id}} - SuryaCottans</code></li>
+            <li><strong>Subject:</strong> <code>Order Confirmed: #{{order_id}} - SuryaCotton</code></li>
             <li><strong>To Email:</strong> <code>{{to_email}}</code> <span style="color:#b91c1c; font-weight:700;">(CRITICAL: Do NOT leave your own email here; set it to {{to_email}} so customer receives it!)</span></li>
-            <li><strong>From Name:</strong> <code>SuryaCottans</code></li>
+            <li><strong>From Name:</strong> <code>SuryaCotton</code></li>
             <li><strong>Reply To:</strong> <code>suryacotton1@gmail.com</code></li>
           </ul>
         </li>
@@ -174,7 +177,7 @@
 
     const BACKEND_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
       ? 'http://localhost:3000'
-      : (typeof window !== 'undefined' && window.BACKEND_URL ? window.BACKEND_URL.replace(/\/$/, '') : 'https://backend-s6kq.onrender.com');
+      : (typeof window !== 'undefined' && window.BACKEND_URL ? window.BACKEND_URL.replace(/\/$/, '') : '');
 
     // Populate initial values
     window.addEventListener('DOMContentLoaded', async () => {
@@ -265,14 +268,14 @@
               <td style="padding: 10px 8px; text-align: right; font-weight: 700;">₹1,999</td>
             </tr>
           `,
-          tracking_url: 'https://suryacottans.com/track.html',
+          tracking_url: 'https://suryacotton.com/track.html',
           courier_name: 'Blue Dart Express',
           awb_code: 'AWB' + Math.floor(100000000 + Math.random() * 900000000),
-          name: 'SuryaCottans',
-          from_name: 'SuryaCottans',
+          name: 'SuryaCotton',
+          from_name: 'SuryaCotton',
           email: 'suryacotton1@gmail.com',
           reply_to: 'suryacotton1@gmail.com',
-          store_name: 'SuryaCottans',
+          store_name: 'SuryaCotton',
           support_email: 'suryacotton1@gmail.com'
         };
 
@@ -323,14 +326,14 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Order Confirmation - SuryaCottans</title>
+  <title>Order Confirmation - SuryaCotton</title>
 </head>
 <body style="margin:0; padding:20px; background-color:#f4f6f8; font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif; color:#1e293b;">
   <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px; margin:0 auto; background:#ffffff; border-radius:12px; overflow:hidden; box-shadow:0 4px 15px rgba(0,0,0,0.06);">
     <!-- Header -->
     <tr>
       <td style="background-color:#0f172a; padding:30px 25px; text-align:center;">
-        <h1 style="color:#ffffff; margin:0; font-size:26px; letter-spacing:3px; font-weight:800;">SURYA<span style="color:#e8000d;">COTTANS</span></h1>
+        <h1 style="color:#ffffff; margin:0; font-size:26px; letter-spacing:3px; font-weight:800;">SURYA<span style="color:#e8000d;">COTTON</span></h1>
         <p style="color:#94a3b8; margin:6px 0 0 0; font-size:12px; letter-spacing:1px; text-transform:uppercase;">Premium Menswear Collection</p>
       </td>
     </tr>
@@ -341,7 +344,7 @@
         <h2 style="font-size:20px; font-weight:700; color:#0f172a; margin-top:0; margin-bottom:10px;">Order Confirmed! 🎉</h2>
         <p style="font-size:15px; line-height:1.6; color:#475569; margin:0 0 20px 0;">
           Dear <strong>{{to_name}}</strong>,<br>
-          Thank you for choosing SuryaCottans. Your payment has been received and your order is now confirmed! We are tailoring and preparing your items with utmost precision.
+          Thank you for choosing SuryaCotton. Your payment has been received and your order is now confirmed! We are tailoring and preparing your items with utmost precision.
         </p>
 
         <!-- Order Summary Box -->
@@ -399,7 +402,8 @@
     <tr>
       <td style="background:#f8fafc; border-top:1px solid #e2e8f0; padding:20px 25px; text-align:center; font-size:13px; color:#64748b;">
         <p style="margin:0 0 8px 0;">Need assistance? Reply to this email or reach us at <a href="mailto:suryacotton1@gmail.com" style="color:#0f172a; font-weight:600;">suryacotton1@gmail.com</a></p>
-        <p style="margin:0; font-size:12px; color:#94a3b8;">© 2025 SuryaCottans. Crafted with ❤️ in Tamil Nadu.</p>
+        <p style="margin:0; font-size:12px; color:#94a3b8;">© 2025 SuryaCotton. Crafted with ❤️ in Tamil Nadu.</p>
+        <p style="margin:4px 0 0 0; font-size:11px; color:#94a3b8;">📍 No,6, L.P.N School Complex, Alagar Kovil Main Road, Moondrumavadi, Pudhur, Madurai-625009, Tamil Nadu, India</p>
       </td>
     </tr>
   </table>

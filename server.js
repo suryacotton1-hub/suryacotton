@@ -221,18 +221,67 @@ app.post('/api/verify-payment', async (req, res) => {
       console.warn('[DB] Supabase order save notice:', saveErr.message);
     }
 
-    // 4. Pickup is strictly held until Admin clicks "Approve & Schedule Pickup" in the Admin Panel.
-    // We do NOT auto-push to Shiprocket or auto-schedule pickup during checkout.
-    console.log(`[CHECKOUT] 🛑 Auto-pickup BLOCKED. Order ${orderId} safely saved as PENDING_APPROVAL.`);
-    const srResult = {
+    // 4. Push order to Shiprocket as a New Order (WITHOUT auto-scheduling pickup).
+    // This creates the order in Shiprocket so Admin can choose courier, compare prices, and schedule pickup in Shiprocket.
+    let srResult = {
       success: true,
       shiprocket_order_id: null,
       shipment_id: null,
       awb_code: null,
-      courier_name: 'Pending Admin Approval',
+      courier_name: 'Pending Courier Assignment',
       tracking_url: null,
       shipment_status: 'PENDING_APPROVAL'
     };
+
+    try {
+      const orderForShiprocket = {
+        id: orderId,
+        date: rawOrder.date || new Date().toISOString(),
+        customerName: custName,
+        customerEmail: custEmail,
+        customerPhone: custPhone,
+        customerAddress: custAddress,
+        customerCity: custCity,
+        customerState: custState,
+        customerPin: custPin,
+        shipping_address: custAddress,
+        city: custCity,
+        state: custState,
+        pincode: custPin,
+        items: rawOrder.items || rawOrder.products || [],
+        total: rawOrder.total || rawOrder.total_amount,
+        paymentMethod: 'Prepaid'
+      };
+
+      const srPushRes = await shiprocket.createOrder(orderForShiprocket);
+      if (srPushRes.success && srPushRes.shiprocket_order_id) {
+        console.log(`[SHIPROCKET] ✅ Order ${orderId} registered in Shiprocket (SR ID: ${srPushRes.shiprocket_order_id}). Auto-pickup skipped for admin control.`);
+        srResult = {
+          success: true,
+          shiprocket_order_id: String(srPushRes.shiprocket_order_id),
+          shipment_id: String(srPushRes.shipment_id || ''),
+          awb_code: null,
+          courier_name: 'Pending Courier Assignment',
+          tracking_url: null,
+          shipment_status: 'ORDER_CREATED'
+        };
+
+        try {
+          await supabase.from('orders').update({
+            shiprocket_order_id: srResult.shiprocket_order_id,
+            shiprocket_shipment_id: srResult.shipment_id,
+            shipment_status: 'ORDER_CREATED',
+            updated_at: new Date().toISOString()
+          }).eq('id', orderId);
+        } catch (dbUpErr) {
+          console.warn('[DB] Supabase order update notice:', dbUpErr.message);
+        }
+      } else {
+        console.warn(`[SHIPROCKET] ⚠️ Order registration notice:`, srPushRes.error || 'Unknown response');
+      }
+    } catch (srErr) {
+      console.warn(`[SHIPROCKET] ⚠️ Could not auto-register order in Shiprocket:`, srErr.message);
+    }
 
     // 6. Trigger Order Confirmation Email (EmailJS)
     let emailResult = { success: false, reason: 'skipped' };

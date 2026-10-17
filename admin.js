@@ -2571,7 +2571,7 @@ function renderOrders() {
     const statClass = (o.status || 'Processing').toLowerCase();
     
     // Shipment Badge
-    const sStatus = (o.shipment_status || 'PENDING_APPROVAL').toUpperCase();
+    const sStatus = (o.shipment_status || (o.shiprocket_order_id ? 'ORDER_CREATED' : 'PENDING_APPROVAL')).toUpperCase();
     let shipBadge = `<span style="background:#fef9c3; color:#854d0e; padding:3px 8px; border-radius:6px; font-size:0.75rem; font-weight:700;">🟡 PENDING APPROVAL</span>`;
     if (sStatus === 'CANCELLED') {
       shipBadge = `<span style="background:#fee2e2; color:#b91c1c; padding:3px 8px; border-radius:6px; font-size:0.75rem; font-weight:700;">CANCELLED</span>`;
@@ -2579,8 +2579,8 @@ function renderOrders() {
       shipBadge = `<span style="background:#ddd6fe; color:#5b21b6; padding:3px 8px; border-radius:6px; font-size:0.75rem; font-weight:700;">PICKUP SCHEDULED</span>`;
     } else if (o.awb_code || sStatus === 'READY_TO_SHIP' || sStatus === 'AWB_GENERATED') {
       shipBadge = `<span style="background:#dcfce7; color:#15803d; padding:3px 8px; border-radius:6px; font-size:0.75rem; font-weight:700;">READY (AWB: ${o.awb_code})</span>`;
-    } else if (sStatus === 'AWB_PENDING' || sStatus === 'ORDER_CREATED') {
-      shipBadge = `<span style="background:#fef3c7; color:#b45309; padding:3px 8px; border-radius:6px; font-size:0.75rem; font-weight:700;">AWB PENDING</span>`;
+    } else if (Boolean(o.shiprocket_order_id) || sStatus === 'ORDER_CREATED' || sStatus === 'AWB_PENDING') {
+      shipBadge = `<span style="background:#e0e7ff; color:#3730a3; padding:3px 8px; border-radius:6px; font-size:0.75rem; font-weight:700;">📦 IN SHIPROCKET</span>`;
     } else if (sStatus === 'IN_TRANSIT' || sStatus === 'OUT_FOR_DELIVERY') {
       shipBadge = `<span style="background:#e0f2fe; color:#0369a1; padding:3px 8px; border-radius:6px; font-size:0.75rem; font-weight:700;">${sStatus.replace(/_/g,' ')}</span>`;
     } else if (sStatus === 'DELIVERED') {
@@ -2594,7 +2594,7 @@ function renderOrders() {
 
     return `
       <tr>
-        <td>#${o.id}<br><small style="color:#64748b;">${o.shiprocket_order_id ? 'SR: ' + o.shiprocket_order_id : ''}</small></td>
+        <td>#${o.id}<br><small style="color:#64748b;">${o.shiprocket_order_id ? `<span style="color:#4f46e5; font-weight:700;">SR: ${o.shiprocket_order_id}</span>` : '<span style="color:#b45309; font-weight:600;">Not in Shiprocket</span>'}</small></td>
         <td>${d}</td>
         <td><strong>${o.customerName || 'Unknown'}</strong><br><small>${o.customerPhone || ''}</small><br><small style="color:#64748b;">${o.customerEmail || ''}</small></td>
         <td>₹${(Number(o.total) || 0).toLocaleString('en-IN')}</td>
@@ -2613,14 +2613,89 @@ function renderOrders() {
           <div style="display:flex; flex-direction:column; gap:4px;">
             <button class="action-btn" onclick="window.viewOrderDetails('${o.id}')">View Details</button>
             <button class="action-btn" style="background:#0f172a; color:white; border-color:#0f172a; font-size:0.75rem; padding:4px 8px;" onclick="window.resendOrderEmail('${o.id}')">✉️ Send Email</button>
-            ${canSchedulePickup ? `<button class="action-btn" style="background:#16a34a; color:white; border-color:#16a34a; font-size:0.75rem; padding:4px 8px;" onclick="window.schedulePickup('${o.id}')">📦 Approve & Schedule Pickup</button>` : ''}
-            ${needsRetry ? `<button class="action-btn" style="background:#3b82f6; color:white; border-color:#3b82f6; font-size:0.75rem; padding:4px 8px;" onclick="window.retryShiprocket('${o.id}')">🔄 Retry Shiprocket</button>` : ''}
+            ${!o.shiprocket_order_id ? `<button class="action-btn" style="background:#4f46e5; color:white; border-color:#4f46e5; font-size:0.75rem; padding:5px 8px; font-weight:700;" onclick="window.sendToShiprocket('${o.id}')">🚀 Send to Shiprocket</button>` : `<a href="https://app.shiprocket.in/orders" target="_blank" class="action-btn" style="background:#0284c7; color:white; border-color:#0284c7; font-size:0.75rem; padding:5px 8px; text-decoration:none; text-align:center; font-weight:700;">↗ Manage in Shiprocket</a>`}
+            ${canSchedulePickup ? `<button class="action-btn" style="background:#16a34a; color:white; border-color:#16a34a; font-size:0.75rem; padding:4px 8px;" onclick="window.schedulePickup('${o.id}')">📦 1-Click Pickup</button>` : ''}
+            ${needsRetry ? `<button class="action-btn" style="background:#3b82f6; color:white; border-color:#3b82f6; font-size:0.75rem; padding:4px 8px;" onclick="window.retryShiprocket('${o.id}')">🔄 Retry AWB</button>` : ''}
           </div>
         </td>
       </tr>
     `;
   }).join('');
 }
+
+window.sendToShiprocket = async function(id) {
+  const o = orders.find(x => String(x.id) === String(id));
+  if (!o) return;
+
+  if (o.shiprocket_order_id) {
+    alert(`Order #${id} is already in Shiprocket (ID: ${o.shiprocket_order_id}).`);
+    return;
+  }
+
+  showToast('Connecting to Shiprocket API...');
+  
+  const getBackendUrl = () => {
+    if (typeof window !== 'undefined' && window.BACKEND_URL) return window.BACKEND_URL.replace(/\/$/, '');
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') return 'http://localhost:3000';
+    return '';
+  };
+
+  try {
+    const payload = {
+      id: o.id,
+      date: o.date || new Date().toISOString(),
+      customerName: o.customerName || o.name || 'Valued Customer',
+      customerEmail: o.customerEmail || o.email || 'care@suryacotton.com',
+      customerPhone: o.customerPhone || o.phone || '9876543210',
+      customerAddress: o.customerAddress || o.shipping_address || o.address || '',
+      customerCity: o.customerCity || o.city || '',
+      customerState: o.customerState || o.state || '',
+      customerPin: o.customerPin || o.pincode || o.pin || '',
+      shipping_address: o.customerAddress || o.shipping_address || o.address || '',
+      city: o.customerCity || o.city || '',
+      state: o.customerState || o.state || '',
+      pincode: o.customerPin || o.pincode || o.pin || '',
+      items: o.items || o.products || [],
+      total: o.total || o.total_amount || 0,
+      paymentMethod: 'Prepaid'
+    };
+
+    const res = await fetch(`${getBackendUrl()}/api/shiprocket/create-order`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+    if (res.ok && data.success && data.shiprocket_order_id) {
+      o.shiprocket_order_id = String(data.shiprocket_order_id);
+      o.shiprocket_shipment_id = String(data.shipment_id || '');
+      o.shipment_status = 'ORDER_CREATED';
+
+      localStorage.setItem('sc_all_orders', JSON.stringify(orders));
+
+      // Also sync to Firestore document
+      if (o.firestoreId) {
+        try {
+          await setDoc(doc(db, "orders", o.firestoreId), {
+            shiprocket_order_id: String(data.shiprocket_order_id),
+            shiprocket_shipment_id: String(data.shipment_id || ''),
+            shipment_status: 'ORDER_CREATED'
+          }, { merge: true });
+        } catch (fsErr) {
+          console.warn("[ADMIN] Firestore sync notice:", fsErr);
+        }
+      }
+
+      renderOrders();
+      alert(`✅ Order #${id} sent to Shiprocket successfully!\n\nShiprocket Order ID: ${data.shiprocket_order_id}\n\nYou can now log in to Shiprocket (or click 'Manage in Shiprocket') to choose your Courier & Schedule Pickup!`);
+    } else {
+      alert(`⚠️ Shiprocket Notice:\n\n${data.error || data.message || 'Could not push order to Shiprocket. Please verify address details.'}`);
+    }
+  } catch (err) {
+    alert(`❌ Server Connection Error: ${err.message}`);
+  }
+};
 
 window.schedulePickup = async function(id) {
   const o = orders.find(x => String(x.id) === String(id));

@@ -4,6 +4,7 @@
 const crypto = require('crypto');
 const supabase = require('./lib/supabase');
 const emailService = require('../../emailService');
+const shiprocket = require('../../shiprocket');
 
 exports.handler = async (event) => {
   const headers = {
@@ -131,8 +132,67 @@ exports.handler = async (event) => {
       console.warn('[DB] Supabase order save notice:', saveErr.message);
     }
 
-    // 5. Auto-pickup is strictly blocked. We do NOT push to Shiprocket at checkout.
-    console.log(`[CHECKOUT] 🛑 Auto-pickup BLOCKED. Order ${orderId} saved with PENDING_APPROVAL.`);
+    // 5. Push order to Shiprocket as a New Order (WITHOUT auto-scheduling pickup).
+    // This allows the Admin to choose courier partner, compare prices, and schedule pickup in Shiprocket.
+    let srResult = {
+      success: true,
+      shiprocket_order_id: null,
+      shipment_id: null,
+      awb_code: null,
+      courier_name: 'Pending Courier Assignment',
+      tracking_url: null,
+      shipment_status: 'PENDING_APPROVAL'
+    };
+
+    try {
+      const orderForShiprocket = {
+        id: orderId,
+        date: rawOrder.date || new Date().toISOString(),
+        customerName: custName,
+        customerEmail: custEmail,
+        customerPhone: custPhone,
+        customerAddress: custAddress,
+        customerCity: custCity,
+        customerState: custState,
+        customerPin: custPin,
+        shipping_address: custAddress,
+        city: custCity,
+        state: custState,
+        pincode: custPin,
+        items: rawOrder.items || rawOrder.products || [],
+        total: rawOrder.total || rawOrder.total_amount,
+        paymentMethod: 'Prepaid'
+      };
+
+      const srPushRes = await shiprocket.createOrder(orderForShiprocket);
+      if (srPushRes.success && srPushRes.shiprocket_order_id) {
+        console.log(`[SHIPROCKET] ✅ Order ${orderId} registered in Shiprocket (SR ID: ${srPushRes.shiprocket_order_id}). Auto-pickup skipped.`);
+        srResult = {
+          success: true,
+          shiprocket_order_id: String(srPushRes.shiprocket_order_id),
+          shipment_id: String(srPushRes.shipment_id || ''),
+          awb_code: null,
+          courier_name: 'Pending Courier Assignment',
+          tracking_url: null,
+          shipment_status: 'ORDER_CREATED'
+        };
+
+        try {
+          await supabase.from('orders').update({
+            shiprocket_order_id: srResult.shiprocket_order_id,
+            shiprocket_shipment_id: srResult.shipment_id,
+            shipment_status: 'ORDER_CREATED',
+            updated_at: new Date().toISOString()
+          }).eq('id', orderId);
+        } catch (dbUpErr) {
+          console.warn('[DB] Supabase order update notice:', dbUpErr.message);
+        }
+      } else {
+        console.warn(`[SHIPROCKET] ⚠️ Order registration notice:`, srPushRes.error || 'Unknown response');
+      }
+    } catch (srErr) {
+      console.warn(`[SHIPROCKET] ⚠️ Could not auto-register order in Shiprocket:`, srErr.message);
+    }
 
     // 6. Send Order Confirmation Email via EmailJS
     let emailResult = { success: false, reason: 'skipped' };
@@ -150,9 +210,9 @@ exports.handler = async (event) => {
         items: rawOrder.items || rawOrder.products || [],
         total: rawOrder.total || rawOrder.total_amount,
         razorpay_payment_id,
-        tracking_url: null,
-        courier_name: 'Pending Admin Approval',
-        awb_code: null
+        tracking_url: srResult.tracking_url,
+        courier_name: srResult.courier_name,
+        awb_code: srResult.awb_code
       };
       emailResult = await emailService.sendOrderConfirmationEmail(emailPayload);
     } catch (emailErr) {
@@ -168,16 +228,8 @@ exports.handler = async (event) => {
         payment_id: razorpay_payment_id,
         order_id: razorpay_order_id,
         internalOrderId: orderId,
-        shipment_status: 'PENDING_APPROVAL',
-        shiprocket: {
-          success: true,
-          shiprocket_order_id: null,
-          shipment_id: null,
-          awb_code: null,
-          courier_name: 'Pending Admin Approval',
-          tracking_url: null,
-          shipment_status: 'PENDING_APPROVAL'
-        },
+        shipment_status: srResult.shipment_status,
+        shiprocket: srResult,
         email_sent: emailResult.success || false
       }),
     };

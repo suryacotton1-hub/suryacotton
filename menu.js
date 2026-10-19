@@ -960,3 +960,230 @@ window.addEventListener('load', setupToastInterceptor);
 
   window.syncMobileCartBadge = syncMobileCartBadge;
 })();
+
+/* ====================================================
+   SURYA COTTON — GLOBAL PRODUCT SHARE SYSTEM
+   ==================================================== */
+(function() {
+  function getProductData(productId) {
+    let p = null;
+    const allProducts = window.products || window.ALL_PRODUCTS || (function() {
+      try { return JSON.parse(localStorage.getItem('sc_products') || '[]'); } catch(e) { return []; }
+    })();
+    if (Array.isArray(allProducts)) {
+      p = allProducts.find(x => x && (String(x.id).trim() === String(productId).trim() || (!isNaN(x.id) && !isNaN(productId) && Number(x.id) === Number(productId))));
+    }
+    return p;
+  }
+
+  function getShareUrl(productId) {
+    let origin = window.location.origin;
+    if (!origin || origin === 'null') {
+      origin = window.location.protocol + '//' + window.location.host;
+    }
+    if (!origin || origin.startsWith('file:') || origin === 'null') {
+      origin = 'https://suryacotton.com';
+    }
+    origin = origin.replace(/\/+$/, '');
+    return `${origin}/product.html?id=${encodeURIComponent(productId)}`;
+  }
+
+  function ensureShareModal() {
+    let modal = document.getElementById('scShareModal');
+    if (modal) return modal;
+
+    const modalHTML = `
+      <div class="sc-share-overlay" id="scShareOverlay">
+        <div class="sc-share-modal" id="scShareModal" role="dialog" aria-modal="true" aria-labelledby="scShareTitle">
+          <div class="sc-share-header">
+            <div class="sc-share-header-title">
+              <span class="sc-share-icon-badge">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+              </span>
+              <h3 id="scShareTitle">Share Product</h3>
+            </div>
+            <button class="sc-share-close" id="scShareClose" aria-label="Close share dialog">✕</button>
+          </div>
+
+          <div class="sc-share-product-card">
+            <img id="scShareProdImg" src="Logo.png" alt="Product" class="sc-share-prod-img" />
+            <div class="sc-share-prod-meta">
+              <span class="sc-share-prod-brand">SuryaCotton Menswear</span>
+              <h4 id="scShareProdName" class="sc-share-prod-name">Product Name</h4>
+              <div class="sc-share-prod-price" id="scShareProdPrice">₹1,299</div>
+            </div>
+          </div>
+
+          <p class="sc-share-section-label">SHARE DIRECTLY</p>
+          <div class="sc-share-channels">
+            <a id="scShareWhatsapp" href="#" target="_blank" rel="noopener noreferrer" class="sc-share-channel-btn whatsapp">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+              <span>WhatsApp</span>
+            </a>
+            <a id="scShareFacebook" href="#" target="_blank" rel="noopener noreferrer" class="sc-share-channel-btn facebook">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+              <span>Facebook</span>
+            </a>
+            <a id="scShareTwitter" href="#" target="_blank" rel="noopener noreferrer" class="sc-share-channel-btn twitter">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+              <span>X (Twitter)</span>
+            </a>
+            <a id="scShareTelegram" href="#" target="_blank" rel="noopener noreferrer" class="sc-share-channel-btn telegram">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              <span>Telegram</span>
+            </a>
+          </div>
+
+          <p class="sc-share-section-label">OR COPY LINK</p>
+          <div class="sc-share-link-box">
+            <input type="text" id="scShareLinkInput" readonly spellcheck="false" />
+            <button id="scShareCopyBtn" class="sc-share-copy-btn" type="button">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              <span id="scShareCopyText">Copy Link</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+    const overlay = document.getElementById('scShareOverlay');
+    const closeBtn = document.getElementById('scShareClose');
+    const copyBtn = document.getElementById('scShareCopyBtn');
+    const linkInput = document.getElementById('scShareLinkInput');
+
+    function closeModal() {
+      overlay.classList.remove('open');
+      document.body.classList.remove('share-modal-open');
+    }
+
+    if (closeBtn) closeBtn.addEventListener('click', closeModal);
+    if (overlay) {
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) closeModal();
+      });
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && overlay.classList.contains('open')) {
+        closeModal();
+      }
+    });
+
+    if (copyBtn && linkInput) {
+      copyBtn.addEventListener('click', async () => {
+        const textToCopy = linkInput.value;
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(textToCopy);
+          } else {
+            linkInput.select();
+            document.execCommand('copy');
+          }
+          const copyText = document.getElementById('scShareCopyText');
+          if (copyText) copyText.textContent = 'Copied!';
+          copyBtn.classList.add('copied');
+          if (typeof window.showToast === 'function') {
+            window.showToast('✓ Link copied to clipboard!');
+          }
+          setTimeout(() => {
+            if (copyText) copyText.textContent = 'Copy Link';
+            copyBtn.classList.remove('copied');
+          }, 2500);
+        } catch(err) {
+          linkInput.select();
+          document.execCommand('copy');
+          if (typeof window.showToast === 'function') {
+            window.showToast('✓ Link copied to clipboard!');
+          }
+        }
+      });
+    }
+
+    return modal;
+  }
+
+  async function openShareDialog(productId, productData) {
+    const p = productData || getProductData(productId) || {};
+    const shareUrl = getShareUrl(productId);
+    const prodName = p.name || 'SuryaCotton Menswear';
+    const prodPrice = p.price ? ('₹' + Number(p.price).toLocaleString()) : '';
+    const prodImg = (p.images && p.images.length > 0) ? p.images[0] : (p.img || 'Logo.png');
+
+    const shareTitle = `${prodName} | SuryaCotton`;
+    const shareText = `Check out ${prodName}${prodPrice ? ' (' + prodPrice + ')' : ''} from SuryaCotton!\n${shareUrl}`;
+
+    // Try Mobile Native Share API first
+    if (navigator.share && navigator.canShare && navigator.canShare({ title: shareTitle, text: shareText, url: shareUrl })) {
+      try {
+        await navigator.share({
+          title: shareTitle,
+          text: shareText,
+          url: shareUrl
+        });
+        if (typeof window.showToast === 'function') {
+          window.showToast('✓ Product shared successfully!');
+        }
+        return;
+      } catch (err) {
+        if (err.name === 'AbortError') return; // User closed sheet
+        console.warn('Native share error, showing modal fallback:', err);
+      }
+    }
+
+    // Modal Fallback (Desktop or when Web Share is unavailable)
+    ensureShareModal();
+    const overlay = document.getElementById('scShareOverlay');
+    const nameEl = document.getElementById('scShareProdName');
+    const priceEl = document.getElementById('scShareProdPrice');
+    const imgEl = document.getElementById('scShareProdImg');
+    const inputEl = document.getElementById('scShareLinkInput');
+    const waBtn = document.getElementById('scShareWhatsapp');
+    const fbBtn = document.getElementById('scShareFacebook');
+    const twBtn = document.getElementById('scShareTwitter');
+    const tgBtn = document.getElementById('scShareTelegram');
+
+    if (nameEl) nameEl.textContent = prodName;
+    if (priceEl) priceEl.textContent = prodPrice || 'Premium Menswear';
+    if (imgEl) { imgEl.src = prodImg; imgEl.alt = prodName; }
+    if (inputEl) inputEl.value = shareUrl;
+
+    const fullShareMsg = `Check out ${prodName}${prodPrice ? ' (' + prodPrice + ')' : ''} at SuryaCotton!\n${shareUrl}`;
+    if (waBtn) waBtn.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(fullShareMsg)}`;
+    if (fbBtn) fbBtn.href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
+    if (twBtn) twBtn.href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareTitle)}&url=${encodeURIComponent(shareUrl)}`;
+    if (tgBtn) tgBtn.href = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareTitle)}`;
+
+    // Auto copy to clipboard for user convenience
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(shareUrl);
+        if (typeof window.showToast === 'function') {
+          window.showToast('✓ Link copied to clipboard!');
+        }
+        const copyText = document.getElementById('scShareCopyText');
+        const copyBtn = document.getElementById('scShareCopyBtn');
+        if (copyText) copyText.textContent = 'Copied!';
+        if (copyBtn) copyBtn.classList.add('copied');
+        setTimeout(() => {
+          if (copyText) copyText.textContent = 'Copy Link';
+          if (copyBtn) copyBtn.classList.remove('copied');
+        }, 2500);
+      }
+    } catch(e) {}
+
+    if (overlay) {
+      overlay.classList.add('open');
+      document.body.classList.add('share-modal-open');
+    }
+  }
+
+  window.shareProduct = function(productId, e) {
+    if (e) {
+      if (typeof e.stopPropagation === 'function') e.stopPropagation();
+      if (typeof e.preventDefault === 'function') e.preventDefault();
+    }
+    openShareDialog(productId);
+  };
+})();

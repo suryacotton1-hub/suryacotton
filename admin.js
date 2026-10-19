@@ -44,6 +44,100 @@ signInAnonymously(auth).catch((error) => {
 // --- GLOBAL APPLICATION STATE ---
 let products = [];
 let orders = [];
+let categories = [];
+
+const DEFAULT_CATEGORIES = [
+  {
+    id: 'shirt',
+    slug: 'shirt',
+    name: 'Shirts',
+    icon: '👔',
+    order: 1,
+    status: 'active',
+    desc: 'Casual, formal, checked & linen shirts',
+    img: 'Products/Shirt/Plain shirt.jpg',
+    subcategories: ['Plain Shirt', 'Linen Shirt', 'Printed Shirt', 'Branded Shirt', 'Checked Shirt', 'Stripped Shirt', 'Denim Shirt', 'Casual Shirt', 'Formal Shirt'],
+    sizeType: 'letter',
+    customSizes: [],
+    attributes: { fabric: true, fit: true, sleeve: true, neck: true, pattern: true },
+    isDefault: true
+  },
+  {
+    id: 'pant',
+    slug: 'pant',
+    name: 'Pants',
+    icon: '👖',
+    order: 2,
+    status: 'active',
+    desc: 'Jeans, chinos, cotton & baggy trousers',
+    img: 'Products/Pant/Jean pant.png',
+    subcategories: ['Jean Pant', 'Cotton Pant', 'Baggy Pant', 'Mom Fit Pant', 'Track Pant', 'Cargo Pant', 'Chinos', 'Formal Trouser'],
+    sizeType: 'both',
+    customSizes: [],
+    attributes: { fabric: true, fit: true, sleeve: false, neck: false, pattern: true },
+    isDefault: true
+  },
+  {
+    id: 'tshirt',
+    slug: 'tshirt',
+    name: 'T-Shirts',
+    icon: '👕',
+    order: 3,
+    status: 'active',
+    desc: 'Round neck, polo, oversized & drop shoulder t-shirts',
+    img: 'Products/Tshirt/Hoodies tshirt.png',
+    subcategories: ['Collar T-Shirt', 'Drop Shoulder T-Shirt', 'Full Sleeve T-Shirt', 'Hoodies T-Shirt', 'Round Neck T-Shirt', 'Oversized T-Shirt'],
+    sizeType: 'letter',
+    customSizes: [],
+    attributes: { fabric: true, fit: true, sleeve: true, neck: true, pattern: true },
+    isDefault: true
+  },
+  {
+    id: 'shorts',
+    slug: 'shorts',
+    name: 'Shorts',
+    icon: '🩳',
+    order: 4,
+    status: 'active',
+    desc: 'Cargo, denim & athletic cotton shorts',
+    img: 'Products/Pant/Jean pant.png',
+    subcategories: ['Cargo Shorts', 'Denim Shorts', 'Cotton Shorts', 'Athletic Shorts'],
+    sizeType: 'number',
+    customSizes: [],
+    attributes: { fabric: true, fit: false, sleeve: false, neck: false, pattern: true },
+    isDefault: true
+  },
+  {
+    id: 'caps',
+    slug: 'caps',
+    name: 'Caps',
+    icon: '🧢',
+    order: 5,
+    status: 'active',
+    desc: 'Embroidered snapbacks & baseball caps',
+    img: 'Logo.png',
+    subcategories: ['Baseball Cap', 'Snapback Cap', 'Embroidered Cap'],
+    sizeType: 'free',
+    customSizes: [],
+    attributes: { fabric: false, fit: false, sleeve: false, neck: false, pattern: true },
+    isDefault: true
+  },
+  {
+    id: 'keychains',
+    slug: 'keychains',
+    name: 'Keychains',
+    icon: '🔑',
+    order: 6,
+    status: 'active',
+    desc: 'Leather, metallic & fabric accessories',
+    img: 'Logo.png',
+    subcategories: ['Leather Keychain', 'Metallic Crest Keychain', 'Fabric Keychain'],
+    sizeType: 'free',
+    customSizes: [],
+    attributes: { fabric: true, fit: false, sleeve: false, neck: false, pattern: true },
+    isDefault: true
+  }
+];
 
 // Instantly hydrate state from local cache so counters are never blank/0 on mobile or cold load
 try {
@@ -59,6 +153,17 @@ try {
     orders = cachedOrders;
   }
 } catch (e) {}
+
+try {
+  const cachedCats = JSON.parse(localStorage.getItem('sc_categories') || '[]');
+  if (Array.isArray(cachedCats) && cachedCats.length > 0) {
+    categories = cachedCats;
+  } else {
+    categories = [...DEFAULT_CATEGORIES];
+  }
+} catch (e) {
+  categories = [...DEFAULT_CATEGORIES];
+}
 
 // --- CRYPTOGRAPHIC ZERO-KNOWLEDGE AUTHENTICATION ---
 // Plaintext password is NEVER stored in code, JS files, or git.
@@ -367,13 +472,16 @@ window.switchAdminTab = function(tabName) {
   // 4. Force-close any open modals or mobile backdrops that could capture clicks
   const prodModal = document.getElementById('productEditModal');
   const orderModal = document.getElementById('orderViewModal');
+  const catModal = document.getElementById('categoryEditModal');
   if (prodModal) prodModal.classList.remove('show');
   if (orderModal) orderModal.classList.remove('show');
+  if (catModal) catModal.classList.remove('show');
   closeMobileSidebar();
 
   // 5. Fresh render for active section
   try {
     if (tabName === 'overview') renderOverview();
+    else if (tabName === 'categories') renderCategories();
     else if (tabName === 'products') renderProducts();
     else if (tabName === 'orders') renderOrders();
     else if (tabName === 'reviews') renderReviews();
@@ -428,8 +536,13 @@ function onTabRevisit() {
       if (Array.isArray(storedOrders) && storedOrders.length > 0) {
         orders = storedOrders;
       }
+      const storedCats = JSON.parse(localStorage.getItem('sc_categories') || '[]');
+      if (Array.isArray(storedCats) && storedCats.length > 0) {
+        categories = storedCats;
+      }
       const activeTab = document.querySelector('.nav-btn.active')?.dataset?.tab || 'overview';
       if (activeTab === 'overview') renderOverview();
+      else if (activeTab === 'categories') renderCategories();
       else if (activeTab === 'products') renderProducts();
       else if (activeTab === 'orders') renderOrders();
       else if (activeTab === 'reviews') renderReviews();
@@ -629,11 +742,42 @@ async function loadData() {
     }
   })();
 
+  // 4. Load categories from Firestore
+  const fetchCategoriesTask = (async () => {
+    try {
+      const snap = await getDocs(collection(db, "categories"));
+      const fetchedCats = [];
+      snap.forEach((docSnap) => {
+        fetchedCats.push({ ...docSnap.data(), id: docSnap.id });
+      });
+
+      if (fetchedCats.length > 0) {
+        const map = new Map();
+        DEFAULT_CATEGORIES.forEach(dc => map.set(dc.slug, { ...dc }));
+        fetchedCats.forEach(fc => {
+          const slug = fc.slug || fc.id;
+          if (slug) map.set(slug, { ...map.get(slug), ...fc, slug });
+        });
+        categories = Array.from(map.values()).sort((a, b) => (Number(a.order) || 99) - (Number(b.order) || 99));
+      } else {
+        categories = [...DEFAULT_CATEGORIES];
+      }
+      localStorage.setItem('sc_categories', JSON.stringify(categories));
+    } catch (e) {
+      console.warn("Firestore categories fetch notice:", e);
+      if (!categories || categories.length === 0) {
+        categories = [...DEFAULT_CATEGORIES];
+      }
+    }
+  })();
+
   // Execute all tasks in parallel so the page loads within hundreds of milliseconds
-  await Promise.allSettled([fetchProductsTask, fetchOrdersTask, fetchSettingsTask]);
+  await Promise.allSettled([fetchProductsTask, fetchOrdersTask, fetchSettingsTask, fetchCategoriesTask]);
 
   renderOverview();
+  renderCategories();
   renderProducts();
+  renderAdminCategorySelectors();
   if (typeof renderOrders === 'function') renderOrders();
 
   // ── Background Shiprocket Status Sync (Fallback) ──
@@ -702,6 +846,7 @@ function updateFreeShippingLabel(isFree) {
 
 let ordersUnsub = null;
 let productsUnsub = null;
+let categoriesUnsub = null;
 
 async function initDashboard() {
   // 1. Instant optimistic render from cache (0ms) so mobile users immediately see real counts without waiting
@@ -819,6 +964,52 @@ async function initDashboard() {
       console.warn("Could not attach products realtime listener:", e);
     }
   }
+
+  // Attach Realtime Firestore Listener for Categories
+  if (!categoriesUnsub) {
+    try {
+      categoriesUnsub = onSnapshot(collection(db, "categories"), (snapshot) => {
+        let changed = false;
+        snapshot.docChanges().forEach((change) => {
+          const data = change.doc.data();
+          const docId = String(change.doc.id).trim();
+          const slug = data.slug || docId;
+          const existingIdx = categories.findIndex(c => c.slug === slug || c.id === docId);
+
+          if (change.type === "added") {
+            if (existingIdx === -1) {
+              categories.push({ id: docId, slug, ...data });
+              changed = true;
+            }
+          } else if (change.type === "modified") {
+            if (existingIdx > -1) {
+              categories[existingIdx] = { ...categories[existingIdx], ...data, id: docId, slug };
+              changed = true;
+            } else {
+              categories.push({ id: docId, slug, ...data });
+              changed = true;
+            }
+          } else if (change.type === "removed") {
+            if (existingIdx > -1) {
+              categories.splice(existingIdx, 1);
+              changed = true;
+            }
+          }
+        });
+
+        if (changed) {
+          categories.sort((a, b) => (Number(a.order) || 99) - (Number(b.order) || 99));
+          localStorage.setItem('sc_categories', JSON.stringify(categories));
+          renderCategories();
+          renderAdminCategorySelectors();
+        }
+      }, (err) => {
+        console.warn("Realtime categories listener notice:", err);
+      });
+    } catch (e) {
+      console.warn("Could not attach categories realtime listener:", e);
+    }
+  }
 }
 
 // --- OVERVIEW TAB ANALYTICS & VISUALIZATION ---
@@ -866,6 +1057,12 @@ function resolveCategory(cat, name = '') {
   if (c === 'caps' || c === 'cap' || c === 'hat') return OFFICIAL_CATEGORIES.caps;
   if (c === 'keychains' || c === 'keychain' || c === 'accessory' || c === 'accessories') return OFFICIAL_CATEGORIES.keychains;
 
+  // Custom categories registry match
+  const matchedCustomCat = categories.find(catItem => catItem.slug === c || (catItem.name && catItem.name.toLowerCase() === c));
+  if (matchedCustomCat) {
+    return { key: matchedCustomCat.slug, name: matchedCustomCat.name, icon: matchedCustomCat.icon || '🏷️' };
+  }
+
   // 2. Comprehensive apparel keyword matching
   // T-Shirts:
   if (n.includes('t-shirt') || n.includes('tshirt') || n.includes('tee') || n.includes('polo') || n.includes('hoodie') || n.includes('sweatshirt') || n.includes('round neck') || n.includes('crewneck') || n.includes('crew neck')) {
@@ -903,21 +1100,25 @@ function computeSalesAnalytics(ordersList, productsList) {
   let validOrdersCount = 0;
   let pendingOrdersCount = 0;
 
-  // Base category registry - strictly the 6 official store categories
-  const categoryStats = {
-    'shirt': { key: 'shirt', name: 'Shirts', icon: '👔', units: 0, revenue: 0, catalogCount: 0 },
-    'tshirt': { key: 'tshirt', name: 'T-Shirts', icon: '👕', units: 0, revenue: 0, catalogCount: 0 },
-    'pant': { key: 'pant', name: 'Pants', icon: '👖', units: 0, revenue: 0, catalogCount: 0 },
-    'shorts': { key: 'shorts', name: 'Shorts', icon: '🩳', units: 0, revenue: 0, catalogCount: 0 },
-    'caps': { key: 'caps', name: 'Caps', icon: '🧢', units: 0, revenue: 0, catalogCount: 0 },
-    'keychains': { key: 'keychains', name: 'Keychains', icon: '🔑', units: 0, revenue: 0, catalogCount: 0 }
-  };
+  // Category registry - populated dynamically from active and default categories
+  const categoryStats = {};
+  categories.forEach(c => {
+    categoryStats[c.slug] = { key: c.slug, name: c.name, icon: c.icon || '🏷️', units: 0, revenue: 0, catalogCount: 0 };
+  });
+  // Ensure baseline categories exist
+  Object.keys(OFFICIAL_CATEGORIES).forEach(k => {
+    if (!categoryStats[k]) {
+      categoryStats[k] = { ...OFFICIAL_CATEGORIES[k], units: 0, revenue: 0, catalogCount: 0 };
+    }
+  });
 
   // 1. Analyze active products in catalog
   let outOfStockCount = 0;
   (productsList || []).forEach(p => {
     let resolved = resolveCategory(p.cat, p.name);
-    if (!categoryStats[resolved.key]) resolved = OFFICIAL_CATEGORIES.shirt;
+    if (!categoryStats[resolved.key]) {
+      categoryStats[resolved.key] = { key: resolved.key, name: resolved.name, icon: resolved.icon || '🏷️', units: 0, revenue: 0, catalogCount: 0 };
+    }
     categoryStats[resolved.key].catalogCount += 1;
     const stockVal = parseInt(p.stock);
     if (!isNaN(stockVal) && stockVal <= 0) {
@@ -1825,6 +2026,125 @@ window.calcTotalStockFromSizes = function() {
   stockInput.value = total;
 };
 
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function generateDynamicCategoryTemplate(cat) {
+  const attrs = cat.attributes || { fabric: true, fit: true, sleeve: false, neck: false, pattern: true };
+  const subcats = Array.isArray(cat.subcategories) ? cat.subcategories : [];
+  
+  let subcatOptions = '<option value="">-- Select Style (Optional) --</option>';
+  subcats.forEach(s => {
+    subcatOptions += `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`;
+  });
+
+  let fieldsHtml = `
+    <div class="form-row">
+      <div class="form-group">
+        <label>Subcategory / Style</label>
+        <select id="df_subcat">${subcatOptions}</select>
+      </div>
+      <div class="form-group">
+        <label>Brand</label>
+        <input type="text" id="df_brand" placeholder="e.g. SuryaCotton">
+      </div>
+    </div>
+  `;
+
+  let row2 = '';
+  if (attrs.fabric !== false) {
+    row2 += `<div class="form-group"><label>Fabric / Material</label><input type="text" id="df_fabric" placeholder="e.g. 100% Wool, Cotton, Linen"></div>`;
+  }
+  if (attrs.fit !== false) {
+    row2 += `<div class="form-group"><label>Fit</label><input type="text" id="df_fit" placeholder="e.g. Slim Fit, Regular Fit, Tailored"></div>`;
+  }
+  if (row2) {
+    fieldsHtml += `<div class="form-row">${row2}</div>`;
+  }
+
+  let row3 = '';
+  if (attrs.sleeve !== false) {
+    row3 += `<div class="form-group"><label>Sleeve Length</label><input type="text" id="df_sleeve" placeholder="e.g. Full Sleeve, Half Sleeve"></div>`;
+  }
+  if (attrs.neck !== false) {
+    row3 += `<div class="form-group"><label>Collar / Neck / Lapel</label><input type="text" id="df_neck" placeholder="e.g. Mandarin Collar, Notch Lapel"></div>`;
+  }
+  if (row3) {
+    fieldsHtml += `<div class="form-row">${row3}</div>`;
+  }
+
+  let sizeFieldHtml = '';
+  const sizeType = cat.sizeType || 'letter';
+  if (sizeType === 'number') {
+    const nums = ['28', '30', '32', '34', '36', '38', '40'];
+    const cbs = nums.map(n => `<label><input type="checkbox" value="${n}"> ${n}</label>`).join('');
+    sizeFieldHtml = `<div class="form-group"><label>Waist / Numeric Sizes</label><div class="checkbox-group" id="df_size">${cbs}</div></div>`;
+  } else if (sizeType === 'both') {
+    sizeFieldHtml = `
+      <div class="form-group">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.45rem; flex-wrap: wrap; gap: 0.5rem;">
+          <label style="margin: 0; font-weight: 700;">Size Selection</label>
+          <div class="pant-size-mode-toggle" id="pantSizeModeToggle">
+            <button type="button" class="pant-size-toggle-btn active" data-mode="number" id="pantModeNumBtn">Number (28-38)</button>
+            <button type="button" class="pant-size-toggle-btn" data-mode="letter" id="pantModeLetBtn">Letter (S-XXL)</button>
+          </div>
+        </div>
+        <div class="checkbox-group" id="df_waist">
+          <label><input type="checkbox" value="28"> 28</label>
+          <label><input type="checkbox" value="30"> 30</label>
+          <label><input type="checkbox" value="32"> 32</label>
+          <label><input type="checkbox" value="34"> 34</label>
+          <label><input type="checkbox" value="36"> 36</label>
+          <label><input type="checkbox" value="38"> 38</label>
+        </div>
+        <div class="checkbox-group" id="df_size" style="display: none;">
+          <label><input type="checkbox" value="S"> S</label>
+          <label><input type="checkbox" value="M"> M</label>
+          <label><input type="checkbox" value="L"> L</label>
+          <label><input type="checkbox" value="XL"> XL</label>
+          <label><input type="checkbox" value="XXL"> XXL</label>
+        </div>
+      </div>
+    `;
+  } else if (sizeType === 'free') {
+    sizeFieldHtml = `
+      <div class="form-group">
+        <label>Size</label>
+        <select id="df_size"><option value="Free Size">Free Size</option><option value="Adjustable">Adjustable</option><option value="One Size">One Size</option></select>
+      </div>
+    `;
+  } else if (sizeType === 'footwear') {
+    const shoeSizes = ['6', '7', '8', '9', '10', '11'];
+    const cbs = shoeSizes.map(n => `<label><input type="checkbox" value="${n}"> ${n}</label>`).join('');
+    sizeFieldHtml = `<div class="form-group"><label>Shoe Sizes</label><div class="checkbox-group" id="df_size">${cbs}</div></div>`;
+  } else if (sizeType === 'custom') {
+    const list = Array.isArray(cat.customSizes) && cat.customSizes.length > 0 ? cat.customSizes : ['Standard'];
+    const cbs = list.map(n => `<label><input type="checkbox" value="${escapeHtml(n)}"> ${escapeHtml(n)}</label>`).join('');
+    sizeFieldHtml = `<div class="form-group"><label>Custom Sizes</label><div class="checkbox-group" id="df_size">${cbs}</div></div>`;
+  } else {
+    // Standard letter
+    const letters = ['S', 'M', 'L', 'XL', 'XXL', '3XL'];
+    const cbs = letters.map(n => `<label><input type="checkbox" value="${n}"> ${n}</label>`).join('');
+    sizeFieldHtml = `<div class="form-group"><label>Sizes</label><div class="checkbox-group" id="df_size">${cbs}</div></div>`;
+  }
+
+  fieldsHtml += `
+    <div class="form-row">
+      <div class="form-group"><label>Color</label><input type="text" id="df_color" placeholder="e.g. Navy Blue, Beige, Black"></div>
+      ${sizeFieldHtml}
+    </div>
+  `;
+
+  return fieldsHtml;
+}
+
 window.syncCategoryPills = function(catVal) {
   const grid = document.getElementById('categorySelectorGrid');
   if (!grid) return;
@@ -1838,7 +2158,16 @@ window.syncCategoryPills = function(catVal) {
 };
 
 function updateDynamicFields(cat) {
-  dynamicFieldsContainer.innerHTML = categoryTemplates[cat] || '';
+  const catObj = categories.find(c => c.slug === cat);
+  
+  if (categoryTemplates[cat]) {
+    dynamicFieldsContainer.innerHTML = categoryTemplates[cat];
+  } else if (catObj) {
+    dynamicFieldsContainer.innerHTML = generateDynamicCategoryTemplate(catObj);
+  } else {
+    dynamicFieldsContainer.innerHTML = '';
+  }
+
   window.syncCategoryPills(cat);
   
   const formDetails = document.getElementById('productFormDetails');
@@ -1852,7 +2181,7 @@ function updateDynamicFields(cat) {
     if (saveBtn) saveBtn.style.display = 'none';
   }
 
-  if (cat === 'pant') {
+  if (cat === 'pant' || (catObj && catObj.sizeType === 'both')) {
     window.setupPantSizeToggle();
   }
 
@@ -1863,20 +2192,499 @@ function updateDynamicFields(cat) {
   renderSizeStockInputs();
 }
 
-const categoryGrid = document.getElementById('categorySelectorGrid');
-if (categoryGrid) {
-  categoryGrid.querySelectorAll('.cat-pill-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const val = btn.getAttribute('data-val');
-      if (catSelect) catSelect.value = val;
-      updateDynamicFields(val);
+function renderAdminCategorySelectors() {
+  // 1. Render Product Category Filter Tabs in Products View
+  const filterTabs = document.getElementById('prodCatFilterTabs');
+  if (filterTabs) {
+    const activeFilter = adminProdCatFilter || 'all';
+    let pillsHtml = `<button type="button" class="admin-cat-pill ${activeFilter === 'all' ? 'active' : ''}" data-cat="all" onclick="window.setAdminCatFilter('all')">All</button>`;
+    categories.forEach(c => {
+      const isAct = (activeFilter === c.slug);
+      pillsHtml += `<button type="button" class="admin-cat-pill ${isAct ? 'active' : ''}" data-cat="${escapeHtml(c.slug)}" onclick="window.setAdminCatFilter('${escapeHtml(c.slug)}')">${c.icon || '🏷️'} ${escapeHtml(c.name)}</button>`;
     });
+    filterTabs.innerHTML = pillsHtml;
+  }
+
+  // 2. Render Category Selector Grid in Product Add/Edit Modal
+  const catGrid = document.getElementById('categorySelectorGrid');
+  const catSelectEl = document.getElementById('editProdCat');
+  const currentVal = catSelectEl ? catSelectEl.value : '';
+
+  if (catGrid) {
+    catGrid.innerHTML = categories.map(c => `
+      <button type="button" class="cat-pill-btn ${currentVal === c.slug ? 'active' : ''}" data-val="${escapeHtml(c.slug)}">
+        ${c.icon || '🏷️'} ${escapeHtml(c.name)}
+      </button>
+    `).join('');
+
+    catGrid.querySelectorAll('.cat-pill-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const val = btn.getAttribute('data-val');
+        if (catSelectEl) catSelectEl.value = val;
+        updateDynamicFields(val);
+      });
+    });
+  }
+
+  // 3. Render select options in hidden fallback #editProdCat
+  if (catSelectEl) {
+    let opts = '<option value="" disabled selected>-- Select Product Category --</option>';
+    categories.forEach(c => {
+      opts += `<option value="${escapeHtml(c.slug)}">${c.icon || '🏷️'} ${escapeHtml(c.name)}</option>`;
+    });
+    catSelectEl.innerHTML = opts;
+    if (currentVal) catSelectEl.value = currentVal;
+  }
+}
+
+if (catSelect) {
+  catSelect.addEventListener('change', (e) => {
+    updateDynamicFields(e.target.value);
   });
 }
 
-catSelect.addEventListener('change', (e) => {
-  updateDynamicFields(e.target.value);
-});
+// --- CATEGORIES MANAGEMENT TAB ---
+let adminCatSearchQuery = '';
+window.currentCategorySubcats = [];
+
+window.filterAdminCategories = function(query) {
+  adminCatSearchQuery = (query || '').toLowerCase().trim();
+  renderCategories();
+};
+
+function renderCategories() {
+  const grid = document.getElementById('categoriesListGrid');
+  const countBadge = document.getElementById('categoriesCountBadge');
+  const statTotal = document.getElementById('statTotalCats');
+  const statActive = document.getElementById('statActiveCats');
+  const statCategorized = document.getElementById('statCategorizedProds');
+
+  if (!grid) return;
+
+  // Compute category product counts
+  const catProdCounts = {};
+  categories.forEach(c => { catProdCounts[c.slug] = 0; });
+  let totalCategorized = 0;
+
+  products.forEach(p => {
+    const rawCat = String(p.cat || '').toLowerCase().trim();
+    let matchedSlug = null;
+    if (catProdCounts[rawCat] !== undefined) {
+      matchedSlug = rawCat;
+    } else {
+      if (rawCat === 't-shirt' || rawCat === 'tshirts' || rawCat === 't-shirts') matchedSlug = 'tshirt';
+      else if (rawCat === 'shirts') matchedSlug = 'shirt';
+      else if (rawCat === 'pants' || rawCat === 'jeans' || rawCat === 'trouser' || rawCat === 'trousers') matchedSlug = 'pant';
+      else if (rawCat === 'short') matchedSlug = 'shorts';
+      else if (rawCat === 'cap') matchedSlug = 'caps';
+      else if (rawCat === 'keychain') matchedSlug = 'keychains';
+    }
+    if (matchedSlug && catProdCounts[matchedSlug] !== undefined) {
+      catProdCounts[matchedSlug]++;
+      totalCategorized++;
+    }
+  });
+
+  const activeCount = categories.filter(c => c.status !== 'hidden').length;
+
+  if (statTotal) statTotal.textContent = categories.length;
+  if (statActive) statActive.textContent = activeCount;
+  if (statCategorized) statCategorized.textContent = totalCategorized;
+
+  // Filter categories
+  let filtered = [...categories];
+  if (adminCatSearchQuery) {
+    const q = adminCatSearchQuery;
+    filtered = filtered.filter(c => {
+      const name = String(c.name || '').toLowerCase();
+      const slug = String(c.slug || '').toLowerCase();
+      const desc = String(c.desc || '').toLowerCase();
+      const subcats = Array.isArray(c.subcategories) ? c.subcategories.join(' ').toLowerCase() : '';
+      return name.includes(q) || slug.includes(q) || desc.includes(q) || subcats.includes(q);
+    });
+  }
+
+  if (countBadge) {
+    if (categories.length === 0) {
+      countBadge.textContent = '';
+    } else if (filtered.length === categories.length) {
+      countBadge.textContent = `(${categories.length} Total)`;
+    } else {
+      countBadge.textContent = `(Showing ${filtered.length} of ${categories.length})`;
+    }
+  }
+
+  if (filtered.length === 0) {
+    grid.innerHTML = `
+      <div style="grid-column: 1 / -1; text-align: center; padding: 3rem 1.5rem; background: white; border-radius: 12px; border: 1px dashed #cbd5e1;">
+        <span style="font-size: 2.2rem; display: block; margin-bottom: 0.5rem;">🏷️</span>
+        <h4 style="margin: 0 0 0.4rem; font-size: 1.05rem; color: #1e293b;">No categories found</h4>
+        <p style="margin: 0; font-size: 0.85rem; color: #64748b;">${categories.length === 0 ? 'Click "+ Add Category" to create your first category.' : 'No category matched your search.'}</p>
+      </div>
+    `;
+    return;
+  }
+
+  grid.innerHTML = filtered.map(c => {
+    const prodCount = catProdCounts[c.slug] || 0;
+    const isHidden = c.status === 'hidden';
+    const subcats = Array.isArray(c.subcategories) ? c.subcategories : [];
+    const sizeTypeLabel = {
+      'letter': 'Standard (S-3XL)',
+      'number': 'Waist / Numeric (28-40)',
+      'both': 'Both Numeric & Letter',
+      'free': 'Free Size / Adjustable',
+      'footwear': 'Footwear (6-11)',
+      'custom': 'Custom Sizing'
+    }[c.sizeType || 'letter'] || 'Standard (S-3XL)';
+
+    return `
+      <div class="category-card ${isHidden ? 'is-hidden' : ''}">
+        <div class="category-card-top">
+          <div style="display: flex; align-items: center; gap: 0.65rem;">
+            <div class="category-card-icon">${c.icon || '🏷️'}</div>
+            <div>
+              <h3 class="category-card-name">${escapeHtml(c.name)}</h3>
+              <span class="category-slug-badge">category.html?cat=${escapeHtml(c.slug)}</span>
+            </div>
+          </div>
+          <span class="category-status-pill ${isHidden ? 'status-hidden' : 'status-active'}">
+            ${isHidden ? 'Hidden' : 'Active'}
+          </span>
+        </div>
+
+        <div class="category-card-meta">
+          <span class="category-meta-chip">🔢 Order: #${c.order || 99}</span>
+          <span class="category-meta-chip">📏 ${sizeTypeLabel}</span>
+          <span class="category-meta-chip" style="font-weight: 700; color: #0f172a; background: #e2e8f0;">📦 ${prodCount} Products</span>
+        </div>
+
+        ${c.desc ? `<p class="category-card-desc">${escapeHtml(c.desc)}</p>` : ''}
+
+        <div class="category-subcats-box">
+          <label class="category-subcats-label">Styles & Subcategories (${subcats.length}):</label>
+          <div class="category-subcats-chips">
+            ${subcats.length > 0 
+              ? subcats.map(sc => `<span class="category-subcat-chip">${escapeHtml(sc)}</span>`).join('') 
+              : '<span style="font-size: 0.75rem; color: #94a3b8; font-style: italic;">No subcategories defined</span>'
+            }
+          </div>
+        </div>
+
+        <div class="category-card-actions">
+          <button type="button" class="btn-cat-action btn-cat-edit" onclick="window.openCategoryModal('${escapeHtml(c.slug)}')">
+            ✏️ Edit
+          </button>
+          <a href="category.html?cat=${encodeURIComponent(c.slug)}" target="_blank" rel="noopener" class="btn-cat-action btn-cat-view">
+            🔗 View on Store
+          </a>
+          ${c.isDefault ? '' : `
+            <button type="button" class="btn-cat-action btn-cat-del" onclick="window.deleteCategory('${escapeHtml(c.slug)}')">
+              🗑️ Delete
+            </button>
+          `}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+window.autoGenerateCatSlug = function(nameVal) {
+  const idEl = document.getElementById('editCatId');
+  if (idEl && idEl.value) return; // Do not overwrite slug if editing existing category
+  const slugInput = document.getElementById('catSlugInput');
+  if (slugInput) {
+    slugInput.value = (nameVal || '')
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  }
+};
+
+window.handleCatSizeTypeChange = function(val) {
+  const wrap = document.getElementById('catCustomSizesWrap');
+  if (wrap) {
+    wrap.style.display = (val === 'custom') ? 'block' : 'none';
+  }
+};
+
+window.renderCategorySubcatTags = function() {
+  const container = document.getElementById('catSubcatsList');
+  if (!container) return;
+  container.innerHTML = window.currentCategorySubcats.map((tag, idx) => `
+    <span class="subcat-tag-pill">
+      <span>${escapeHtml(tag)}</span>
+      <button type="button" class="subcat-tag-del" onclick="window.removeCategorySubcatTag(${idx})">&times;</button>
+    </span>
+  `).join('');
+};
+
+window.addCategorySubcatTag = function() {
+  const input = document.getElementById('catNewSubcatInput');
+  if (!input) return;
+  const val = input.value.trim();
+  if (!val) return;
+  if (!window.currentCategorySubcats.includes(val)) {
+    window.currentCategorySubcats.push(val);
+    window.renderCategorySubcatTags();
+  }
+  input.value = '';
+  input.focus();
+};
+
+window.removeCategorySubcatTag = function(idx) {
+  if (idx >= 0 && idx < window.currentCategorySubcats.length) {
+    window.currentCategorySubcats.splice(idx, 1);
+    window.renderCategorySubcatTags();
+  }
+};
+
+window.openCategoryModal = function(slugToEdit = null) {
+  const modal = document.getElementById('categoryEditModal');
+  const title = document.getElementById('categoryModalTitle');
+  const idInput = document.getElementById('editCatId');
+  const nameInput = document.getElementById('catNameInput');
+  const slugInput = document.getElementById('catSlugInput');
+  const iconInput = document.getElementById('catIconInput');
+  const orderInput = document.getElementById('catOrderInput');
+  const statusInput = document.getElementById('catStatusInput');
+  const descInput = document.getElementById('catDescInput');
+  const imgInput = document.getElementById('catImgInput');
+  const sizeTypeInput = document.getElementById('catSizeTypeInput');
+  const customSizesInput = document.getElementById('catCustomSizesInput');
+  const attrFabric = document.getElementById('catAttrFabric');
+  const attrFit = document.getElementById('catAttrFit');
+  const attrSleeve = document.getElementById('catAttrSleeve');
+  const attrNeck = document.getElementById('catAttrNeck');
+  const attrPattern = document.getElementById('catAttrPattern');
+
+  if (!modal) return;
+
+  if (slugToEdit) {
+    const cat = categories.find(c => c.slug === slugToEdit || c.id === slugToEdit);
+    if (!cat) return;
+
+    if (title) title.textContent = `Edit Category: ${cat.name}`;
+    if (idInput) idInput.value = cat.slug;
+    if (nameInput) nameInput.value = cat.name || '';
+    if (slugInput) {
+      slugInput.value = cat.slug || '';
+      slugInput.readOnly = !!cat.isDefault;
+      slugInput.style.background = cat.isDefault ? '#f1f5f9' : '';
+    }
+    if (iconInput) iconInput.value = cat.icon || '🏷️';
+    if (orderInput) orderInput.value = cat.order !== undefined ? cat.order : (categories.indexOf(cat) + 1);
+    if (statusInput) statusInput.value = cat.status || 'active';
+    if (descInput) descInput.value = cat.desc || '';
+    if (imgInput) imgInput.value = cat.img || '';
+    if (sizeTypeInput) sizeTypeInput.value = cat.sizeType || 'letter';
+    if (customSizesInput) customSizesInput.value = Array.isArray(cat.customSizes) ? cat.customSizes.join(', ') : (cat.customSizes || '');
+
+    window.handleCatSizeTypeChange(cat.sizeType || 'letter');
+
+    const attrs = cat.attributes || { fabric: true, fit: true, sleeve: true, neck: true, pattern: true };
+    if (attrFabric) attrFabric.checked = attrs.fabric !== false;
+    if (attrFit) attrFit.checked = attrs.fit !== false;
+    if (attrSleeve) attrSleeve.checked = attrs.sleeve !== false;
+    if (attrNeck) attrNeck.checked = attrs.neck !== false;
+    if (attrPattern) attrPattern.checked = attrs.pattern !== false;
+
+    window.currentCategorySubcats = Array.isArray(cat.subcategories) ? [...cat.subcategories] : [];
+  } else {
+    if (title) title.textContent = 'Create New Category';
+    if (idInput) idInput.value = '';
+    if (nameInput) nameInput.value = '';
+    if (slugInput) {
+      slugInput.value = '';
+      slugInput.readOnly = false;
+      slugInput.style.background = '';
+    }
+    if (iconInput) iconInput.value = '🏷️';
+    if (orderInput) orderInput.value = categories.length + 1;
+    if (statusInput) statusInput.value = 'active';
+    if (descInput) descInput.value = '';
+    if (imgInput) imgInput.value = '';
+    if (sizeTypeInput) sizeTypeInput.value = 'letter';
+    if (customSizesInput) customSizesInput.value = '';
+
+    window.handleCatSizeTypeChange('letter');
+
+    if (attrFabric) attrFabric.checked = true;
+    if (attrFit) attrFit.checked = true;
+    if (attrSleeve) attrSleeve.checked = true;
+    if (attrNeck) attrNeck.checked = true;
+    if (attrPattern) attrPattern.checked = true;
+
+    window.currentCategorySubcats = [];
+  }
+
+  window.renderCategorySubcatTags();
+  modal.classList.add('show');
+};
+
+window.closeCategoryModal = function() {
+  const modal = document.getElementById('categoryEditModal');
+  if (modal) modal.classList.remove('show');
+};
+
+window.saveAdminCategory = async function() {
+  const idInput = document.getElementById('editCatId');
+  const nameInput = document.getElementById('catNameInput');
+  const slugInput = document.getElementById('catSlugInput');
+  const iconInput = document.getElementById('catIconInput');
+  const orderInput = document.getElementById('catOrderInput');
+  const statusInput = document.getElementById('catStatusInput');
+  const descInput = document.getElementById('catDescInput');
+  const imgInput = document.getElementById('catImgInput');
+  const sizeTypeInput = document.getElementById('catSizeTypeInput');
+  const customSizesInput = document.getElementById('catCustomSizesInput');
+  const attrFabric = document.getElementById('catAttrFabric');
+  const attrFit = document.getElementById('catAttrFit');
+  const attrSleeve = document.getElementById('catAttrSleeve');
+  const attrNeck = document.getElementById('catAttrNeck');
+  const attrPattern = document.getElementById('catAttrPattern');
+
+  const btn = document.getElementById('saveCategoryBtn');
+  const btnText = btn ? btn.querySelector('.btn-text') : null;
+  const spinner = document.getElementById('saveCategorySpinner');
+
+  const name = (nameInput ? nameInput.value : '').trim();
+  let slug = (slugInput ? slugInput.value : '')
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
+  if (!name) {
+    alert("Please enter a category name.");
+    if (nameInput) nameInput.focus();
+    return;
+  }
+  if (!slug) {
+    alert("Please enter a valid URL slug (e.g. blazers).");
+    if (slugInput) slugInput.focus();
+    return;
+  }
+
+  const isEditing = idInput && idInput.value;
+  const existingWithSlug = categories.find(c => c.slug === slug);
+  if (!isEditing && existingWithSlug) {
+    alert(`A category with slug "${slug}" already exists. Please choose a unique slug.`);
+    if (slugInput) slugInput.focus();
+    return;
+  }
+
+  let customSizesList = [];
+  if (sizeTypeInput && sizeTypeInput.value === 'custom' && customSizesInput) {
+    customSizesList = customSizesInput.value
+      .split(',')
+      .map(s => s.trim())
+      .filter(Boolean);
+  }
+
+  const existingCat = isEditing ? categories.find(c => c.slug === idInput.value) : null;
+
+  const categoryData = {
+    id: slug,
+    slug: slug,
+    name: name,
+    icon: (iconInput && iconInput.value.trim()) || '🏷️',
+    order: parseInt(orderInput ? orderInput.value : '99') || 99,
+    status: (statusInput ? statusInput.value : 'active'),
+    desc: (descInput ? descInput.value.trim() : ''),
+    img: (imgInput ? imgInput.value.trim() : ''),
+    subcategories: [...window.currentCategorySubcats],
+    sizeType: (sizeTypeInput ? sizeTypeInput.value : 'letter'),
+    customSizes: customSizesList,
+    attributes: {
+      fabric: attrFabric ? attrFabric.checked : true,
+      fit: attrFit ? attrFit.checked : true,
+      sleeve: attrSleeve ? attrSleeve.checked : true,
+      neck: attrNeck ? attrNeck.checked : true,
+      pattern: attrPattern ? attrPattern.checked : true
+    },
+    isDefault: existingCat ? !!existingCat.isDefault : false,
+    updatedAt: new Date().toISOString()
+  };
+
+  if (btnText) btnText.style.display = 'none';
+  if (spinner) spinner.classList.remove('hidden');
+
+  try {
+    // 1. Save to Firestore
+    await setDoc(doc(db, "categories", slug), categoryData);
+
+    // 2. Update local state
+    const existingIdx = categories.findIndex(c => c.slug === (isEditing ? idInput.value : slug));
+    if (existingIdx > -1) {
+      categories[existingIdx] = categoryData;
+    } else {
+      categories.push(categoryData);
+    }
+    categories.sort((a, b) => (Number(a.order) || 99) - (Number(b.order) || 99));
+
+    // 3. Cache locally
+    localStorage.setItem('sc_categories', JSON.stringify(categories));
+
+    // 4. Update UI
+    renderCategories();
+    renderAdminCategorySelectors();
+    window.closeCategoryModal();
+    showToast(`Category "${categoryData.name}" saved successfully!`);
+  } catch (err) {
+    console.error("Save category error:", err);
+    const existingIdx = categories.findIndex(c => c.slug === (isEditing ? idInput.value : slug));
+    if (existingIdx > -1) {
+      categories[existingIdx] = categoryData;
+    } else {
+      categories.push(categoryData);
+    }
+    categories.sort((a, b) => (Number(a.order) || 99) - (Number(b.order) || 99));
+    localStorage.setItem('sc_categories', JSON.stringify(categories));
+    renderCategories();
+    renderAdminCategorySelectors();
+    window.closeCategoryModal();
+    showToast(`Category saved locally: ${err.message || 'offline mode'}`);
+  } finally {
+    if (btnText) btnText.style.display = '';
+    if (spinner) spinner.classList.add('hidden');
+  }
+};
+
+window.deleteCategory = async function(slug) {
+  const cat = categories.find(c => c.slug === slug);
+  if (!cat) return;
+
+  if (cat.isDefault) {
+    alert("Baseline store categories cannot be deleted. You can set the category status to 'Hidden' instead.");
+    return;
+  }
+
+  // Count products in this category
+  const linkedProds = products.filter(p => String(p.cat || '').toLowerCase().trim() === slug.toLowerCase());
+  let confirmMsg = `Are you sure you want to delete category "${cat.name}"?`;
+  if (linkedProds.length > 0) {
+    confirmMsg += `\n\n⚠️ WARNING: There are ${linkedProds.length} products currently assigned to this category. Deleting it will leave those products without a department.`;
+  }
+
+  if (!confirm(confirmMsg)) return;
+
+  try {
+    await deleteDoc(doc(db, "categories", slug));
+  } catch (e) {
+    console.warn("Firestore delete category notice:", e);
+  }
+
+  const idx = categories.findIndex(c => c.slug === slug);
+  if (idx > -1) {
+    categories.splice(idx, 1);
+  }
+  localStorage.setItem('sc_categories', JSON.stringify(categories));
+  renderCategories();
+  renderAdminCategorySelectors();
+  showToast(`Category "${cat.name}" deleted.`);
+};
 
 // Image handling
 fileInput.addEventListener('change', (e) => {

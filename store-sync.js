@@ -91,6 +91,9 @@ async function syncProductsFromFirestore(force = false) {
       localStorage.setItem('sc_products', JSON.stringify(cleanProducts));
       sessionStorage.setItem('sc_last_sync_time', Date.now().toString());
       dispatchSyncedEvents(cleanProducts);
+
+      // Sync custom categories non-blockingly
+      syncCategoriesFromFirestore();
     } catch (err) {
       console.error("Failed to sync products from Firestore:", err);
     } finally {
@@ -99,6 +102,21 @@ async function syncProductsFromFirestore(force = false) {
   })();
 
   return syncPromise;
+}
+
+export async function syncCategoriesFromFirestore() {
+  try {
+    const snap = await getDocs(collection(db, "categories"));
+    const fetchedCats = [];
+    snap.forEach((docSnap) => {
+      fetchedCats.push({ ...docSnap.data(), id: docSnap.id });
+    });
+    if (fetchedCats.length > 0) {
+      localStorage.setItem('sc_categories', JSON.stringify(fetchedCats));
+    }
+  } catch (err) {
+    // Non-blocking warning
+  }
 }
 
 function dispatchSyncedEvents(fetchedProducts) {
@@ -115,7 +133,7 @@ function dispatchSyncedEvents(fetchedProducts) {
     window.renderGrid();
   } else if (typeof window.renderProduct === 'function' && typeof window.getProductId === 'function') {
     const pid = window.getProductId();
-    const p = fetchedProducts.find(x => String(x.id) === String(pid) || Number(x.id) === Number(pid));
+    const p = fetchedProducts.find(x => x && (String(x.id).trim() === String(pid).trim() || (!isNaN(x.id) && !isNaN(pid) && Number(x.id) === Number(pid))));
     if (p) {
       window.renderProduct(p);
       if (typeof window.initProductAnimations === 'function') {
@@ -123,6 +141,10 @@ function dispatchSyncedEvents(fetchedProducts) {
       }
     }
   }
+}
+
+if (typeof window !== 'undefined') {
+  window.syncProductsFromFirestore = syncProductsFromFirestore;
 }
 
 // Start sync on load

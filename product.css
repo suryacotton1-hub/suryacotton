@@ -133,12 +133,93 @@
 .pd-rating-val { font-weight: 700; font-size: 0.88rem; }
 .pd-review-count { color: #999; font-size: 0.82rem; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
 
+.pd-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.85rem;
+}
+
+.pd-title-row .pd-name {
+  margin-bottom: 0;
+  flex: 1;
+}
+
 .pd-name {
   font-family: var(--font-display);
   font-size: clamp(1.8rem, 3.5vw, 3rem);
   line-height: 1;
   color: var(--black);
   margin-bottom: 1rem;
+}
+
+/* Share button next to product name */
+.pd-share-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #f8fafc;
+  color: #1e293b;
+  border: 1px solid #cbd5e1;
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  margin-top: 4px;
+}
+
+.pd-share-btn:hover {
+  background: #0f172a;
+  color: #ffffff;
+  border-color: #0f172a;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(15,23,42,0.18);
+}
+
+.pd-share-btn svg {
+  stroke-width: 2.2;
+}
+
+/* Floating Share Button on Main Product Image */
+.pd-img-share-btn {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 20;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1e293b;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  padding: 0;
+}
+
+.pd-img-share-btn:hover {
+  background: #0f172a;
+  color: #ffffff;
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.25);
+}
+
+.pd-img-share-btn:active {
+  transform: scale(0.95);
 }
 
 .pd-price-row {
@@ -348,6 +429,36 @@
 }
 .pd-buy-btn:active { transform: translateY(0) scale(0.98); }
 
+/* Desktop CTA Share Button */
+.pd-cta-share-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: #f8fafc;
+  color: #0f172a;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1rem 1.4rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.pd-cta-share-btn:hover {
+  background: #0f172a;
+  color: #ffffff;
+  border-color: #0f172a;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.2);
+}
+
+.pd-cta-share-btn:active {
+  transform: translateY(0) scale(0.98);
+}
+
 /* Delivery info */
 .pd-delivery-info {
   background: #f8f8f8; border-radius: 12px;
@@ -492,6 +603,28 @@ body.side-menu-open .pd-mobile-cta {
   transition: all 0.25s;
 }
 .pd-mob-buy-btn:active { transform: scale(0.96); }
+
+/* Mobile Sticky CTA Share Button */
+.pd-mob-share-btn {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  border: 1.5px solid #cbd5e1;
+  background: #f8fafc;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.pd-mob-share-btn:active {
+  transform: scale(0.92);
+  background: #e2e8f0;
+}
 
 /* ---- SIZE MODAL ---- */
 .pd-modal-overlay {

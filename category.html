@@ -537,6 +537,22 @@
       keychains: { label: 'Keychains', heroImg: 'Logo.png',                           subcats: ['All','Leather Keychain','Metallic Crest Keychain'] },
     };
 
+    // Merge dynamic custom categories from storage
+    try {
+      const dynamicCats = JSON.parse(localStorage.getItem('sc_categories') || '[]');
+      if (Array.isArray(dynamicCats)) {
+        dynamicCats.forEach(dc => {
+          if (dc && dc.slug) {
+            CAT_META[dc.slug] = {
+              label: dc.name || dc.slug,
+              heroImg: dc.img || 'Products/Shirt/Plain shirt.jpg',
+              subcats: ['All', ...(Array.isArray(dc.subcategories) ? dc.subcategories : [])]
+            };
+          }
+        });
+      }
+    } catch (e) {}
+
     /* ---- URL PARAM ---- */
     const params  = new URLSearchParams(location.search);
     const catKey  = params.get('cat') || 'all';
@@ -868,11 +884,14 @@
               <img src="${imgUrl}" alt="${p.name}" loading="lazy" onerror="this.src='Logo.png'"/>
               ${p.badge ? `<div class="product-badge" data-type="${p.badge}">${p.badge}</div>` : ''}
               ${stockoutOverlay}
-              <button class="product-wish-float wish-btn ${wish?'wishlisted':''}" onclick="event.stopPropagation();toggleWish(${p.id},this)">
+              <button class="product-wish-float wish-btn ${wish?'wishlisted':''}" onclick="event.stopPropagation();toggleWish('${p.id}',this)">
                 ${wish?'❤️':'♡'}
               </button>
+              <button class="product-share-float" onclick="event.stopPropagation(); window.shareProduct('${p.id}', event)" aria-label="Share product" title="Share product">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+              </button>
               <div class="product-actions" onclick="event.stopPropagation()">
-                <button class="pa-btn add-cart-btn" onclick="addToCart(${p.id})"><span>Add to Cart</span></button>
+                <button class="pa-btn add-cart-btn" onclick="addToCart('${p.id}')"><span>Add to Cart</span></button>
               </div>
             </div>
             <div class="product-info">

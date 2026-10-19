@@ -77,6 +77,7 @@
       </div>
       <nav class="sidebar-nav">
         <button class="nav-btn active" data-tab="overview" onclick="window.switchAdminTab('overview')">Overview</button>
+        <button class="nav-btn" data-tab="categories" onclick="window.switchAdminTab('categories')">🏷️ Categories</button>
         <button class="nav-btn" data-tab="products" onclick="window.switchAdminTab('products')">Products</button>
         <button class="nav-btn" data-tab="orders" onclick="window.switchAdminTab('orders')">Orders</button>
         <button class="nav-btn" data-tab="reviews" onclick="window.switchAdminTab('reviews')">Reviews</button>
@@ -237,6 +238,62 @@
               <input type="checkbox" id="freeShippingToggle" onchange="window.toggleFreeShipping(this.checked)">
               <span id="freeShippingStatusLabel">Turn OFF Delivery Cost (FREE Shipping)</span>
             </label>
+          </div>
+        </section>
+
+        <!-- Categories Tab -->
+        <section id="tab-categories" class="tab-content">
+          <div class="table-header table-header-flex">
+            <div>
+              <h2>Manage Categories</h2>
+              <p>Create and customize store categories, styles, sizing systems, and product specifications. <span id="categoriesCountBadge" style="font-weight:700; color:var(--red); margin-left:6px;"></span></p>
+            </div>
+            <button class="btn-primary" id="addCategoryBtn" onclick="window.openCategoryModal()">+ Add Category</button>
+          </div>
+
+          <!-- Top Category KPI Stat Cards -->
+          <div class="stats-grid" style="margin-bottom: 2rem;">
+            <div class="stat-card">
+              <div class="stat-card-top">
+                <h3>Total Categories</h3>
+                <span class="stat-icon-badge" style="background: rgba(15,23,42,0.08); color: #0f172a;">🏷️</span>
+              </div>
+              <p class="stat-val" id="statTotalCats">--</p>
+              <span class="stat-sub">Store apparel departments</span>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-top">
+                <h3>Active On Store</h3>
+                <span class="stat-icon-badge" style="background: rgba(22,163,74,0.08); color: #16a34a;">✅</span>
+              </div>
+              <p class="stat-val" id="statActiveCats">--</p>
+              <span class="stat-sub">Visible to customers</span>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-top">
+                <h3>Categorized Products</h3>
+                <span class="stat-icon-badge" style="background: rgba(232,0,13,0.08); color: var(--red);">📦</span>
+              </div>
+              <p class="stat-val" id="statCategorizedProds">--</p>
+              <span class="stat-sub">Products in catalogue</span>
+            </div>
+          </div>
+
+          <!-- Search & Filter Bar -->
+          <div class="product-filter-bar" style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.25rem;">
+            <div class="order-search-box" style="max-width: 380px;">
+              <input type="text" id="categorySearchInput" placeholder="Search category name, slug, styles..." oninput="window.filterAdminCategories()" />
+              <span class="search-icon">🔍</span>
+              <button type="button" id="clearCatSearch" onclick="document.getElementById('categorySearchInput').value=''; window.filterAdminCategories();" style="display:none;">✕</button>
+            </div>
+            <div style="font-size: 0.88rem; color: #64748b;">
+              💡 Custom categories instantly sync to storefront shop filters and product uploads.
+            </div>
+          </div>
+
+          <!-- Category Cards Grid -->
+          <div class="categories-grid" id="categoriesListGrid">
+            <!-- Dynamically populated by JS -->
           </div>
         </section>
 
@@ -467,6 +524,136 @@
 
   <!-- Toast -->
   <div id="toast" class="toast">Saved Successfully</div>
+
+  <!-- Category Edit / Create Modal -->
+  <div class="modal-overlay" id="categoryEditModal">
+    <div class="modal-box category-modal-box">
+      <div class="modal-header">
+        <h3 id="categoryModalTitle">Create New Category</h3>
+        <button class="close-modal" id="closeCategoryModal" onclick="window.closeCategoryModal()">✕</button>
+      </div>
+      <div class="modal-body" style="overflow-y: auto; padding-right: 1rem; max-height: 75vh;">
+        <input type="hidden" id="editCatId" />
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Category Name *</label>
+            <input type="text" id="catNameInput" placeholder="e.g. Blazers, Ethnic Wear, Hoodies" oninput="window.autoGenerateCatSlug(this.value)" required />
+          </div>
+          <div class="form-group">
+            <label>URL Slug (identifier) *</label>
+            <input type="text" id="catSlugInput" placeholder="e.g. blazers, ethnic-wear" required />
+            <small style="font-size: 0.72rem; color: #64748b; margin-top: 3px; display: block;">Used in store URL: <code>category.html?cat=slug</code></small>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Icon / Emoji</label>
+            <input type="text" id="catIconInput" placeholder="e.g. 🧥" maxlength="4" style="font-size: 1.2rem; width: 100px;" />
+            <div class="emoji-quick-bar">
+              <button type="button" class="emoji-btn" onclick="document.getElementById('catIconInput').value='👔'">👔</button>
+              <button type="button" class="emoji-btn" onclick="document.getElementById('catIconInput').value='👖'">👖</button>
+              <button type="button" class="emoji-btn" onclick="document.getElementById('catIconInput').value='👕'">👕</button>
+              <button type="button" class="emoji-btn" onclick="document.getElementById('catIconInput').value='🩳'">🩳</button>
+              <button type="button" class="emoji-btn" onclick="document.getElementById('catIconInput').value='🧥'">🧥</button>
+              <button type="button" class="emoji-btn" onclick="document.getElementById('catIconInput').value='🥼'">🥼</button>
+              <button type="button" class="emoji-btn" onclick="document.getElementById('catIconInput').value='🦺'">🦺</button>
+              <button type="button" class="emoji-btn" onclick="document.getElementById('catIconInput').value='🩲'">🩲</button>
+              <button type="button" class="emoji-btn" onclick="document.getElementById('catIconInput').value='🧢'">🧢</button>
+              <button type="button" class="emoji-btn" onclick="document.getElementById('catIconInput').value='👞'">👞</button>
+              <button type="button" class="emoji-btn" onclick="document.getElementById('catIconInput').value='👟'">👟</button>
+              <button type="button" class="emoji-btn" onclick="document.getElementById('catIconInput').value='🔑'">🔑</button>
+              <button type="button" class="emoji-btn" onclick="document.getElementById('catIconInput').value='🏷️'">🏷️</button>
+              <button type="button" class="emoji-btn" onclick="document.getElementById('catIconInput').value='✨'">✨</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Display Order & Status</label>
+            <div style="display: flex; gap: 0.75rem; align-items: center;">
+              <input type="number" id="catOrderInput" placeholder="Order" value="1" min="1" style="width: 80px;" />
+              <select id="catStatusInput" style="flex: 1;">
+                <option value="active">Active (Visible)</option>
+                <option value="hidden">Hidden (Draft)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Category Tagline / Description (Optional)</label>
+          <input type="text" id="catDescInput" placeholder="e.g. Premium tailored blazers for weddings & modern business wear" />
+        </div>
+
+        <div class="form-group">
+          <label>Hero Image / Banner URL (Optional)</label>
+          <input type="text" id="catImgInput" placeholder="e.g. Products/Shirt/Plain shirt.jpg or Cloudinary URL" />
+        </div>
+
+        <!-- Subcategories List -->
+        <div class="form-group">
+          <label style="font-weight: 700; color: #0f172a;">Subcategories / Styles</label>
+          <p style="font-size: 0.8rem; color: #64748b; margin-bottom: 0.5rem;">Add specific styles available under this category (e.g. Formal, Casual, Tuxedo)</p>
+          <div class="subcat-tag-input-wrap">
+            <input type="text" id="catNewSubcatInput" placeholder="Type style name and click + Add" onkeydown="if(event.key==='Enter'){event.preventDefault();window.addCategorySubcatTag();}" />
+            <button type="button" class="btn-primary" onclick="window.addCategorySubcatTag()" style="padding: 0.6rem 1rem; font-size: 0.85rem; border-radius: 8px;">+ Add</button>
+          </div>
+          <div class="subcat-tags-list" id="catSubcatsList">
+            <!-- Dynamically populated tag chips -->
+          </div>
+        </div>
+
+        <!-- Sizing System -->
+        <div class="form-group">
+          <label style="font-weight: 700; color: #0f172a;">Sizing System for Products in this Category</label>
+          <select id="catSizeTypeInput" onchange="window.handleCatSizeTypeChange(this.value)">
+            <option value="letter">Standard Apparel (S, M, L, XL, XXL, 3XL)</option>
+            <option value="number">Waist / Numeric (28, 30, 32, 34, 36, 38, 40)</option>
+            <option value="both">Both Numeric & Letter Available (like Pants)</option>
+            <option value="free">Free Size / Adjustable (Caps, Accessories, Belts)</option>
+            <option value="footwear">Footwear (6, 7, 8, 9, 10, 11)</option>
+            <option value="custom">Custom Sizes (comma-separated below)</option>
+          </select>
+          <div id="catCustomSizesWrap" style="display: none; margin-top: 0.5rem;">
+            <input type="text" id="catCustomSizesInput" placeholder="e.g. 28, 30, 32, 34 or Small, Medium, Large" />
+          </div>
+        </div>
+
+        <!-- Dynamic Product Attributes Config -->
+        <div class="form-group">
+          <label style="font-weight: 700; color: #0f172a; margin-bottom: 0.4rem; display: block;">Applicable Product Specifications</label>
+          <p style="font-size: 0.8rem; color: #64748b; margin-bottom: 0.5rem;">Select which specification fields the admin should fill when uploading products to this category:</p>
+          <div class="attr-checkbox-grid">
+            <label class="attr-checkbox-label">
+              <input type="checkbox" id="catAttrFabric" checked />
+              <span>🧵 Fabric / Material</span>
+            </label>
+            <label class="attr-checkbox-label">
+              <input type="checkbox" id="catAttrFit" checked />
+              <span>✂️ Fit Type</span>
+            </label>
+            <label class="attr-checkbox-label">
+              <input type="checkbox" id="catAttrSleeve" checked />
+              <span>👔 Sleeve Length</span>
+            </label>
+            <label class="attr-checkbox-label">
+              <input type="checkbox" id="catAttrNeck" checked />
+              <span>👔 Collar / Neck</span>
+            </label>
+            <label class="attr-checkbox-label">
+              <input type="checkbox" id="catAttrPattern" checked />
+              <span>🎨 Color & Pattern</span>
+            </label>
+          </div>
+        </div>
+
+        <button class="btn-primary full-width" id="saveCategoryBtn" onclick="window.saveAdminCategory()" style="margin-top: 1rem;">
+          <span class="btn-text">Save Category</span>
+          <div class="spinner hidden" id="saveCategorySpinner"></div>
+        </button>
+      </div>
+    </div>
+  </div>
 
   <script type="module" src="admin.js"></script>
 </body>

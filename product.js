@@ -161,8 +161,8 @@ let currentImgIdx = 0;
 function getProductId() {
   const p = new URLSearchParams(window.location.search);
   const idVal = p.get('id');
-  if (!idVal) return 1;
-  return isNaN(idVal) ? idVal : (Number(idVal) || 1);
+  if (!idVal) return '1';
+  return idVal.trim();
 }
 
 function renderProduct(p) {
@@ -526,7 +526,13 @@ function renderRelated(current) {
     const stockoutOverlay = isStockout ? `<div class="stockout-slash-overlay"><div class="slash-line"></div><span class="slash-text">OUT OF STOCK</span></div>` : '';
     return `
     <div class="pd-rel-card ${isStockout ? 'stockout-card' : ''}" onclick="window.location.href='product.html?id=${p.id}'">
-      <div class="pd-rel-img" style="position:relative;"><img src="${p.img}" alt="${p.name}" loading="lazy" />${stockoutOverlay}</div>
+      <div class="pd-rel-img" style="position:relative;">
+        <img src="${p.img}" alt="${p.name}" loading="lazy" />
+        ${stockoutOverlay}
+        <button class="product-share-float" onclick="event.stopPropagation(); window.shareProduct('${p.id}', event)" aria-label="Share product" title="Share product">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        </button>
+      </div>
       <div class="pd-rel-info">
         <p class="pd-rel-cat">${p.cat}</p>
         <p class="pd-rel-name">${p.name}</p>
@@ -813,23 +819,47 @@ function initMobileCtaScroll() {
 // ---- INIT ----
 updateCartUI();
 initMobileCtaScroll();
+
+function findProductById(list, targetId) {
+  if (!Array.isArray(list)) return null;
+  return list.find(p => p && (String(p.id).trim() === String(targetId).trim() || (!isNaN(p.id) && !isNaN(targetId) && Number(p.id) === Number(targetId))));
+}
+
+window.shareCurrentProduct = function(e) {
+  if (e) {
+    if (typeof e.stopPropagation === 'function') e.stopPropagation();
+    if (typeof e.preventDefault === 'function') e.preventDefault();
+  }
+  const currentPid = getProductId();
+  if (typeof window.shareProduct === 'function') {
+    window.shareProduct(currentPid, e);
+  }
+};
+
 const pid = getProductId();
-const product = products.find(p => String(p.id) === String(pid) || Number(p.id) === Number(pid));
+const initialProducts = window.products || window.ALL_PRODUCTS || products;
+const product = findProductById(initialProducts, pid);
+
 if (typeof window !== 'undefined') {
   window.getProductId = getProductId;
   window.renderProduct = renderProduct;
   window.initProductAnimations = initProductAnimations;
   window.initMobileCtaScroll = initMobileCtaScroll;
 }
+
 if (product) {
   renderProduct(product);
   setTimeout(initProductAnimations, 100);
 }
 else {
+  // Show clean loading state while fetching from Firestore
+  const nameEl = document.getElementById('pdName');
+  if (nameEl) nameEl.textContent = 'Loading product...';
+
   // Wait for Firestore sync before redirecting if product was just added by admin
   window.addEventListener('scProductsSynced', (e) => {
     const synced = e.detail || [];
-    const found = synced.find(p => String(p.id) === String(pid) || Number(p.id) === Number(pid));
+    const found = findProductById(synced, pid);
     if (found) {
       renderProduct(found);
       setTimeout(initProductAnimations, 100);
@@ -838,6 +868,10 @@ else {
       setTimeout(() => { window.location.href = 'category.html?cat=all'; }, 2000);
     }
   });
+
+  if (typeof window.syncProductsFromFirestore === 'function') {
+    window.syncProductsFromFirestore(true);
+  }
 }
 
 // ---- GSAP ANIMATIONS ----

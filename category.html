@@ -925,9 +925,11 @@
     function saveCart(){ localStorage.setItem('sc_cart',JSON.stringify(cart)); }
 
     function addToCart(id){
-      const p = ALL_PRODUCTS.find(x=>x.id===id); if(!p) return;
-      const ex = cart.find(i=>i.id===id);
-      if(ex) ex.qty++; else cart.push({...p,qty:1});
+      const p = ALL_PRODUCTS.find(x => String(x.id) === String(id) || Number(x.id) === Number(id)); 
+      if(!p) return;
+      const ex = cart.find(i => (String(i.cartItemId || i.id) === String(id)) || (String(i.id) === String(id) && !i.size));
+      if(ex) ex.qty++; 
+      else cart.push({...p, qty: 1, cartItemId: String(p.id)});
       saveCart(); updateCartUI();
       showToast('✓ "'+p.name+'" added to cart!');
     }
@@ -943,8 +945,13 @@
       const total=cart.reduce((s,i)=>s+i.qty,0);
       const c=document.getElementById('cartCount');
       if(c){ c.textContent=total; c.classList.toggle('show',total>0); }
+      const mobCount = document.getElementById('mobCartCount');
+      if (mobCount) { mobCount.textContent = total; mobCount.classList.toggle('show', total > 0); }
       const t=document.getElementById('cartTotal');
       if(t) t.textContent='₹'+cart.reduce((s,i)=>s+i.price*i.qty,0).toLocaleString();
+      if (typeof window.syncMobileCartBadge === 'function') {
+        window.syncMobileCartBadge();
+      }
     }
     updateCartUI();
 
@@ -957,29 +964,117 @@
     function openCart(){
       cartDrawer.classList.add('open'); cartOverlay.classList.add('open');
       const ci=document.getElementById('cartItems');
+      if(!ci) return;
       if(!cart.length){ ci.innerHTML='<p class="cart-empty">Your cart is empty 🛍️</p>'; return; }
-      ci.innerHTML=cart.map(item=>`
-        <div class="cart-item">
-          <img class="cart-item-img" src="${item.img}" alt="${item.name}"/>
+
+      // Setup delegated click handler once
+      if (!ci.dataset.hasCartListener) {
+        ci.dataset.hasCartListener = 'true';
+        ci.addEventListener('click', (e) => {
+          const removeBtn = e.target.closest('.cart-item-remove');
+          if (removeBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            const cartItem = removeBtn.closest('.cart-item');
+            const cartId = cartItem ? (cartItem.getAttribute('data-cart-id') || cartItem.getAttribute('data-index')) : null;
+            if (cartId !== null) {
+              rmCart(cartId);
+            }
+          }
+        });
+      }
+
+      ci.innerHTML=cart.map((item, idx) => {
+        const cId = String(item.cartItemId || (item.size ? `${item.id}-${item.size}` : item.id) || idx);
+        const safeId = cId.replace(/'/g, "\\'");
+        const variantInfo = (item.size || item.color) 
+          ? `<p style="font-size: 0.75rem; color: #888; margin-bottom: 0.3rem;">${item.color ? 'Color: '+item.color : ''}${item.size && item.color ? ' | ' : ''}${item.size ? 'Size: '+item.size : ''}</p>` 
+          : '';
+        const imgSrc = item.selectedImage || item.img || '';
+        return `
+        <div class="cart-item" data-cart-id="${cId}" data-index="${idx}">
+          <img class="cart-item-img" src="${imgSrc}" alt="${item.name || 'Product'}"/>
           <div class="cart-item-info">
-            <p class="cart-item-name">${item.name}</p>
-            <p class="cart-item-price">₹${item.price.toLocaleString()}</p>
+            <p class="cart-item-name">${item.name || ''}</p>
+            ${variantInfo}
+            <p class="cart-item-price">₹${Number(item.price || 0).toLocaleString()}</p>
             <div class="cart-item-qty">
-              <button class="qty-btn" onclick="chgQty(${item.id},-1)">−</button>
+              <button type="button" class="qty-btn" onclick="chgQty('${safeId}',-1)" aria-label="Decrease quantity">−</button>
               <span class="qty-num">${item.qty}</span>
-              <button class="qty-btn" onclick="chgQty(${item.id},+1)">+</button>
+              <button type="button" class="qty-btn" onclick="chgQty('${safeId}',+1)" aria-label="Increase quantity">+</button>
             </div>
           </div>
-          <button class="cart-item-remove" onclick="rmCart(${item.id})">✕</button>
-        </div>`).join('');
+          <button type="button" class="cart-item-remove" onclick="rmCart('${safeId}')" aria-label="Remove item" title="Remove item">✕</button>
+        </div>`;
+      }).join('');
     }
     function closeCart(){ cartDrawer.classList.remove('open'); cartOverlay.classList.remove('open'); }
-    function chgQty(id,d){ const i=cart.find(x=>x.id===id); if(!i) return; if(d>0){ const p=ALL_PRODUCTS.find(x=>x.id===id); if(p){ const avail=p.sizeStock&&i.size&&p.sizeStock[i.size]!==undefined?parseInt(p.sizeStock[i.size]):(p.stock!==undefined?parseInt(p.stock):10); if(i.qty+d>avail){ showToast(`Only ${avail} item(s) available in stock!`); return; } } } i.qty+=d; if(i.qty<=0) rmCart(id); else{ saveCart(); updateCartUI(); openCart(); } }
-    function rmCart(id){ cart=cart.filter(x=>x.id!==id); saveCart(); updateCartUI(); openCart(); }
 
-    if(cartBtn) cartBtn.addEventListener('click', openCart);
-    if(cartClose) cartClose.addEventListener('click', closeCart);
-    if(cartOverlay) cartOverlay.addEventListener('click', closeCart);
+    function chgQty(keyOrIndex, d){
+      if(keyOrIndex === undefined || keyOrIndex === null) return;
+      let i = null;
+      if (typeof keyOrIndex === 'number' && keyOrIndex >= 0 && keyOrIndex < cart.length) {
+        i = cart[keyOrIndex];
+      } else {
+        const target = String(keyOrIndex).trim();
+        i = cart.find(x => String(x.cartItemId || (x.size ? `${x.id}-${x.size}` : x.id)).trim() === target) ||
+            cart.find(x => String(x.id).trim() === target || Number(x.id) === Number(target));
+      }
+      if(!i) return;
+
+      if(d>0){ 
+        const p = ALL_PRODUCTS.find(x => String(x.id) === String(i.id) || Number(x.id) === Number(i.id)); 
+        if(p){ 
+          const avail = p.sizeStock && i.size && p.sizeStock[i.size] !== undefined ? parseInt(p.sizeStock[i.size]) : (p.stock !== undefined ? parseInt(p.stock) : 10); 
+          if(i.qty + d > avail){ 
+            showToast(`Only ${avail} item(s) available in stock!`); 
+            return; 
+          } 
+        } 
+      } 
+      i.qty += d; 
+      if(i.qty <= 0) {
+        const removeKey = i.cartItemId || (i.size ? `${i.id}-${i.size}` : i.id);
+        rmCart(removeKey);
+      } else { 
+        saveCart(); updateCartUI(); openCart(); 
+      } 
+    }
+
+    function rmCart(keyOrIndex){
+      if(keyOrIndex === undefined || keyOrIndex === null) return;
+      const initialLen = cart.length;
+      let removedName = '';
+
+      if (typeof keyOrIndex === 'number' && keyOrIndex >= 0 && keyOrIndex < cart.length) {
+        removedName = cart[keyOrIndex] ? cart[keyOrIndex].name : '';
+        cart.splice(keyOrIndex, 1);
+      } else {
+        const target = String(keyOrIndex).trim();
+        const itemToRemove = cart.find(i => String(i.cartItemId || (i.size ? `${i.id}-${i.size}` : i.id)).trim() === target) ||
+                             cart.find(i => String(i.id).trim() === target);
+        if (itemToRemove) removedName = itemToRemove.name;
+
+        cart = cart.filter(i => {
+          const cId = String(i.cartItemId || (i.size ? `${i.id}-${i.size}` : i.id)).trim();
+          return cId !== target;
+        });
+
+        if (cart.length === initialLen) {
+          cart = cart.filter(i => String(i.id).trim() !== target && Number(i.id) !== Number(target));
+        }
+      }
+
+      saveCart(); updateCartUI(); openCart();
+      if (removedName && typeof showToast === 'function') {
+        showToast(`Removed "${removedName}" from cart`);
+      }
+    }
+
+    window.rmCart = rmCart;
+    window.removeFromCart = rmCart;
+    window.chgQty = chgQty;
+    window.changeQty = chgQty;
     document.getElementById('checkoutBtn').addEventListener('click',()=>{
       if(!cart.length){ showToast('Your cart is empty!'); return; }
       for(const item of cart){ const p=ALL_PRODUCTS.find(x=>x.id===item.id); if(p){ const avail=p.sizeStock&&item.size&&p.sizeStock[item.size]!==undefined?parseInt(p.sizeStock[item.size]):(p.stock!==undefined?parseInt(p.stock):10); if(item.qty>avail){ showToast(`Cannot checkout! Only ${avail} item(s) available for "${item.name}"`); return; } } }

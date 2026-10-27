@@ -1169,49 +1169,135 @@ function updateCartUI() {
     count.textContent = total;
     count.classList.toggle('show', total > 0);
   }
+  const mobCount = document.getElementById('mobCartCount');
+  if (mobCount) {
+    mobCount.textContent = total;
+    mobCount.classList.toggle('show', total > 0);
+  }
   const totalEl = document.getElementById('cartTotal');
   if (totalEl) {
     totalEl.textContent = '₹' + cart.reduce((s, i) => s + i.price * i.qty, 0).toLocaleString();
+  }
+  if (typeof window.syncMobileCartBadge === 'function') {
+    window.syncMobileCartBadge();
   }
 }
 
 function renderCartItems() {
   const container = document.getElementById('cartItems');
   if (!container) return;
-  if (!cart.length) {
+  if (!cart || !cart.length) {
     container.innerHTML = '<p class="cart-empty">Your cart is empty 🛍️</p>';
     return;
   }
-  container.innerHTML = cart.map(item => `
-    <div class="cart-item">
-      <img class="cart-item-img" src="${item.img}" alt="${item.name}" style="width: 50px; height: 65px; object-fit: cover; border-radius: 8px;" />
+
+  // Setup delegated click handler once
+  if (!container.dataset.hasCartListener) {
+    container.dataset.hasCartListener = 'true';
+    container.addEventListener('click', (e) => {
+      const removeBtn = e.target.closest('.cart-item-remove');
+      if (removeBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        const cartItem = removeBtn.closest('.cart-item');
+        const cartId = cartItem ? (cartItem.getAttribute('data-cart-id') || cartItem.getAttribute('data-index')) : null;
+        if (cartId !== null) {
+          window.removeFromCart(cartId);
+        }
+      }
+    });
+  }
+
+  container.innerHTML = cart.map((item, idx) => {
+    const cId = String(item.cartItemId || (item.size ? `${item.id}-${item.size}` : item.id) || idx);
+    const safeId = cId.replace(/'/g, "\\'");
+    const variantInfo = (item.size || item.color) 
+      ? `<p style="font-size: 0.75rem; color: #888; margin-bottom: 0.3rem;">${item.color ? 'Color: '+item.color : ''}${item.size && item.color ? ' | ' : ''}${item.size ? 'Size: '+item.size : ''}</p>` 
+      : '';
+    const imgSrc = item.selectedImage || item.img || '';
+    return `
+    <div class="cart-item" data-cart-id="${cId}" data-index="${idx}">
+      <img class="cart-item-img" src="${imgSrc}" alt="${item.name || 'Product'}" style="width: 50px; height: 65px; object-fit: cover; border-radius: 8px;" />
       <div class="cart-item-info" style="flex: 1; margin-left: 1rem;">
-        <p class="cart-item-name" style="font-weight: 700; font-size: 0.85rem;">${item.name}</p>
-        <p class="cart-item-price" style="color: var(--red); font-weight: 700; font-size: 0.9rem;">₹${item.price.toLocaleString()}</p>
+        <p class="cart-item-name" style="font-weight: 700; font-size: 0.85rem;">${item.name || ''}</p>
+        ${variantInfo}
+        <p class="cart-item-price" style="color: var(--red); font-weight: 700; font-size: 0.9rem;">₹${Number(item.price || 0).toLocaleString()}</p>
         <div class="cart-item-qty" style="display: flex; align-items: center; gap: 8px; margin-top: 5px;">
-          <button class="qty-btn" onclick="changeQty(${item.id},-1)" style="width: 24px; height: 24px; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center; border-radius: 4px;">−</button>
+          <button type="button" class="qty-btn" onclick="changeQty('${safeId}',-1)" style="width: 24px; height: 24px; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center; border-radius: 4px;" aria-label="Decrease quantity">−</button>
           <span class="qty-num">${item.qty}</span>
-          <button class="qty-btn" onclick="changeQty(${item.id},+1)" style="width: 24px; height: 24px; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center; border-radius: 4px;">+</button>
+          <button type="button" class="qty-btn" onclick="changeQty('${safeId}',+1)" style="width: 24px; height: 24px; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center; border-radius: 4px;" aria-label="Increase quantity">+</button>
         </div>
       </div>
-      <button class="cart-item-remove" onclick="removeFromCart(${item.id})" style="color: #cbd5e1; font-size: 0.9rem;">✕</button>
-    </div>`).join('');
+      <button type="button" class="cart-item-remove" onclick="removeFromCart('${safeId}')" aria-label="Remove item" title="Remove item">✕</button>
+    </div>`;
+  }).join('');
 }
 
-window.changeQty = function(id, delta) {
-  const item = cart.find(i => String(i.id) === String(id) || Number(i.id) === Number(id));
+window.changeQty = function(keyOrIndex, delta) {
+  if (keyOrIndex === undefined || keyOrIndex === null) return;
+  let item = null;
+  if (typeof keyOrIndex === 'number' && keyOrIndex >= 0 && keyOrIndex < cart.length) {
+    item = cart[keyOrIndex];
+  } else {
+    const target = String(keyOrIndex).trim();
+    item = cart.find(i => String(i.cartItemId || (i.size ? `${i.id}-${i.size}` : i.id)).trim() === target) ||
+           cart.find(i => String(i.id).trim() === target || Number(i.id) === Number(target));
+  }
   if (!item) return;
+
+  if (delta > 0) {
+    const allProds = window.products || window.ALL_PRODUCTS || products || [];
+    const p = allProds.find(x => String(x.id) === String(item.id) || Number(x.id) === Number(item.id));
+    if (p) {
+      const availStock = p.sizeStock && item.size && p.sizeStock[item.size] !== undefined ? parseInt(p.sizeStock[item.size]) : (p.stock !== undefined ? parseInt(p.stock) : 10);
+      if (item.qty + delta > availStock) {
+        if (typeof showToast === 'function') showToast(`Only ${availStock} item(s) available in stock!`);
+        return;
+      }
+    }
+  }
+
   item.qty += delta;
   if (item.qty <= 0) {
-    cart = cart.filter(i => String(i.id) !== String(id) && Number(i.id) !== Number(id));
+    const removeKey = item.cartItemId || (item.size ? `${item.id}-${item.size}` : item.id);
+    window.removeFromCart(removeKey);
+  } else {
+    saveCart(); updateCartUI(); renderCartItems();
   }
-  saveCart(); updateCartUI(); renderCartItems();
 };
 
-window.removeFromCart = function(id) {
-  cart = cart.filter(i => String(i.id) !== String(id) && Number(i.id) !== Number(id));
+window.removeFromCart = function(keyOrIndex) {
+  if (keyOrIndex === undefined || keyOrIndex === null) return;
+  const initialLen = cart.length;
+  let removedName = '';
+
+  if (typeof keyOrIndex === 'number' && keyOrIndex >= 0 && keyOrIndex < cart.length) {
+    removedName = cart[keyOrIndex] ? cart[keyOrIndex].name : '';
+    cart.splice(keyOrIndex, 1);
+  } else {
+    const target = String(keyOrIndex).trim();
+    const itemToRemove = cart.find(i => String(i.cartItemId || (i.size ? `${i.id}-${i.size}` : i.id)).trim() === target) ||
+                         cart.find(i => String(i.id).trim() === target);
+    if (itemToRemove) removedName = itemToRemove.name;
+
+    cart = cart.filter(i => {
+      const cId = String(i.cartItemId || (i.size ? `${i.id}-${i.size}` : i.id)).trim();
+      return cId !== target;
+    });
+
+    if (cart.length === initialLen) {
+      cart = cart.filter(i => String(i.id).trim() !== target && Number(i.id) !== Number(target));
+    }
+  }
+
   saveCart(); updateCartUI(); renderCartItems();
+  if (removedName && typeof showToast === 'function') {
+    showToast(`Removed "${removedName}" from cart`);
+  }
 };
+
+window.rmCart = window.removeFromCart;
+window.chgQty = window.changeQty;
 
 // Toggle Drawers
 const cartOverlay = document.getElementById('cartOverlay');

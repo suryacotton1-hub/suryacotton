@@ -497,28 +497,80 @@ function addToCart(id) {
   }
 }
 
-function removeFromCart(id) {
-  cart = cart.filter(i => String(i.id) !== String(id) && Number(i.id) !== Number(id));
-  saveCart(); updateCartUI(); renderCartItems();
+function removeFromCart(keyOrIndex) {
+  if (keyOrIndex === undefined || keyOrIndex === null) return;
+  const initialLen = cart.length;
+  let removedName = '';
+
+  if (typeof keyOrIndex === 'number' && keyOrIndex >= 0 && keyOrIndex < cart.length) {
+    removedName = cart[keyOrIndex] ? cart[keyOrIndex].name : '';
+    cart.splice(keyOrIndex, 1);
+  } else {
+    const target = String(keyOrIndex).trim();
+    const itemToRemove = cart.find(i => String(i.cartItemId || (i.size ? `${i.id}-${i.size}` : i.id)).trim() === target) ||
+                         cart.find(i => String(i.id).trim() === target);
+    if (itemToRemove) removedName = itemToRemove.name;
+
+    cart = cart.filter(i => {
+      const cId = String(i.cartItemId || (i.size ? `${i.id}-${i.size}` : i.id)).trim();
+      return cId !== target;
+    });
+
+    if (cart.length === initialLen) {
+      cart = cart.filter(i => String(i.id).trim() !== target && Number(i.id) !== Number(target));
+    }
+  }
+
+  saveCart();
+  updateCartUI();
+  renderCartItems();
+  if (removedName && typeof showToast === 'function') {
+    showToast(`Removed "${removedName}" from cart`);
+  }
 }
 
-function changeQty(id, delta) {
-  const item = cart.find(i => String(i.id) === String(id) || Number(i.id) === Number(id));
+function changeQty(keyOrIndex, delta) {
+  if (keyOrIndex === undefined || keyOrIndex === null) return;
+  let item = null;
+  if (typeof keyOrIndex === 'number' && keyOrIndex >= 0 && keyOrIndex < cart.length) {
+    item = cart[keyOrIndex];
+  } else {
+    const target = String(keyOrIndex).trim();
+    item = cart.find(i => String(i.cartItemId || (i.size ? `${i.id}-${i.size}` : i.id)).trim() === target) ||
+           cart.find(i => String(i.id).trim() === target || Number(i.id) === Number(target));
+  }
   if (!item) return;
+
   if (delta > 0) {
-    const p = products.find(x => String(x.id) === String(item.id) || Number(x.id) === Number(item.id));
+    const allProds = window.products || window.ALL_PRODUCTS || products || [];
+    const p = allProds.find(x => String(x.id) === String(item.id) || Number(x.id) === Number(item.id));
     if (p) {
-      const availStock = p.sizeStock && item.size && p.sizeStock[item.size] !== undefined ? parseInt(p.sizeStock[item.size]) : (p.stock !== undefined ? parseInt(p.stock) : 10);
+      const availStock = p.sizeStock && item.size && p.sizeStock[item.size] !== undefined 
+        ? parseInt(p.sizeStock[item.size]) 
+        : (p.stock !== undefined ? parseInt(p.stock) : 10);
       if (item.qty + delta > availStock) {
         showToast(`Only ${availStock} item(s) available in stock!`);
         return;
       }
     }
   }
+
   item.qty += delta;
-  if (item.qty <= 0) removeFromCart(id);
-  else { saveCart(); updateCartUI(); renderCartItems(); }
+  if (item.qty <= 0) {
+    const removeKey = item.cartItemId || (item.size ? `${item.id}-${item.size}` : item.id);
+    removeFromCart(removeKey);
+  } else {
+    saveCart();
+    updateCartUI();
+    renderCartItems();
+  }
 }
+
+// Window aliases for cross-script compatibility
+window.removeFromCart = removeFromCart;
+window.rmCart = removeFromCart;
+window.changeQty = changeQty;
+window.chgQty = changeQty;
 
 function toggleWishlist(id, btn) {
   if (wishlist.includes(id)) {
@@ -563,24 +615,51 @@ function updateCartUI() {
 function renderCartItems() {
   const container = document.getElementById('cartItems');
   if (!container) return;
-  if (!cart.length) {
+  if (!cart || !cart.length) {
     container.innerHTML = '<p class="cart-empty">Your cart is empty 🛍️</p>';
     return;
   }
-  container.innerHTML = cart.map(item => `
-    <div class="cart-item">
-      <img class="cart-item-img" src="${item.img}" alt="${item.name}" />
-      <div class="cart-item-info">
-        <p class="cart-item-name">${item.name}</p>
-        <p class="cart-item-price">₹${item.price.toLocaleString()}</p>
-        <div class="cart-item-qty">
-          <button class="qty-btn" onclick="changeQty(${item.id},-1)">−</button>
-          <span class="qty-num">${item.qty}</span>
-          <button class="qty-btn" onclick="changeQty(${item.id},+1)">+</button>
+
+  // Setup delegated click handler once as an unbreakable safeguard
+  if (!container.dataset.hasCartListener) {
+    container.dataset.hasCartListener = 'true';
+    container.addEventListener('click', (e) => {
+      const removeBtn = e.target.closest('.cart-item-remove');
+      if (removeBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        const cartItem = removeBtn.closest('.cart-item');
+        const cartId = cartItem ? (cartItem.getAttribute('data-cart-id') || cartItem.getAttribute('data-index')) : null;
+        if (cartId !== null) {
+          removeFromCart(cartId);
+        }
+      }
+    });
+  }
+
+  container.innerHTML = cart.map((item, idx) => {
+    const cId = String(item.cartItemId || (item.size ? `${item.id}-${item.size}` : item.id) || idx);
+    const safeId = cId.replace(/'/g, "\\'");
+    const variantInfo = (item.size || item.color) 
+      ? `<p style="font-size: 0.75rem; color: #888; margin-bottom: 0.3rem;">${item.color ? 'Color: '+item.color : ''}${item.size && item.color ? ' | ' : ''}${item.size ? 'Size: '+item.size : ''}</p>` 
+      : '';
+    const imgSrc = item.selectedImage || item.img || '';
+    return `
+      <div class="cart-item" data-cart-id="${cId}" data-index="${idx}">
+        <img class="cart-item-img" src="${imgSrc}" alt="${item.name || 'Product'}" />
+        <div class="cart-item-info">
+          <p class="cart-item-name">${item.name || ''}</p>
+          ${variantInfo}
+          <p class="cart-item-price">₹${Number(item.price || 0).toLocaleString()}</p>
+          <div class="cart-item-qty">
+            <button type="button" class="qty-btn" onclick="changeQty('${safeId}',-1)" aria-label="Decrease quantity">−</button>
+            <span class="qty-num">${item.qty}</span>
+            <button type="button" class="qty-btn" onclick="changeQty('${safeId}',+1)" aria-label="Increase quantity">+</button>
+          </div>
         </div>
-      </div>
-      <button class="cart-item-remove" onclick="removeFromCart(${item.id})">✕</button>
-    </div>`).join('');
+        <button type="button" class="cart-item-remove" onclick="removeFromCart('${safeId}')" aria-label="Remove item" title="Remove item">✕</button>
+      </div>`;
+  }).join('');
 }
 
 // ---- CART DRAWER TOGGLE ----

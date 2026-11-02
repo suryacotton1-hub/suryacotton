@@ -722,7 +722,54 @@
       payAmountBtn.textContent = formattedTotal;
     }
 
+    function showPriceNotice() {
+      if (document.getElementById('scPriceNotice')) return;
+      const notice = document.createElement('div');
+      notice.id = 'scPriceNotice';
+      notice.style.cssText = 'background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; padding: 0.75rem 1rem; border-radius: 10px; font-size: 0.85rem; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem;';
+      notice.innerHTML = '<span style="font-size: 1.1rem;">ℹ️</span><span>Cart prices have been updated to the latest store rates.</span>';
+      const itemsEl = document.getElementById('checkoutItems');
+      if (itemsEl && itemsEl.parentNode) {
+        itemsEl.parentNode.insertBefore(notice, itemsEl);
+      }
+    }
+
+    // Live-sync cart prices with Firestore products to prevent stale cache discrepancies
+    async function syncCartPrices() {
+      if (!cart || cart.length === 0) return;
+      let priceUpdated = false;
+
+      for (const item of cart) {
+        if (!item.id) continue;
+        try {
+          const docRef = doc(db, "products", String(item.id));
+          const snap = await Promise.race([
+            getDoc(docRef),
+            new Promise(res => setTimeout(() => res(null), 2500))
+          ]);
+          if (snap && snap.exists()) {
+            const data = snap.data();
+            const livePrice = parseFloat(data.price);
+            if (!isNaN(livePrice) && livePrice > 0 && livePrice !== item.price) {
+              console.log(`[CHECKOUT SYNC] Price for "${item.name}" updated from ₹${item.price} to ₹${livePrice}`);
+              item.price = livePrice;
+              priceUpdated = true;
+            }
+          }
+        } catch(err) {
+          console.warn("Price sync check failed for item:", item.id, err);
+        }
+      }
+
+      if (priceUpdated) {
+        localStorage.setItem(storageKey, JSON.stringify(cart));
+        await updateCheckoutSummary();
+        showPriceNotice();
+      }
+    }
+
     updateCheckoutSummary();
+    syncCartPrices();
 
     // Database read/write helpers
     async function getUserProfile(uid) {
@@ -1075,6 +1122,18 @@
         }
 
         const orderData = await orderRes.json();
+
+        // If backend verified and adjusted prices to match authoritative Firestore catalog, sync UI
+        if (orderData.priceAdjusted || (orderData.authoritativeTotal && orderData.authoritativeTotal !== totalAmount)) {
+          if (orderData.authoritativeTotal) {
+            totalAmount = orderData.authoritativeTotal;
+            const formattedTotal = '₹' + totalAmount.toLocaleString();
+            totalEl.textContent = formattedTotal;
+            payAmountBtn.textContent = formattedTotal;
+            orderDetailsObj.total = totalAmount;
+          }
+          showPriceNotice();
+        }
 
         // Step 3: Open Razorpay checkout modal
         const options = {

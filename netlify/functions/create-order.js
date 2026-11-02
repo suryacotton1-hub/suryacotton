@@ -40,8 +40,72 @@ exports.handler = async (event) => {
     const rawOrder = orderDetails || {};
     const internalId = rawOrder.id ? String(rawOrder.id) : String(Math.floor(100000 + Math.random() * 900000));
 
+    // =========================================================================
+    // CRITICAL PRICE INTEGRITY SHIELD:
+    // Verify each item's price against the authoritative Firestore product catalog.
+    // Client-supplied amounts and cached prices are NEVER trusted blindly!
+    // =========================================================================
+    let verifiedTotal = Number(amount) / 100;
+    let priceAdjusted = false;
+
+    if (rawOrder.items && Array.isArray(rawOrder.items) && rawOrder.items.length > 0) {
+      let computedItemsTotal = 0;
+      let hasCatalogMatch = false;
+
+      for (const item of rawOrder.items) {
+        const qty = Math.max(1, parseInt(item.qty, 10) || 1);
+        let itemPrice = parseFloat(item.price) || 0;
+
+        if (item.id) {
+          try {
+            const dbProduct = await firestore.getProductFromFirestore(item.id);
+            if (dbProduct && dbProduct.price !== undefined) {
+              const catalogPrice = parseFloat(dbProduct.price);
+              if (!isNaN(catalogPrice) && catalogPrice > 0) {
+                hasCatalogMatch = true;
+                if (catalogPrice !== itemPrice) {
+                  console.warn(`[PRICE INTEGRITY] ⚠️ Product "${item.name || item.id}" price mismatch: client sent ₹${itemPrice}, catalog is ₹${catalogPrice}. Enforcing catalog price.`);
+                  item.price = catalogPrice;
+                  itemPrice = catalogPrice;
+                  priceAdjusted = true;
+                }
+              }
+            }
+          } catch (pErr) {
+            console.warn(`[PRICE INTEGRITY] Warning checking product ${item.id}:`, pErr.message);
+          }
+        }
+        computedItemsTotal += itemPrice * qty;
+      }
+
+      // Check shipping settings from Firestore
+      let isFreeShipping = false;
+      try {
+        const shippingSettings = await firestore.getShippingSettingsFromFirestore();
+        if (shippingSettings && shippingSettings.freeShipping === true) {
+          isFreeShipping = true;
+        }
+      } catch (sErr) {
+        console.warn('[PRICE INTEGRITY] Warning checking shipping settings:', sErr.message);
+      }
+
+      const shippingFee = isFreeShipping ? 0 : 40;
+      const computedTotal = computedItemsTotal + shippingFee;
+
+      // If we verified items against catalog, enforce computedTotal
+      if (hasCatalogMatch && computedTotal > 0) {
+        if (Math.round(computedTotal * 100) !== Number(amount)) {
+          console.warn(`[PRICE INTEGRITY] 🔒 Amount adjusted from client ₹${Number(amount)/100} to authoritative ₹${computedTotal}`);
+          priceAdjusted = true;
+        }
+        verifiedTotal = computedTotal;
+      }
+    }
+
+    const finalAmountInPaise = Math.round(verifiedTotal * 100);
+
     const options = {
-      amount: Number(amount),
+      amount: finalAmountInPaise,
       currency,
       receipt: receipt || `rcpt_${internalId}`,
       notes: {
@@ -72,7 +136,7 @@ exports.handler = async (event) => {
           customerState: rawOrder.customerState || rawOrder.state || '',
           customerPin: rawOrder.customerPin || rawOrder.pin || '',
           items: rawOrder.items || [],
-          total: parseFloat(rawOrder.total) || (Number(amount) / 100),
+          total: verifiedTotal,
           paymentMethod: 'Prepaid',
           status: 'Payment Pending',
           payment_status: 'PENDING',
@@ -95,6 +159,8 @@ exports.handler = async (event) => {
         internalOrderId: internalId,
         amount: order.amount,
         currency: order.currency,
+        priceAdjusted,
+        authoritativeTotal: verifiedTotal,
       }),
     };
   } catch (err) {

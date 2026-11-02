@@ -125,6 +125,40 @@ function dispatchSyncedEvents(fetchedProducts) {
     window.ALL_PRODUCTS = fetchedProducts;
   }
 
+  // Live-sync cart prices with newly fetched catalog products across all storefront pages
+  try {
+    ['sc_cart', 'sc_buy_now'].forEach(key => {
+      const rawCart = localStorage.getItem(key);
+      if (rawCart && rawCart.startsWith('[')) {
+        const cart = JSON.parse(rawCart);
+        let updated = false;
+        cart.forEach(item => {
+          const p = fetchedProducts.find(x => x && String(x.id).trim() === String(item.id).trim());
+          if (p && p.price !== undefined) {
+            const livePrice = parseFloat(p.price);
+            if (!isNaN(livePrice) && livePrice > 0 && livePrice !== item.price) {
+              console.log(`[STORE SYNC] Updated cart item "${item.name}" price from ₹${item.price} to ₹${livePrice}`);
+              item.price = livePrice;
+              updated = true;
+            }
+          }
+        });
+        if (updated) {
+          localStorage.setItem(key, JSON.stringify(cart));
+        }
+      }
+    });
+
+    if (typeof window.updateCartUI === 'function') {
+      window.updateCartUI();
+    }
+    if (typeof window.renderCartItems === 'function') {
+      window.renderCartItems();
+    }
+  } catch (e) {
+    console.warn("[STORE SYNC] Cart price sync warning:", e);
+  }
+
   window.dispatchEvent(new CustomEvent('scProductsSynced', { detail: fetchedProducts }));
 
   if (typeof window.renderProducts === 'function') {

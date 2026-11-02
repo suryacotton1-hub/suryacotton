@@ -12,6 +12,7 @@ const Razorpay = require('razorpay');
 const path = require('path');
 const shiprocket = require('./shiprocket');
 const emailService = require('./emailService');
+const firestore = require('./lib/firestore-rest');
 
 const ws = require('ws');
 const { createClient } = require('@supabase/supabase-js');
@@ -84,10 +85,10 @@ app.get('/api/email-config', (req, res) => {
 });
 
 // ─── POST /api/create-order ───────────────────────────────
-// Creates a Razorpay order. Frontend sends { amount (paise), currency, receipt }
+// Creates a Razorpay order. Frontend sends { amount (paise), currency, receipt, orderDetails }
 app.post('/api/create-order', async (req, res) => {
   try {
-    const { amount, currency = 'INR', receipt } = req.body;
+    const { amount, currency = 'INR', receipt, orderDetails } = req.body;
 
     if (!amount || isNaN(amount) || Number(amount) < 100) {
       return res.status(400).json({
@@ -95,16 +96,57 @@ app.post('/api/create-order', async (req, res) => {
       });
     }
 
+    const rawOrder = orderDetails || {};
+    const internalId = rawOrder.id ? String(rawOrder.id) : String(Math.floor(100000 + Math.random() * 900000));
+
     const options = {
       amount: Number(amount),
       currency,
-      receipt: receipt || `rcpt_${Date.now()}`,
+      receipt: receipt || `rcpt_${internalId}`,
+      notes: {
+        internal_id: internalId,
+        customer_name: String(rawOrder.customerName || rawOrder.name || '').slice(0, 40),
+        customer_phone: String(rawOrder.customerPhone || rawOrder.phone || '').slice(0, 15),
+        customer_pin: String(rawOrder.customerPin || rawOrder.pin || '').slice(0, 10),
+        customer_city: String(rawOrder.customerCity || rawOrder.city || '').slice(0, 30)
+      }
     };
 
     const order = await razorpay.orders.create(options);
 
+    // CRITICAL: Pre-save order details & shipping address to Firestore before user enters payment!
+    if (orderDetails) {
+      try {
+        const draftOrder = {
+          id: internalId,
+          date: rawOrder.date || new Date().toISOString(),
+          customerName: rawOrder.customerName || rawOrder.name || 'Valued Customer',
+          customerEmail: rawOrder.customerEmail || rawOrder.email || '',
+          customerPhone: rawOrder.customerPhone || rawOrder.phone || '',
+          customerAltPhone: rawOrder.customerAltPhone || null,
+          customerAddress: rawOrder.customerAddress || rawOrder.address || '',
+          customerCity: rawOrder.customerCity || rawOrder.city || '',
+          customerState: rawOrder.customerState || rawOrder.state || '',
+          customerPin: rawOrder.customerPin || rawOrder.pin || '',
+          items: rawOrder.items || [],
+          total: parseFloat(rawOrder.total) || (Number(amount) / 100),
+          paymentMethod: 'Prepaid',
+          status: 'Payment Pending',
+          payment_status: 'PENDING',
+          shipment_status: 'PENDING_APPROVAL',
+          razorpay_order_id: order.id,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+        await firestore.saveOrderToFirestore(internalId, draftOrder);
+      } catch (draftErr) {
+        console.warn('[PRE-ORDER] Draft save notice:', draftErr.message);
+      }
+    }
+
     return res.status(200).json({
       order_id: order.id,
+      internalOrderId: internalId,
       amount: order.amount,
       currency: order.currency,
     });
@@ -182,7 +224,15 @@ app.post('/api/verify-payment', async (req, res) => {
     }
 
     // 3. Extract & Normalize Order Record & Address Fields
-    const rawOrder = orderDetails || {};
+    let rawOrder = orderDetails || {};
+    if (!rawOrder.customerAddress || !rawOrder.items || rawOrder.items.length === 0) {
+      const existingDraft = await firestore.findOrderByRazorpay(razorpay_order_id, razorpay_payment_id);
+      if (existingDraft) {
+        rawOrder = { ...existingDraft, ...rawOrder };
+        console.log(`[PAYMENT] Recovered full draft order from Firestore: Order #${existingDraft.id || existingDraft.docId}`);
+      }
+    }
+
     const orderId = rawOrder.id ? String(rawOrder.id) : `SC-${Date.now().toString().slice(-6)}`;
     const custName = String(rawOrder.customerName || rawOrder.customer_name || rawOrder.name || 'Valued Customer').trim();
     const custEmail = String(rawOrder.customerEmail || rawOrder.customer_email || rawOrder.email || 'care@suryacotton.com').trim();
@@ -281,6 +331,41 @@ app.post('/api/verify-payment', async (req, res) => {
       }
     } catch (srErr) {
       console.warn(`[SHIPROCKET] ⚠️ Could not auto-register order in Shiprocket:`, srErr.message);
+    }
+
+    // 5. Authoritative Firestore Save (DIRECT BACKEND SYNC - guarantees Admin Dashboard visibility)
+    const firestoreOrder = {
+      id: orderId,
+      date: rawOrder.date || new Date().toISOString(),
+      customerName: custName,
+      customerEmail: custEmail,
+      customerPhone: custPhone,
+      customerAltPhone: rawOrder.customerAltPhone || null,
+      customerAddress: custAddress,
+      customerCity: custCity,
+      customerState: custState,
+      customerPin: custPin,
+      items: rawOrder.items || rawOrder.products || [],
+      total: parseFloat(rawOrder.total || rawOrder.total_amount) || 0,
+      paymentMethod: 'Prepaid',
+      status: 'Processing',
+      payment_status: 'PAID',
+      shipment_status: srResult.shipment_status,
+      shiprocket_order_id: srResult.shiprocket_order_id,
+      shipment_id: srResult.shipment_id,
+      awb_code: srResult.awb_code,
+      courier_name: srResult.courier_name,
+      tracking_url: srResult.tracking_url,
+      razorpay_payment_id,
+      razorpay_order_id,
+      updated_at: new Date().toISOString()
+    };
+
+    try {
+      await firestore.saveOrderToFirestore(orderId, firestoreOrder);
+      console.log(`[FIRESTORE] 💾 Successfully saved verified Order ${orderId} to Firestore.`);
+    } catch (fsErr) {
+      console.error(`[FIRESTORE] ❌ Could not save order to Firestore:`, fsErr.message);
     }
 
     // 6. Trigger Order Confirmation Email (EmailJS)
@@ -905,6 +990,134 @@ app.post('/api/shiprocket/webhook', async (req, res) => {
     return res.status(200).json({ received: true, update });
   } catch (err) {
     console.error('[SHIPROCKET SYNC] Webhook processing error:', err);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── POST /api/razorpay/webhook & /api/razorpay-webhook ────
+// Listens for Razorpay Payment Captured / Order Paid webhooks
+app.post(['/api/razorpay/webhook', '/api/razorpay-webhook'], async (req, res) => {
+  try {
+    const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
+    const webhookSignature = req.headers['x-razorpay-signature'] || req.headers['X-Razorpay-Signature'];
+    if (webhookSecret && webhookSignature) {
+      const rawBody = JSON.stringify(req.body);
+      const expectedSig = crypto.createHmac('sha256', webhookSecret).update(rawBody).digest('hex');
+      if (expectedSig !== webhookSignature) {
+        console.warn('[RAZORPAY WEBHOOK] ⚠️ Invalid webhook signature.');
+        return res.status(400).json({ error: 'Invalid webhook signature' });
+      }
+    }
+
+    const eventName = req.body?.event;
+    console.log(`[RAZORPAY WEBHOOK] 🔔 Received event: ${eventName}`);
+
+    if (eventName === 'payment.captured' || eventName === 'order.paid') {
+      const payment = req.body?.payload?.payment?.entity || {};
+      const rzpPaymentId = payment.id;
+      const rzpOrderId = payment.order_id;
+      const notes = payment.notes || {};
+      const amount = payment.amount ? payment.amount / 100 : 0;
+
+      if (!rzpPaymentId) {
+        return res.status(200).json({ status: 'ignored', message: 'No payment ID' });
+      }
+
+      console.log(`[RAZORPAY WEBHOOK] Processing successful payment ${rzpPaymentId} for Order ${rzpOrderId}`);
+
+      let order = await firestore.findOrderByRazorpay(rzpOrderId, rzpPaymentId);
+      let orderId = order ? order.id : (notes.internal_id || `SC-${Date.now().toString().slice(-6)}`);
+
+      if (order && order.payment_status === 'PAID') {
+        console.log(`[RAZORPAY WEBHOOK] Order #${orderId} already marked PAID. Skipping duplicate.`);
+        return res.status(200).json({ status: 'already_processed', orderId });
+      }
+
+      if (!order) {
+        order = {
+          id: orderId,
+          date: new Date().toISOString(),
+          customerName: notes.customer_name || 'Customer',
+          customerEmail: payment.email || 'care@suryacotton.com',
+          customerPhone: payment.contact ? String(payment.contact).replace(/\D/g, '').slice(-10) : (notes.customer_phone || ''),
+          customerAddress: notes.customer_address || 'Address provided at checkout',
+          customerCity: notes.customer_city || '',
+          customerPin: notes.customer_pin || '',
+          items: [],
+          total: amount,
+          paymentMethod: payment.method ? `Prepaid (${payment.method.toUpperCase()})` : 'Prepaid',
+          status: 'Processing',
+          payment_status: 'PAID',
+          shipment_status: 'PENDING_APPROVAL',
+          razorpay_payment_id: rzpPaymentId,
+          razorpay_order_id: rzpOrderId
+        };
+      } else {
+        order.status = 'Processing';
+        order.payment_status = 'PAID';
+        order.razorpay_payment_id = rzpPaymentId;
+        if (!order.razorpay_order_id && rzpOrderId) order.razorpay_order_id = rzpOrderId;
+        if (payment.email && !order.customerEmail) order.customerEmail = payment.email;
+        if (payment.contact && !order.customerPhone) order.customerPhone = String(payment.contact).replace(/\D/g, '').slice(-10);
+      }
+
+      if (!order.shiprocket_order_id) {
+        try {
+          const srPushRes = await shiprocket.createOrder({
+            id: orderId,
+            date: order.date || new Date().toISOString(),
+            customerName: order.customerName,
+            customerEmail: order.customerEmail,
+            customerPhone: order.customerPhone,
+            customerAddress: order.customerAddress,
+            customerCity: order.customerCity,
+            customerState: order.customerState,
+            customerPin: order.customerPin,
+            items: order.items || [],
+            total: order.total,
+            paymentMethod: 'Prepaid'
+          });
+
+          if (srPushRes.success && srPushRes.shiprocket_order_id) {
+            order.shiprocket_order_id = String(srPushRes.shiprocket_order_id);
+            order.shipment_id = String(srPushRes.shipment_id || '');
+            order.shipment_status = 'ORDER_CREATED';
+            console.log(`[RAZORPAY WEBHOOK] ✅ Auto-registered in Shiprocket (SR ID: ${srPushRes.shiprocket_order_id})`);
+          }
+        } catch (srErr) {
+          console.warn('[RAZORPAY WEBHOOK] Shiprocket auto-push notice:', srErr.message);
+        }
+      }
+
+      order.updated_at = new Date().toISOString();
+      await firestore.saveOrderToFirestore(orderId, order);
+      console.log(`[RAZORPAY WEBHOOK] ✅ Order #${orderId} saved to Firestore successfully!`);
+
+      try {
+        await emailService.sendOrderConfirmationEmail({
+          id: orderId,
+          date: order.date,
+          customerName: order.customerName,
+          customerEmail: order.customerEmail,
+          customerPhone: order.customerPhone,
+          customerAddress: order.customerAddress,
+          customerCity: order.customerCity,
+          customerState: order.customerState,
+          customerPin: order.customerPin,
+          items: order.items || [],
+          total: order.total,
+          razorpay_payment_id: rzpPaymentId
+        });
+      } catch (emailErr) {
+        console.warn('[RAZORPAY WEBHOOK] Email notification notice:', emailErr.message);
+      }
+
+      return res.status(200).json({ status: 'success', message: `Order #${orderId} processed via webhook.` });
+    }
+
+    return res.status(200).json({ status: 'ignored' });
+  } catch (err) {
+    console.error('[RAZORPAY WEBHOOK] Error:', err);
     return res.status(500).json({ error: err.message });
   }
 });

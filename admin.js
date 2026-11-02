@@ -3409,6 +3409,7 @@ function renderOrders() {
         <td>
           <div style="margin-bottom:6px;">
             <select class="status-select" onchange="window.updateOrderStatus('${o.id}', this.value)">
+              ${statClass.includes('payment pending') ? `<option value="Payment Pending" selected style="background:#fef3c7; color:#92400e; font-weight:700;">⚠️ Payment Pending</option>` : ''}
               <option value="Processing" ${statClass==='processing'?'selected':''}>Processing</option>
               <option value="Shipped" ${statClass==='shipped'?'selected':''}>Shipped</option>
               <option value="Delivered" ${statClass==='delivered'?'selected':''}>Delivered</option>

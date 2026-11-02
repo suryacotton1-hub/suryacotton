@@ -1,7 +1,8 @@
 // Netlify Function: POST /api/create-order
-// Creates a Razorpay order using the Razorpay Node SDK
+// Creates a Razorpay order using the Razorpay Node SDK and preserves pre-order delivery draft in Firestore
 
 const Razorpay = require('razorpay');
+const firestore = require('./lib/firestore-rest');
 
 exports.handler = async (event) => {
   const headers = {
@@ -20,7 +21,7 @@ exports.handler = async (event) => {
   }
 
   try {
-    const { amount, currency = 'INR', receipt } = JSON.parse(event.body || '{}');
+    const { amount, currency = 'INR', receipt, orderDetails } = JSON.parse(event.body || '{}');
 
     // Validate amount (minimum 100 paise = ₹1)
     if (!amount || isNaN(amount) || Number(amount) < 100) {
@@ -36,17 +37,62 @@ exports.handler = async (event) => {
       key_secret: process.env.RAZORPAY_KEY_SECRET || 'W8IiprT1R8oKl33OVTgh1eY8',
     });
 
-    const order = await razorpay.orders.create({
+    const rawOrder = orderDetails || {};
+    const internalId = rawOrder.id ? String(rawOrder.id) : String(Math.floor(100000 + Math.random() * 900000));
+
+    const options = {
       amount: Number(amount),
       currency,
-      receipt: receipt || `rcpt_${Date.now()}`,
-    });
+      receipt: receipt || `rcpt_${internalId}`,
+      notes: {
+        internal_id: internalId,
+        customer_name: String(rawOrder.customerName || rawOrder.name || '').slice(0, 40),
+        customer_phone: String(rawOrder.customerPhone || rawOrder.phone || '').slice(0, 15),
+        customer_pin: String(rawOrder.customerPin || rawOrder.pin || '').slice(0, 10),
+        customer_city: String(rawOrder.customerCity || rawOrder.city || '').slice(0, 30)
+      }
+    };
+
+    const order = await razorpay.orders.create(options);
+
+    // CRITICAL SECURITY & DATA PRESERVATION:
+    // Pre-save order details & shipping address to Firestore before user enters payment!
+    // If the customer pays and closes the tab/app, the address and items are ALREADY SAFE in Firestore!
+    if (orderDetails) {
+      try {
+        const draftOrder = {
+          id: internalId,
+          date: rawOrder.date || new Date().toISOString(),
+          customerName: rawOrder.customerName || rawOrder.name || 'Valued Customer',
+          customerEmail: rawOrder.customerEmail || rawOrder.email || '',
+          customerPhone: rawOrder.customerPhone || rawOrder.phone || '',
+          customerAltPhone: rawOrder.customerAltPhone || null,
+          customerAddress: rawOrder.customerAddress || rawOrder.address || '',
+          customerCity: rawOrder.customerCity || rawOrder.city || '',
+          customerState: rawOrder.customerState || rawOrder.state || '',
+          customerPin: rawOrder.customerPin || rawOrder.pin || '',
+          items: rawOrder.items || [],
+          total: parseFloat(rawOrder.total) || (Number(amount) / 100),
+          paymentMethod: 'Prepaid',
+          status: 'Payment Pending',
+          payment_status: 'PENDING',
+          shipment_status: 'PENDING_APPROVAL',
+          razorpay_order_id: order.id,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+        await firestore.saveOrderToFirestore(internalId, draftOrder);
+      } catch (draftErr) {
+        console.warn('[PRE-ORDER] Draft save notice:', draftErr.message);
+      }
+    }
 
     return {
       statusCode: 200,
       headers,
       body: JSON.stringify({
         order_id: order.id,
+        internalOrderId: internalId,
         amount: order.amount,
         currency: order.currency,
       }),

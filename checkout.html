@@ -1030,7 +1030,32 @@
           cachedRazorpayKey = key_id;
         }
 
-        // Step 2: Create order on backend
+        // Step 2: Prepare order details BEFORE payment so address & items are NEVER lost
+        const userEmailInput = document.getElementById('email') ? document.getElementById('email').value.trim() : '';
+        const userEmail = userEmailInput || ((currentUser && currentUser.email) ? currentUser.email : 'care@suryacotton.com');
+        const preOrderId = Math.floor(100000 + Math.random() * 900000);
+
+        const orderDetailsObj = {
+          id: preOrderId,
+          date: new Date().toISOString(),
+          customerName: document.getElementById('name').value,
+          customerEmail: userEmail,
+          customerPhone: document.getElementById('phone').value,
+          customerAltPhone: document.getElementById('altPhone') ? document.getElementById('altPhone').value : '',
+          customerAddress: document.getElementById('address').value,
+          customerState: document.getElementById('state').value,
+          customerCity: document.getElementById('city').value,
+          customerPin: document.getElementById('pin').value,
+          items: cart.map(i => ({ id: i.id, name: i.name, qty: i.qty, price: i.price, img: i.img, size: i.size || '' })),
+          total: totalAmount,
+          paymentMethod: 'Prepaid'
+        };
+
+        // Cache pre-order locally in case of sudden network disruption
+        try {
+          localStorage.setItem('sc_pending_checkout', JSON.stringify(orderDetailsObj));
+        } catch(e) {}
+
         setPayButtonLoading(true, 'Preparing Secure Order...');
         const amountInPaise = Math.round(totalAmount * 100);
         const orderRes = await fetch(`${BACKEND_URL}/api/create-order`, {
@@ -1039,7 +1064,8 @@
           body: JSON.stringify({
             amount: amountInPaise,
             currency: 'INR',
-            receipt: `sc_order_${Date.now()}`
+            receipt: `sc_order_${preOrderId}`,
+            orderDetails: orderDetailsObj
           })
         });
 
@@ -1049,9 +1075,6 @@
         }
 
         const orderData = await orderRes.json();
-
-        const userEmailInput = document.getElementById('email') ? document.getElementById('email').value.trim() : '';
-        const userEmail = userEmailInput || ((currentUser && currentUser.email) ? currentUser.email : 'care@suryacotton.com');
 
         // Step 3: Open Razorpay checkout modal
         const options = {
@@ -1073,21 +1096,10 @@
             // Step 4: Verify payment signature on backend
             showRzpStatus('processing', 'Verifying Payment...', 'Please wait while we confirm your payment with Razorpay and generate shipment details.');
 
-            const orderDetailsObj = {
-              id: Math.floor(100000 + Math.random() * 900000),
-              date: new Date().toISOString(),
-              customerName: document.getElementById('name').value,
-              customerEmail: userEmail,
-              customerPhone: document.getElementById('phone').value,
-              customerAltPhone: document.getElementById('altPhone').value,
-              customerAddress: document.getElementById('address').value,
-              customerState: document.getElementById('state').value,
-              customerCity: document.getElementById('city').value,
-              customerPin: document.getElementById('pin').value,
-              items: cart.map(i => ({ id: i.id, name: i.name, qty: i.qty, price: i.price, img: i.img, size: i.size || '' })),
-              total: totalAmount,
-              paymentMethod: 'Prepaid'
-            };
+            // Update internal ID if backend assigned one
+            if (orderData.internalOrderId) {
+              orderDetailsObj.id = orderData.internalOrderId;
+            }
 
             try {
               const verifyRes = await fetch(`${BACKEND_URL}/api/verify-payment`, {

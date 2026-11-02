@@ -111,6 +111,16 @@
 
 # Redirect /api/* calls to Netlify Functions
 [[redirects]]
+  from = "/api/razorpay/webhook"
+  to = "/.netlify/functions/razorpay-webhook"
+  status = 200
+
+[[redirects]]
+  from = "/api/razorpay-webhook"
+  to = "/.netlify/functions/razorpay-webhook"
+  status = 200
+
+[[redirects]]
   from = "/api/razorpay-key"
   to = "/.netlify/functions/razorpay-key"
   status = 200

@@ -2773,9 +2773,15 @@ window.openEditProduct = function(id) {
   });
   // Handle multi-select size
   const sizeEl = document.getElementById('df_size');
-  if (sizeEl && (p.size || p.sizes)) {
-    const srcSize = p.size || p.sizes;
-    const pSizes = Array.isArray(srcSize) ? srcSize.map(String) : [String(srcSize)];
+  if (sizeEl) {
+    let srcSize = [];
+    if (Array.isArray(p.sizes) && p.sizes.length > 0) srcSize = p.sizes;
+    else if (Array.isArray(p.size) && p.size.length > 0) srcSize = p.size;
+    else if (p.sizeStock && typeof p.sizeStock === 'object' && Object.keys(p.sizeStock).length > 0) srcSize = Object.keys(p.sizeStock);
+    else if (p.size) srcSize = [p.size];
+    else if (p.sizes) srcSize = [p.sizes];
+    
+    const pSizes = srcSize.map(String).map(s => s.trim()).filter(s => s.length > 0);
     if (sizeEl.classList.contains('checkbox-group')) {
       const cbs = sizeEl.querySelectorAll('input[type="checkbox"]');
       cbs.forEach(cb => {
@@ -2789,16 +2795,21 @@ window.openEditProduct = function(id) {
   }
   // Handle multi-select waist
   const waistEl = document.getElementById('df_waist');
-  if (waistEl && (p.waist || p.sizes || p.size)) {
-    const src = p.waist || p.sizes || p.size;
+  if (waistEl) {
+    let src = [];
+    if (Array.isArray(p.waist) && p.waist.length > 0) src = p.waist;
+    else if (Array.isArray(p.sizes) && p.sizes.length > 0) src = p.sizes;
+    else if (Array.isArray(p.size) && p.size.length > 0) src = p.size;
+    else if (p.sizeStock && typeof p.sizeStock === 'object' && Object.keys(p.sizeStock).length > 0) src = Object.keys(p.sizeStock);
+    else if (p.waist) src = [p.waist];
+    
+    const pWaists = src.map(String).map(s => s.trim()).filter(s => s.length > 0);
     if (waistEl.classList.contains('checkbox-group')) {
-      const pWaists = Array.isArray(src) ? src.map(String) : [String(src)];
       const cbs = waistEl.querySelectorAll('input[type="checkbox"]');
       cbs.forEach(cb => {
         if (pWaists.includes(cb.value)) cb.checked = true;
       });
     } else if (waistEl.tagName === 'SELECT') {
-      const pWaists = Array.isArray(src) ? src.map(String) : [String(src)];
       Array.from(waistEl.options).forEach(opt => {
         if (pWaists.includes(opt.value)) opt.selected = true;
       });
@@ -3178,6 +3189,16 @@ document.getElementById('saveProductBtn').addEventListener('click', async () => 
       });
       newProductData.sizeStock = sMap;
       newProductData.stock = Object.values(sMap).reduce((a, b) => a + b, 0);
+    }
+
+    // Ensure sizes is a clean non-empty array
+    if (newProductData.sizes && Array.isArray(newProductData.sizes)) {
+      newProductData.sizes = newProductData.sizes.map(s => String(s || '').trim()).filter(s => s.length > 0);
+    }
+    // If sizes is empty but sizeStock has keys, preserve the keys
+    if ((!newProductData.sizes || newProductData.sizes.length === 0) && newProductData.sizeStock && typeof newProductData.sizeStock === 'object') {
+      newProductData.sizes = Object.keys(newProductData.sizeStock).filter(s => String(s || '').trim().length > 0);
+      newProductData.size = [...newProductData.sizes];
     }
     
 // Helper to wrap promises with a timeout so Firestore doesn't hang indefinitely

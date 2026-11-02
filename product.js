@@ -238,6 +238,76 @@ function getProductId() {
   return idVal.trim();
 }
 
+// Helper to extract clean array of string sizes from any product payload
+function extractCleanSizes(prod) {
+  if (!prod) return [];
+  const raw = [];
+  if (Array.isArray(prod.sizes)) raw.push(...prod.sizes);
+  else if (typeof prod.sizes === 'string') raw.push(...prod.sizes.split(/[,/|]/));
+
+  if (Array.isArray(prod.size)) raw.push(...prod.size);
+  else if (typeof prod.size === 'string') raw.push(...prod.size.split(/[,/|]/));
+
+  if (Array.isArray(prod.waist)) raw.push(...prod.waist);
+  else if (typeof prod.waist === 'string') raw.push(...prod.waist.split(/[,/|]/));
+
+  // Flatten nested arrays recursively & filter out non-string/blank entries
+  const clean = [];
+  function collect(item) {
+    if (Array.isArray(item)) {
+      item.forEach(collect);
+    } else if (item !== null && item !== undefined) {
+      const s = String(item).trim();
+      if (s.length > 0 && s !== 'null' && s !== 'undefined' && s !== '[object Object]') {
+        clean.push(s);
+      }
+    }
+  }
+  collect(raw);
+
+  // If clean sizes is empty, check prod.sizeStock keys!
+  if (clean.length === 0 && prod.sizeStock && typeof prod.sizeStock === 'object') {
+    Object.keys(prod.sizeStock).forEach(k => {
+      const s = String(k).trim();
+      if (s.length > 0 && s !== 'null' && s !== 'undefined') clean.push(s);
+    });
+  }
+
+  // Deduplicate preserving order
+  return Array.from(new Set(clean));
+}
+
+function isSizeOutOfStock(prod, size) {
+  if (!prod) return true;
+  if (!size || !String(size).trim()) return true;
+
+  // Check size-specific stock first
+  if (prod.sizeStock && typeof prod.sizeStock === 'object' && prod.sizeStock[size] !== undefined) {
+    return parseInt(prod.sizeStock[size]) <= 0;
+  }
+
+  // If sizeStock is provided for other sizes, check if total sizeStock is 0
+  if (prod.sizeStock && typeof prod.sizeStock === 'object' && Object.keys(prod.sizeStock).length > 0) {
+    const total = Object.values(prod.sizeStock).reduce((a, b) => a + (parseInt(b) || 0), 0);
+    if (total <= 0) return true;
+  }
+
+  // Fallback to product.stock
+  if (prod.stock !== undefined && prod.stock !== null) {
+    return parseInt(prod.stock) <= 0;
+  }
+
+  return false;
+}
+
+function areAllSizesOutOfStock(prod) {
+  if (!prod) return true;
+  if (isProductTotallyStockedOut(prod)) return true;
+  const sizes = (prod.sizes || []).filter(s => s && String(s).trim().length > 0);
+  if (sizes.length === 0) return true;
+  return sizes.every(s => isSizeOutOfStock(prod, s));
+}
+
 function renderProduct(p) {
   document.title = `${p.name} – SuryaCotton`;
   document.getElementById('pageTitle').textContent = `${p.name} – SuryaCotton`;
@@ -246,17 +316,17 @@ function renderProduct(p) {
   document.getElementById('bcCat').href = `category.html?cat=${encodeURIComponent(p.cat)}`;
 
   const isAccessories = p.cat === 'caps' || p.cat === 'cap' || p.cat === 'keychains';
-  if (!p.sizes || p.sizes.length === 0) {
-    if (p.size) {
-      p.sizes = [p.size];
-    } else if (p.cat === 'pant' || String(p.cat).toLowerCase() === 'pant') {
-      p.sizes = ['28', '30', '32', '34', '36', '38'];
+  let cleanSizes = extractCleanSizes(p);
+  if (cleanSizes.length === 0) {
+    if (p.cat === 'pant' || String(p.cat).toLowerCase() === 'pant') {
+      cleanSizes = ['28', '30', '32', '34', '36', '38'];
     } else if (isAccessories) {
-      p.sizes = ['Free Size'];
+      cleanSizes = ['Free Size'];
     } else {
-      p.sizes = ['S', 'M', 'L', 'XL', 'XXL'];
+      cleanSizes = ['S', 'M', 'L', 'XL', 'XXL'];
     }
   }
+  p.sizes = cleanSizes;
   if (!p.colors || p.colors.length === 0) p.colors = [{ hex: '#212121', name: 'Black' }, { hex: '#ffffff', name: 'White' }];
 
   // Ratings
@@ -415,9 +485,18 @@ function isProductTotallyStockedOut(p) {
   if (!p) return false;
   if (p.sizeStock && typeof p.sizeStock === 'object' && Object.keys(p.sizeStock).length > 0) {
     const totalSizeStock = Object.values(p.sizeStock).reduce((sum, val) => sum + (parseInt(val) || 0), 0);
-    return totalSizeStock <= 0;
+    if (totalSizeStock <= 0) return true;
   }
-  return p.stock !== undefined && parseInt(p.stock) <= 0;
+  if (p.stock !== undefined && parseInt(p.stock) <= 0) {
+    return true;
+  }
+  if (p.sizes && Array.isArray(p.sizes) && p.sizes.length > 0 && p.sizeStock && typeof p.sizeStock === 'object') {
+    const validSizes = p.sizes.filter(s => s && String(s).trim().length > 0);
+    if (validSizes.length > 0 && validSizes.every(s => p.sizeStock[s] !== undefined && parseInt(p.sizeStock[s]) <= 0)) {
+      return true;
+    }
+  }
+  return false;
 }
 window.isProductTotallyStockedOut = isProductTotallyStockedOut;
 
@@ -529,6 +608,72 @@ function renderCategoryStrip(current) {
     </a>`).join('');
 }
 
+function updateCtaButtonsStockState(p, allOut) {
+  const addBtn = document.getElementById('pdAddCartBtn');
+  const buyBtn = document.getElementById('pdBuyBtn');
+  const mobAddBtn = document.getElementById('pdMobAddBtn');
+  const mobBuyBtn = document.getElementById('pdMobBuyBtn');
+  const qtyRow = document.querySelector('.pd-qty-row');
+
+  if (allOut) {
+    if (addBtn) {
+      addBtn.disabled = true;
+      addBtn.innerHTML = `<span>Out of Stock</span>`;
+      addBtn.style.cssText = 'background: #94a3b8 !important; border-color: #94a3b8 !important; color: white !important; cursor: not-allowed !important; opacity: 0.7 !important;';
+    }
+    if (buyBtn) {
+      buyBtn.disabled = true;
+      buyBtn.innerHTML = `<span>Out of Stock</span>`;
+      buyBtn.style.cssText = 'background: #94a3b8 !important; border-color: #94a3b8 !important; color: white !important; cursor: not-allowed !important;';
+    }
+    if (mobAddBtn) {
+      mobAddBtn.disabled = true;
+      mobAddBtn.innerHTML = `<span>Out of Stock</span>`;
+      mobAddBtn.style.cssText = 'background: #94a3b8 !important; border-color: #94a3b8 !important; color: white !important; cursor: not-allowed !important; opacity: 0.7 !important;';
+    }
+    if (mobBuyBtn) {
+      mobBuyBtn.disabled = true;
+      mobBuyBtn.innerHTML = `<span>Out of Stock</span>`;
+      mobBuyBtn.style.cssText = 'background: #94a3b8 !important; border-color: #94a3b8 !important; color: white !important; cursor: not-allowed !important;';
+    }
+    if (qtyRow) {
+      qtyRow.style.opacity = '0.5';
+      qtyRow.style.pointerEvents = 'none';
+    }
+  } else {
+    if (addBtn) {
+      addBtn.disabled = false;
+      addBtn.style.cssText = '';
+      addBtn.innerHTML = `
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        Add to Cart
+      `;
+    }
+    if (buyBtn) {
+      buyBtn.disabled = false;
+      buyBtn.style.cssText = '';
+      buyBtn.innerHTML = `Buy Now →`;
+    }
+    if (mobAddBtn) {
+      mobAddBtn.disabled = false;
+      mobAddBtn.style.cssText = '';
+      mobAddBtn.innerHTML = `
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        Add to Cart
+      `;
+    }
+    if (mobBuyBtn) {
+      mobBuyBtn.disabled = false;
+      mobBuyBtn.style.cssText = '';
+      mobBuyBtn.innerHTML = `Buy Now`;
+    }
+    if (qtyRow) {
+      qtyRow.style.opacity = '';
+      qtyRow.style.pointerEvents = '';
+    }
+  }
+}
+
 function renderSizes(p) {
   const el = document.getElementById('pdSizes');
   const nameEl = document.getElementById('pdSizeName');
@@ -540,16 +685,25 @@ function renderSizes(p) {
     guideBtn.style.display = isAccessories ? 'none' : '';
   }
   
-  if (!p.sizes || p.sizes.length === 0) return;
+  if (!el) return;
 
-  el.innerHTML = p.sizes.map(s => {
-    const isOut = p.sizeStock && (p.sizeStock[s] === 0 || p.sizeStock[s] === "0" || parseInt(p.sizeStock[s]) <= 0);
+  const validSizes = (p.sizes || []).filter(s => s && String(s).trim().length > 0);
+  const allOut = areAllSizesOutOfStock(p);
+
+  if (nameEl) {
+    if (allOut) {
+      nameEl.innerHTML = '<span style="color: #dc2626; font-weight: 700; background: #fee2e2; padding: 2px 8px; border-radius: 6px; font-size: 0.8rem;">Out of Stock</span>';
+    } else {
+      nameEl.textContent = 'Select a size';
+    }
+  }
+
+  el.innerHTML = validSizes.map(s => {
+    const isOut = isSizeOutOfStock(p, s);
     const outClass = isOut ? ' out' : '';
     const titleAttr = isOut ? ' title="Out of Stock"' : '';
     return `<button class="pd-size-btn${outClass}" data-size="${s}" type="button"${titleAttr}>${s}</button>`;
   }).join('');
-
-  if (nameEl) nameEl.textContent = 'Select a size';
 
   el.querySelectorAll('.pd-size-btn:not(.out)').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -568,13 +722,15 @@ function renderSizes(p) {
     });
   });
 
-  // If only 1 size option (e.g. Free Size / Adjustable for caps), auto-select it
-  if (p.sizes.length === 1) {
+  // If only 1 size option, auto-select it ONLY IF IN STOCK!
+  if (validSizes.length === 1 && !allOut) {
     const singleBtn = el.querySelector('.pd-size-btn:not(.out)');
     if (singleBtn) {
       singleBtn.click();
     }
   }
+
+  updateCtaButtonsStockState(p, allOut);
 }
 
 function renderRelated(current) {
@@ -643,13 +799,19 @@ document.getElementById('pdQtyPlus').addEventListener('click', () => {
 
 // ---- CTA ----
 function handleAddToCart() {
-  if (!selectedSize) { 
-    openSizeSelectModal('cart');
-    return; 
-  }
   const pid = getProductId();
   const p = products.find(x => String(x.id) === String(pid) || Number(x.id) === Number(pid));
   if (!p) return;
+
+  if (areAllSizesOutOfStock(p)) {
+    showToast('⚠️ Sorry, this product is completely Out of Stock!');
+    return;
+  }
+
+  if (!selectedSize || isSizeOutOfStock(p, selectedSize)) { 
+    openSizeSelectModal('cart');
+    return; 
+  }
   
   const availStock = p.sizeStock && p.sizeStock[selectedSize] !== undefined ? parseInt(p.sizeStock[selectedSize]) : (p.stock !== undefined ? parseInt(p.stock) : 10);
   if (availStock <= 0) {
@@ -684,13 +846,19 @@ function handleAddToCart() {
 }
 
 function handleBuyNow() {
-  if (!selectedSize) { 
-    openSizeSelectModal('buy');
-    return; 
-  }
   const pid = getProductId();
   const p = products.find(x => String(x.id) === String(pid) || Number(x.id) === Number(pid));
   if (!p) return;
+
+  if (areAllSizesOutOfStock(p)) {
+    showToast('⚠️ Sorry, this product is completely Out of Stock!');
+    return;
+  }
+
+  if (!selectedSize || isSizeOutOfStock(p, selectedSize)) { 
+    openSizeSelectModal('buy');
+    return; 
+  }
   
   const availStock = p.sizeStock && p.sizeStock[selectedSize] !== undefined ? parseInt(p.sizeStock[selectedSize]) : (p.stock !== undefined ? parseInt(p.stock) : 10);
   if (availStock <= 0) {
@@ -722,24 +890,36 @@ function handleBuyNow() {
 let pendingAction = null;
 
 function openSizeSelectModal(action) {
+  const pid = getProductId();
+  const p = products.find(x => String(x.id) === String(pid) || Number(x.id) === Number(pid));
+  if (!p) return;
+
+  if (areAllSizesOutOfStock(p)) {
+    showToast('⚠️ Sorry, this product is completely Out of Stock!');
+    return;
+  }
+
   pendingAction = action;
   const modal = document.getElementById('pdSizeSelectModal');
   const sizesContainer = document.getElementById('pdSsmSizes');
   const overlay = document.getElementById('pdModalOverlay');
   if (!modal || !sizesContainer) return;
-  
-  const p = products.find(x => String(x.id) === String(getProductId()) || Number(x.id) === Number(getProductId()));
-  if (!p || !p.sizes) return;
-  
-  sizesContainer.innerHTML = p.sizes.map(s => {
-    const isOut = p.sizeStock && (p.sizeStock[s] === 0 || p.sizeStock[s] === "0" || parseInt(p.sizeStock[s]) <= 0);
+
+  const validSizes = (p.sizes || []).filter(s => s && String(s).trim().length > 0);
+  if (validSizes.length === 0) {
+    showToast('⚠️ No sizes available for this product.');
+    return;
+  }
+
+  sizesContainer.innerHTML = validSizes.map(s => {
+    const isOut = isSizeOutOfStock(p, s);
     const outClass = isOut ? ' out' : '';
     const titleAttr = isOut ? ' title="Out of Stock"' : '';
     return `<button class="pd-size-btn ssm-size-btn${outClass}" data-size="${s}" type="button"${titleAttr}>${s}</button>`;
   }).join('');
   
   // Mark active if already selected (just in case)
-  if (selectedSize) {
+  if (selectedSize && !isSizeOutOfStock(p, selectedSize)) {
     const activeBtn = Array.from(sizesContainer.querySelectorAll('.ssm-size-btn')).find(b => b.dataset.size === selectedSize);
     if (activeBtn) activeBtn.classList.add('active');
   }
@@ -767,7 +947,7 @@ function openSizeSelectModal(action) {
   });
   
   modal.classList.add('open');
-  overlay.classList.add('open');
+  if (overlay) overlay.classList.add('open');
 }
 
 const ssmClose = document.getElementById('pdSizeSelectClose');
@@ -783,8 +963,14 @@ if (ssmClose) {
 
 if (ssmContinue) {
   ssmContinue.addEventListener('click', () => {
-    if (!selectedSize) {
+    if (!selectedSize || !selectedSize.trim()) {
       showToast('⚠️ Please select a size first');
+      return;
+    }
+    const pid = getProductId();
+    const p = products.find(x => String(x.id) === String(pid) || Number(x.id) === Number(pid));
+    if (p && isSizeOutOfStock(p, selectedSize)) {
+      showToast(`⚠️ Size "${selectedSize}" is out of stock! Please pick another size.`);
       return;
     }
     document.getElementById('pdSizeSelectModal').classList.remove('open');
